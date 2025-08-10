@@ -5,6 +5,8 @@ import * as S from "./styled";
 import { useState, useEffect } from "react";
 import MenuService from "@services/MenuService";
 import imageCompression from "browser-image-compression";
+import CommonDropdown from "@pages/signup/_components/inputs/dropdown/CommonDropdown";
+import MenuDropdown from "@pages/menu/_components/MenuDropdown";
 
 interface MenuModalProps {
   text: string;
@@ -41,6 +43,14 @@ const MenuModal2 = ({
   const [price, setPrice] = useState<string | undefined>();
   const [stock, setStock] = useState<string | undefined>();
   const [image, setImage] = useState<File | null>(null);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+
+  // dummy data
+  const menuCompositionOptions = ["메뉴", "음료", "세트"];
+  const [menuComposition, setMenuComposition] = useState<string>("메뉴");
+  const onChangeMenuComposition = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMenuComposition(e.target.value);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -167,6 +177,16 @@ const MenuModal2 = ({
                 />
                 음료
               </label>
+              <label className="custom-label">
+                <input
+                  type="radio"
+                  name="category"
+                  value="세트"
+                  onChange={() => setCategory("세트")}
+                  checked={category === "세트"}
+                />
+                세트
+              </label>
             </div>
           </S.ele>
           <S.ele>
@@ -203,6 +223,27 @@ const MenuModal2 = ({
               onInput={handleNumberInput}
             />
           </S.ele>
+          {category === "세트" && (
+            <S.ele>
+              <S.setComposition>
+                <S.SubTitle>
+                  메뉴 구성<span>*</span>
+                </S.SubTitle>
+                <button type="button">+추가</button>
+              </S.setComposition>
+              <MenuDropdown
+                isOpen={isOpen}
+                setIsOpen={setIsOpen}
+              ></MenuDropdown>
+              {/* <S.inputText
+                type="text"
+                placeholder="예) 20000"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                onInput={handleNumberInput}
+              /> */}
+            </S.ele>
+          )}
           <S.ele>
             <S.SubTitle>
               재고수량<span>*</span>
