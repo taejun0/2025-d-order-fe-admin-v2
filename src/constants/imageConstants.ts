@@ -34,6 +34,8 @@ import Bill from "../assets/images/billBottom.png";
 import MenuPlus from "../assets/icons/menuPlus.svg";
 import MenuEdit from "../assets/icons/grayEdit.svg";
 
+import close from "@assets/icons/close.svg";
+
 export const IMAGE_CONSTANTS = {
   LOGO: "/images/Logo.png",
   LOGO2: "/images/Logo2.png",
@@ -85,4 +87,6 @@ export const IMAGE_CONSTANTS = {
 
   MENUPLUS: MenuPlus,
   MENUEDIT: MenuEdit,
+
+  CLOSE: close,
 };
