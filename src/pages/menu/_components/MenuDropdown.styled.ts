@@ -36,20 +36,33 @@ export const ArrowIcon = styled.img<{ $isOpen: boolean }>`
   transition: transform 0.2s ease-in-out;
 `;
 
-export const OptionBox = styled.div`
+export const OptionBox = styled.ol`
+  width: 100%;
   border-radius: 0 0 10px 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  top: 100%;
 `;
+
 export const Option = styled.li`
   list-style-type: none;
   padding: 20px;
   cursor: pointer;
   ${({ theme }) => theme.fonts.SemiBold16};
   color: ${({ theme }) => theme.colors.Black01};
-
   border: 1px solid rgba(192, 192, 192, 0.5);
   background-color: ${({ theme }) => theme.colors.Bg};
-  &:hover {
+  &:not(.disabled)hover {
     background-color: ${({ theme }) => theme.colors.Orange02};
     color: ${({ theme }) => theme.colors.Orange01};
+  }
+  &:last-child {
+    border-radius: 0 0 10px 10px;
+  }
+
+  &.disabled {
+    color: ${({ theme }) => theme.colors.Black02};
+    cursor: default;
+    background-color: ${({ theme }) => theme.colors.Bg};
   }
 `;

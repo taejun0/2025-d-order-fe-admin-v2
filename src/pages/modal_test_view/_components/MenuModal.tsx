@@ -5,7 +5,7 @@ import * as S from "./styled";
 import { useState, useEffect } from "react";
 import MenuService from "@services/MenuService";
 import imageCompression from "browser-image-compression";
-import CommonDropdown from "@pages/signup/_components/inputs/dropdown/CommonDropdown";
+// import CommonDropdown from "@pages/signup/_components/inputs/dropdown/CommonDropdown";
 import MenuDropdown from "@pages/menu/_components/MenuDropdown";
 
 interface MenuModalProps {
@@ -46,11 +46,11 @@ const MenuModal2 = ({
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   // dummy data
-  const menuCompositionOptions = ["메뉴", "음료", "세트"];
-  const [menuComposition, setMenuComposition] = useState<string>("메뉴");
-  const onChangeMenuComposition = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMenuComposition(e.target.value);
-  };
+  // const menuCompositionOptions = ["메뉴", "음료", "세트"];
+  // const [menuComposition, setMenuComposition] = useState<string>("메뉴");
+  // const onChangeMenuComposition = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setMenuComposition(e.target.value);
+  // };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -89,7 +89,9 @@ const MenuModal2 = ({
       e.target.value = value.replace(/[^\d]/g, ""); // 숫자만 남기고 나머지 제거
     }
   };
-
+  // 옵션 추가
+  const addOption = () => {};
+  // 제출 이벤트
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -229,33 +231,30 @@ const MenuModal2 = ({
                 <S.SubTitle>
                   메뉴 구성<span>*</span>
                 </S.SubTitle>
-                <button type="button">+추가</button>
+                <button type="button" onClick={addOption}>
+                  + 추가
+                </button>
               </S.setComposition>
               <MenuDropdown
                 isOpen={isOpen}
                 setIsOpen={setIsOpen}
               ></MenuDropdown>
-              {/* <S.inputText
-                type="text"
-                placeholder="예) 20000"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                onInput={handleNumberInput}
-              /> */}
             </S.ele>
           )}
-          <S.ele>
-            <S.SubTitle>
-              재고수량<span>*</span>
-            </S.SubTitle>
-            <S.inputText
-              type="number"
-              placeholder="예) 100"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
-              onInput={handleNumberInput}
-            />
-          </S.ele>
+          {category !== "세트" && (
+            <S.ele>
+              <S.SubTitle>
+                재고수량<span>*</span>
+              </S.SubTitle>
+              <S.inputText
+                type="number"
+                placeholder="예) 100"
+                value={stock}
+                onChange={(e) => setStock(e.target.value)}
+                onInput={handleNumberInput}
+              />
+            </S.ele>
+          )}
           <S.ele>
             <S.SubTitle>메뉴 이미지</S.SubTitle>
             <S.OtherText>이미지 파일 (JPG,PNG)을 첨부해 주세요</S.OtherText>
