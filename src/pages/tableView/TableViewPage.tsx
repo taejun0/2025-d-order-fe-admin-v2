@@ -1,5 +1,6 @@
 // tableView/TableViewPage.tsx
 import { useState } from "react";
+// components 
 import TableViewGrid from "./_components/tableGrid";
 import TableDetail from "./_components/detailPage/tableDetail";
 import * as S from "./TableViewPage.styled";
