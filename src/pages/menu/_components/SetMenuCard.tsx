@@ -3,15 +3,14 @@ import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { useState } from "react";
 import MenuModal from "../../modal_test_view/_components/MenuModal";
 import MenuDeleteModal from "../../modal_test_view/_components/MenuDeleteModal";
-import { Menu } from "../Type/Menu_type";
-import MenuService from "../api/MenuService";
+import { SetMenu } from "../Type/Menu_type";
 
-interface MenuCardProps {
-  menu: Menu;
+interface SetMenuCardProps {
+  menu: SetMenu;
   onMenuChange: () => void;
 }
 
-const MenuCard = ({ menu, onMenuChange }: MenuCardProps) => {
+const SetMenuCard = ({ menu, onMenuChange }: SetMenuCardProps) => {
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -53,11 +52,11 @@ const MenuCard = ({ menu, onMenuChange }: MenuCardProps) => {
         )}
         <S.CardContents>
           <S.CardImg>
-            {menu.menu_image ? (
-              <img src={menu.menu_image} alt={menu.menu_name} />
+            {menu.set_image ? (
+              <img src={menu.set_image} alt={menu.set_name} />
             ) : (
               <S.DefaultCardImg>
-                <img src={IMAGE_CONSTANTS.CHARACTER} alt={menu.menu_name} />
+                <img src={IMAGE_CONSTANTS.CHARACTER} alt={menu.set_name} />
               </S.DefaultCardImg>
             )}
             <S.DeleteBtn onClick={handleDeleteClick}>
@@ -70,20 +69,21 @@ const MenuCard = ({ menu, onMenuChange }: MenuCardProps) => {
               메뉴 수정
             </S.MenuEditBtn>
             <S.CardTextInner>
-              <S.CardText className="bold">{menu.menu_name}</S.CardText>
-              <S.CardText>{menu.menu_price.toLocaleString()}원</S.CardText>
+              <S.CardText className="bold">{menu.set_name}</S.CardText>
+              <S.CardText>{menu.set_price.toLocaleString()}원</S.CardText>
             </S.CardTextInner>
             <S.CardTextInner>
               <S.CardText>재고수량</S.CardText>
               <S.CardText>
-                {menu.menu_amount !== undefined ? `${menu.menu_amount}개` : "-"}
+                {/* {menu.menu_amount !== undefined ? `${menu.menu_amount}개` : "-"} */}
+                임시갯수
               </S.CardText>
             </S.CardTextInner>
           </S.CardInfo>
         </S.CardContents>
       </S.MenuCardWrapper>
 
-      {showModal && (
+      {/* {showModal && (
         <S.ModalWrapper onClick={handleCloseModal}>
           <div onClick={(e) => e.stopPropagation()}>
             <MenuModal
@@ -103,7 +103,7 @@ const MenuCard = ({ menu, onMenuChange }: MenuCardProps) => {
             />
           </div>
         </S.ModalWrapper>
-      )}
+      )} */}
 
       {showDeleteModal && (
         <MenuDeleteModal
@@ -115,4 +115,4 @@ const MenuCard = ({ menu, onMenuChange }: MenuCardProps) => {
   );
 };
 
-export default MenuCard;
+export default SetMenuCard;

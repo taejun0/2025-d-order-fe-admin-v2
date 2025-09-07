@@ -1,17 +1,6 @@
 import { AxiosResponse } from "axios";
 import { instance } from "../../../services/instance";
-
-export interface Menu {
-  id: number;
-  menu_name: string;
-  menu_category: string;
-  menu_price: number;
-  menu_description: string;
-  menu_image?: string | null;
-  menu_remain?: number;
-  booth_id?: number;
-  is_soldout?: boolean;
-}
+import { Menu } from "../Type/Menu_type";
 
 export interface MenuResponse {
   status: string;

@@ -1,31 +1,32 @@
 import styled from "styled-components";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
-import { Menu } from "../api/MenuService";
+import { TableInfo } from "../Type/Menu_type";
+type TableFeeCardProps = { table: TableInfo };
 
-interface TableFeeCardProps {
-  menu: Menu;
-}
-
-const TableFeeCard = ({ menu }: TableFeeCardProps) => {
+const TableFeeCard = ({ table }: TableFeeCardProps) => {
   return (
     <TableFeeCardWrapper>
-      {menu.is_soldout && (
+      {/* {!table.table && (
         <SoldOutOverlay>
           <SoldOutText>SOLD OUT</SoldOutText>
         </SoldOutOverlay>
-      )}
+      )} */}
       <CardContents>
         <CardImg>
           <img src={IMAGE_CONSTANTS.CHARACTER} alt="테이블 이용료" />
         </CardImg>
         <CardInfo>
           <CardTextInner>
-            <CardText className="bold">{menu.menu_category}</CardText>
-            <CardText>{menu.menu_price.toLocaleString()}원</CardText>
+            <CardText className="bold">{table.seat_type}</CardText>
+            {table.seat_tax_person === "" ? (
+              <CardText>{table.seat_tax_person}</CardText>
+            ) : (
+              <CardText>{table.seat_tax_person.toLocaleString()}원</CardText>
+            )}
           </CardTextInner>
           <CardTextInner>
             <CardText>기준</CardText>
-            <CardText>{menu.menu_description}</CardText>
+            <CardText>인원 수</CardText>
           </CardTextInner>
         </CardInfo>
       </CardContents>
