@@ -2,31 +2,49 @@ import styled from "styled-components";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import TableBillItem from "./TableBillItem";
 import { OrderItem, OrderStatus } from "@pages/liveorder_v2/types";
+import { useMemo } from "react";
+const ORDER_DELETE_TIME = 1 * 10 * 1000;
 
 // 1. 부모 컴포넌트로부터 받을 props 타입을 정의합니다.
 interface TableBillProps {
   orders: OrderItem[];
   onOrderStatusChange: (orderId: number, newStatus: OrderStatus) => void;
+  isFadingOut?: boolean;
+  currentTime: number;
 }
 
-const TableBill = ({ orders, onOrderStatusChange }: TableBillProps) => {
-  // 2. orders 배열이 비어있으면 아무것도 렌더링하지 않습니다.
-  if (!orders || orders.length === 0) {
+const TableBill = ({
+  orders,
+  onOrderStatusChange,
+  isFadingOut,
+  currentTime,
+}: TableBillProps) => {
+  // 1. useMemo를 사용해 보여줄 아이템 목록을 계산
+  const visibleItems = useMemo(() => {
+    // 3분 규칙으로 아이템 필터링
+    const timeFiltered = orders.filter((order) => {
+      if (order.status !== "SERVED") return true;
+      if (order.servedAt && currentTime - order.servedAt < ORDER_DELETE_TIME) {
+        return true;
+      }
+      return false;
+    });
+    // 시간순으로 정렬
+    return timeFiltered.sort(
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    );
+  }, [orders, currentTime]);
+  // 보여줄 아이템이 하나도 없으면 렌더링하지 않음 (이 경우는 거의 없음)
+  if (visibleItems.length === 0) {
     return null;
   }
 
-  // 3. 테이블 번호를 첫 번째 주문에서 가져옵니다.
-  const tableNumber = `테이블 ${orders[0].table_num}`;
+  const tableNumber = `테이블 ${visibleItems[0].table_num}`;
 
-  // 1. 주문 목록을 시간순(오래된 순)으로 먼저 정렬합니다.
-  const sortedOrders = [...orders].sort(
-    (a, b) =>
-      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  );
-
-  // 2. 정렬된 목록의 첫 번째 주문(가장 이른 주문) 시간을 가져옵니다.
+  // 가장 이른 주문 시간 계산
   const earliestOrderTime = new Date(
-    sortedOrders[0].created_at
+    visibleItems[0].created_at
   ).toLocaleTimeString("ko-KR", {
     hour: "2-digit",
     minute: "2-digit",
@@ -34,7 +52,7 @@ const TableBill = ({ orders, onOrderStatusChange }: TableBillProps) => {
   });
 
   return (
-    <TableBillWrapper>
+    <TableBillWrapper $isFading={isFadingOut}>
       <TableBillContents>
         <TableBillHeader>
           <TableHeaderText>{tableNumber}</TableHeaderText>
@@ -45,7 +63,8 @@ const TableBill = ({ orders, onOrderStatusChange }: TableBillProps) => {
 
         <TableBillItemWrapper>
           <TableBillItem
-            orderItems={sortedOrders}
+            // 2. 필터링되고 정렬된 목록을 전달
+            orderItems={visibleItems}
             onOrderStatusChange={onOrderStatusChange}
           />
         </TableBillItemWrapper>
@@ -56,11 +75,17 @@ const TableBill = ({ orders, onOrderStatusChange }: TableBillProps) => {
 };
 
 export default TableBill;
-const TableBillWrapper = styled.div`
+
+const TableBillWrapper = styled.div<{ $isFading?: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
+
+  //페이드아웃 애니메이션
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  opacity: ${({ $isFading }) => ($isFading ? 0 : 1)};
+  transform: ${({ $isFading }) => ($isFading ? "scale(0.95)" : "scale(1)")};
 `;
 
 const TableBillContents = styled.div`

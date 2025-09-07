@@ -18,14 +18,8 @@ const MenuListItem = ({ order, onStatusChange }: MenuListItemProps) => {
   });
   const table = `테이블${order.table_num}`;
 
-  // 3. 상태 변경 버튼을 클릭했을 때 호출될 함수입니다.
-  // 부모로부터 받은 onStatusChange 함수에 현재 주문의 id와 새로운 상태를 전달합니다.
-  const handleStatusChange = (newStatus: OrderStatus) => {
-    onStatusChange(order.id, newStatus);
-  };
-
   return (
-    <Wrapper>
+    <Wrapper $isFading={order.isFadingOut}>
       <MenuImg>
         {order.menu_image ? (
           <MenuImage src={order.menu_image} alt={order.menu_name} />
@@ -42,9 +36,8 @@ const MenuListItem = ({ order, onStatusChange }: MenuListItemProps) => {
       <MenuItemText>
         {/* 4. OrderStateBtn에 동적인 데이터를 props로 전달합니다. */}
         <OrderStateBtn
-          isBill={false}
           status={order.status}
-          onStatusChange={handleStatusChange}
+          onStatusChange={(newStatus) => onStatusChange(order.id, newStatus)}
         />
       </MenuItemText>
     </Wrapper>
@@ -53,13 +46,18 @@ const MenuListItem = ({ order, onStatusChange }: MenuListItemProps) => {
 
 export default MenuListItem;
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ $isFading?: boolean }>`
   display: flex;
   align-items: center;
   width: 100%;
   height: 70px;
   flex-shrink: 0;
   border-bottom: 1.5px dashed rgba(16, 16, 16, 0.3); // CSS 점선
+
+  //페이드아웃 애니메이션
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  opacity: ${({ $isFading }) => ($isFading ? 0 : 1)};
+  transform: ${({ $isFading }) => ($isFading ? "scale(0.95)" : "scale(1)")};
 `;
 
 const MenuImg = styled.div`

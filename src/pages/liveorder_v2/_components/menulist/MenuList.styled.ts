@@ -25,6 +25,7 @@ export const DropDownWrapper = styled.div`
 export const MenuListItemWrapper = styled.div`
   display: flex;
   flex-direction: column;
+  min-height: 0;
 `;
 // 주문이 많을때 컴포넌트 안에서 스크롤가능하게 하는 디브
 export const MenuListItemContainer = styled.div`
@@ -34,8 +35,16 @@ export const MenuListItemContainer = styled.div`
   flex: 1;
   overflow-y: auto;
   max-height: 100%; /* 헤더와 카테고리 높이를 고려하여 조정 */
-
+  min-height: 0;
   &::-webkit-scrollbar {
     width: 2px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: transparent;
   }
 `;

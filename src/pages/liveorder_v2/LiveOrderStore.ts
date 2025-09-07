@@ -1,89 +1,126 @@
-// src/pages/liveOrder_v2/liveOrderStore.ts
-
 import { create } from "zustand";
 import { OrderItem, OrderStatus } from "./types";
-//api이전에 더미데이터로 일단 연결
 import {
   MenuItem,
   DUMMY_MENU_LIST,
   DUMMY_LIVE_ORDERS,
 } from "./dummy/DummyData";
 
-// 앞으로 관리할 상태들의 타입을 정의합니다.
 export type OrderViewMode = "kitchen" | "serving";
+const ANIMATION_DURATION = 1000; // 1초
+
+// async/await를 사용하기 위한 delay 헬퍼 함수
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 interface LiveOrderState {
   viewMode: OrderViewMode;
   setViewMode: (mode: OrderViewMode) => void;
-  // (나중에 여기에 orders, changeOrderStatus 같은 다른 상태와 함수들을 추가할 겁니다)
-
-  //메뉴목록 상태와타입,메뉴목록불러오는 함수타입추가
   menuItems: MenuItem[];
   fetchMenuItems: () => void;
-
-  // --- 주문메뉴들어온거 부분 ---
   orders: OrderItem[];
+  fadingOutTables: Set<number>; // 👈 테이블 페이드아웃 상태 추가
   fetchOrders: () => void;
-  changeOrderStatus: (orderId: number, newStatus: OrderStatus) => void;
+  updateOrderStatusWithAnimation: (
+    orderId: number,
+    newStatus: OrderStatus
+  ) => void;
 }
 
-// 2. 스토어를 생성합니다.
-export const useLiveOrderStore = create<LiveOrderState>((set) => ({
-  // 3. 기본 상태 값(Initial State)을 설정합니다.
+export const useLiveOrderStore = create<LiveOrderState>((set, get) => ({
   viewMode: "kitchen",
-
-  // 4. 상태를 변경하는 함수(Action)를 정의합니다.
-  setViewMode: (mode) => {
-    console.log(`[Zustand] 뷰모드 :${mode}`);
-
-    // 상태 변경
-    set({ viewMode: mode });
-  },
-
-  //메뉴아이템의 초기값 빈배열
+  setViewMode: (mode) => set({ viewMode: mode }),
   menuItems: [],
-  // fetchMenuItems 함수를 구현합니다.
-  // 이 함수는 DUMMY_MENU_LIST를 상태에 저장하는 역할을 합니다.
   fetchMenuItems: () => {
-    // 필터링을 위해 "전체" 메뉴를 맨 앞에 추가해줍니다.
     const allMenu: MenuItem = { id: 0, name: "전체" };
     const menuListWithAll = [allMenu, ...DUMMY_MENU_LIST];
-    console.log("[Zustand] 메뉴 목록을 불러옵니다:", menuListWithAll);
-
-    // set 함수를 통해 menuItems 상태를 업데이트합니다.
     set({ menuItems: menuListWithAll });
   },
-
-  // --- 👇 주문목록,버튼상태관리 핵심 👇 ---
-
-  // 3. 주문 목록 상태 추가
   orders: [],
-
-  // 4. 초기 주문 데이터 로딩 함수 (더미 데이터 사용)
+  fadingOutTables: new Set(), // 👈 상태 초기화
   fetchOrders: () => {
-    console.log("[Zustand] 더미 주문 데이터를 불러옵니다.");
-    // 실제 앱처럼 오래된 주문이 위로 오도록 정렬
-    const sortedOrders = DUMMY_LIVE_ORDERS.sort(
+    const sortedOrders = [...DUMMY_LIVE_ORDERS].sort(
       (a, b) =>
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     );
     set({ orders: sortedOrders });
   },
+  updateOrderStatusWithAnimation: async (orderId, newStatus) => {
+    const targetOrder = get().orders.find((o) => o.id === orderId);
+    if (!targetOrder) return;
 
-  // 5. 주문 상태 변경 함수 (낙관적 업데이트 시뮬레이션)
-  changeOrderStatus: (orderId, newStatus) => {
-    console.log(
-      `[Zustand] 주문 #${orderId} 상태를 ${newStatus}(으)로 변경합니다.`
-    );
+    if (newStatus === "SERVED") {
+      // 1. MenuList 아이템 페이드아웃 시작
+      set((state) => ({
+        orders: state.orders.map((order) =>
+          order.id === orderId ? { ...order, isFadingOut: true } : order
+        ),
+      }));
 
-    // 실제 API 호출이 들어갈 자리
-    // 지금은 set 함수를 통해 즉시 상태를 변경하여 낙관적 업데이트를 흉내 냅니다.
-    set((state) => ({
-      orders: state.orders.map((order) =>
+      await delay(ANIMATION_DURATION);
+
+      // 2. 상태를 'SERVED'로 변경 (이때는 isFadingOut을 건드리지 않음)
+      const ordersAfterItemServed = get().orders.map((order) =>
         order.id === orderId
-          ? { ...order, status: newStatus } // ID가 일치하는 주문의 상태만 변경
+          ? {
+              ...order,
+              status: "SERVED",
+              isFadingOut: false,
+              servedAt: Date.now(),
+            }
           : order
-      ),
-    }));
+      );
+      set({ orders: ordersAfterItemServed });
+
+      const tableNum = targetOrder.table_num;
+      const tableOrders = get().orders.filter((o) => o.table_num === tableNum);
+      const isTableFullyServed = tableOrders.every(
+        (o) => o.status === "SERVED"
+      );
+
+      // 3. 만약 테이블이 모두 완료되었다면, 'fadingOutTables' 상태를 업데이트
+      if (isTableFullyServed) {
+        // 테이블 번호를 Set에 추가하여 애니메이션 시작
+        set((state) => ({
+          fadingOutTables: new Set(state.fadingOutTables).add(tableNum),
+        }));
+
+        await delay(ANIMATION_DURATION);
+
+        // 애니메이션 종료 후 Set에서 테이블 번호 제거
+        set((state) => {
+          const newSet = new Set(state.fadingOutTables);
+          newSet.delete(tableNum);
+          return { fadingOutTables: newSet };
+        });
+      }
+    }
+    // "COOKED"로 상태 되돌리기 시
+    else if (newStatus === "COOKED" && targetOrder.status === "SERVED") {
+      const tableNum = targetOrder.table_num;
+      set({
+        orders: get().orders.map((order) => {
+          if (order.id === orderId) {
+            return {
+              ...order,
+              status: "COOKED",
+              isFadingOut: false,
+              servedAt: null,
+            };
+          }
+          if (order.table_num === tableNum) {
+            return { ...order, isFadingOut: false };
+          }
+          return order;
+        }),
+      });
+    }
+    // 그 외의 모든 상태 변경
+    else {
+      set({
+        orders: get().orders.map((o) =>
+          o.id === orderId ? { ...o, status: newStatus } : o
+        ),
+      });
+    }
   },
 }));

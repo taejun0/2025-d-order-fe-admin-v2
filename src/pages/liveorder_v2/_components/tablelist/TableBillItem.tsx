@@ -70,6 +70,9 @@ const Wrapper = styled.div<{ $isFading?: boolean }>`
 const OrderInfo = styled.div`
   display: flex;
   gap: 10px;
+
+  flex: 1; /* 이미지를 제외한 남은 공간 차지 */
+  min-width: 0;
 `;
 
 const OrderImg = styled.div`
@@ -106,6 +109,9 @@ const OrderTextWrapper = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
+  flex: 1; /* 이미지를 제외한 남은 공간 차지 */
+  min-width: 0;
 `;
 
 const OrderText = styled.div`
@@ -118,5 +124,9 @@ const OrderText = styled.div`
     ${({ theme }) => theme.fonts.SemiBold10};
   }
 
+  //말줄임
+  max-width: 112px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;

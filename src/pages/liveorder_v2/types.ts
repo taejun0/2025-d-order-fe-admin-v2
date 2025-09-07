@@ -9,6 +9,8 @@ export interface OrderItem {
   status: OrderStatus;
   created_at: string;
   menu_image: string | null;
+  isFadingOut?: boolean;
+  servedAt?: number | null; // 추가: 서빙된 시간 (타임스탬프)
 }
 
 //테이블리스트 타입
