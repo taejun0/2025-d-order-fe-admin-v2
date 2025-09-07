@@ -21,7 +21,7 @@ const TableBillItem = ({
   return (
     <>
       {orderItems.map((order) => (
-        <Wrapper key={order.id}>
+        <Wrapper key={order.id} $isFading={order.isFadingOut}>
           <OrderInfo>
             <OrderImg>
               {order.menu_image ? (
