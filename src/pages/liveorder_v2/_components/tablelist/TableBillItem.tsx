@@ -21,7 +21,7 @@ const TableBillItem = ({
   return (
     <>
       {orderItems.map((order) => (
-        <Wrapper key={order.id} $isFading={order.isFadingOut}>
+        <Wrapper key={order.id}>
           <OrderInfo>
             <OrderImg>
               {order.menu_image ? (
@@ -50,7 +50,7 @@ const TableBillItem = ({
 
 export default TableBillItem;
 
-const Wrapper = styled.div<{ $isFading?: boolean }>`
+const Wrapper = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -60,11 +60,6 @@ const Wrapper = styled.div<{ $isFading?: boolean }>`
   padding-bottom: 10px;
   box-sizing: border-box;
   border-bottom: 1.5px dashed rgba(16, 16, 16, 0.3);
-
-  opacity: ${({ $isFading }) => ($isFading ? 0 : 1)};
-  transform: ${({ $isFading }) =>
-    $isFading ? "translateY(10px)" : "translateY(0)"};
-  transition: opacity 1.8s ease, transform 1.8s ease;
 `;
 
 const OrderInfo = styled.div`

@@ -63,7 +63,7 @@ export const useLiveOrderStore = create<LiveOrderState>((set, get) => ({
         order.id === orderId
           ? {
               ...order,
-              status: "SERVED",
+              status: "SERVED" as OrderStatus,
               isFadingOut: false,
               servedAt: Date.now(),
             }
