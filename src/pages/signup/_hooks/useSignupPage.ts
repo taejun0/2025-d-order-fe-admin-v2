@@ -53,6 +53,7 @@ export const useSignupPage = () => {
           formData.tableFeePolicy === 'PP' ? Number(formData.tableFee) : 0,
         seat_tax_table:
           formData.tableFeePolicy === 'PT' ? Number(formData.tableFee) : 0,
+        table_limit_hours: Number(formData.maxTime),
       });
       return true;
     } catch {
