@@ -7,6 +7,7 @@ import MenuService from "@services/MenuService";
 import imageCompression from "browser-image-compression";
 // import CommonDropdown from "@pages/signup/_components/inputs/dropdown/CommonDropdown";
 import MenuDropdown from "@pages/menu/_components/MenuDropdown";
+import MenuServiceWithImg from "@services/MenuServiceWithImg";
 
 interface MenuModalProps {
   text: string;
@@ -38,10 +39,10 @@ const MenuModal2 = ({
   const [buttonDisable, setButtonDisable] = useState<boolean>(true);
 
   const [category, setCategory] = useState<string>("메뉴");
-  const [name, setName] = useState<string | undefined>();
-  const [desc, setDesc] = useState<string | undefined>();
-  const [price, setPrice] = useState<string | undefined>();
-  const [stock, setStock] = useState<string | undefined>();
+  const [name, setName] = useState<string>("");
+  const [desc, setDesc] = useState<string>("");
+  const [price, setPrice] = useState<string>("");
+  const [stock, setStock] = useState<string>("");
   const [image, setImage] = useState<File | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -110,7 +111,7 @@ const MenuModal2 = ({
     formData.append("menu_description", desc || "");
     formData.append("menu_category", category);
     formData.append("menu_price", price);
-    formData.append("menu_remain", stock);
+    formData.append("menu_amount", stock);
     if (image) {
       if (image.size <= MIN_FILE_SIZE) {
         formData.append("menu_image", image);
@@ -126,24 +127,42 @@ const MenuModal2 = ({
             type: compressedFile.type,
           });
           formData.append("menu_image", correctedFile);
-        } catch (e) {}
+        } catch (e) {
+          console.log(e);
+        }
+      }
+      if (category !== "세트") {
+        try {
+          await MenuServiceWithImg.createMenu(formData);
+
+          handleCloseModal();
+        } catch (e) {
+          alert("dddd");
+          console.log(e);
+        }
+      } else {
+        // 세트 메뉴일 경우 로직
       }
     }
-    try {
-      if (isEdit && defaultValues?.menu_id !== undefined) {
-        await MenuService.editMenu(formData, defaultValues.menu_id);
-        handleCloseModal();
-        if (onSuccess) onSuccess();
+    // 이미지 없을 경우
+    else {
+      if (category !== "세트") {
+        try {
+          await MenuService.createMenu(formData);
+          handleCloseModal();
+        } catch (e) {
+          console.log(e);
+        }
       } else {
-        formData.delete("menu_remain");
-        formData.append("menu_amount", stock);
-        await MenuService.postMenu(formData);
-        handleCloseModal();
-        if (onSuccess) onSuccess();
+        try {
+          // 세트 메뉴 일 경우 로직 추가
+          handleCloseModal();
+        } catch (e) {
+          console.log(e);
+        }
       }
-    } catch (e) {}
+    }
   };
-  useEffect(() => {});
   return (
     <Wrapper onSubmit={handleSubmit}>
       <S.ModalBody>

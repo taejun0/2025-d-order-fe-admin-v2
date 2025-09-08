@@ -4,7 +4,7 @@ import { useState } from "react";
 import MenuModal from "../../modal_test_view/_components/MenuModal";
 import MenuDeleteModal from "../../modal_test_view/_components/MenuDeleteModal";
 import { Menu } from "../Type/Menu_type";
-import MenuService from "../api/MenuService";
+import MenuService from "../../../services/MenuService";
 
 interface MenuCardProps {
   menu: Menu;
@@ -35,7 +35,7 @@ const MenuCard = ({ menu, onMenuChange }: MenuCardProps) => {
 
   const handleConfirmDelete = async () => {
     try {
-      // await MenuService.deleteMenu(menu.id);
+      await MenuService.deleteMenu(menu.menu_id);
       setShowDeleteModal(false);
       onMenuChange(); // 목록 새로고침
     } catch (error) {
