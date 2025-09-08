@@ -27,6 +27,7 @@ import Bell from "../assets/icons/bell.svg";
 import ReloadWhite from "../assets/icons/reloadWhite.svg";
 import BtnCheck from "../assets/icons/btnCheck.svg";
 import BtnPlus from "../assets/icons/btnPlus.svg";
+import BtnMinus from "../assets/icons/btnMinus.svg";
 
 import Backward from "../assets/icons/Backward.svg";
 
@@ -35,9 +36,13 @@ import MenuPlus from "../assets/icons/menuPlus.svg";
 import MenuEdit from "../assets/icons/grayEdit.svg";
 
 import close from "@assets/icons/close.svg";
+<<<<<<< HEAD
 import COUPON_RATE from "../assets/images/couponRate.png";
 import COUPON_PRICE from "../assets/images/couponPrice.png";
 
+=======
+import Down from "@assets/icons/down.svg";
+>>>>>>> 2a6a26e7d06dd90b8686ffb430319207fa7f7ed9
 export const IMAGE_CONSTANTS = {
   LOGO: "/images/Logo.png",
   LOGO2: "/images/Logo2.png",
@@ -84,6 +89,7 @@ export const IMAGE_CONSTANTS = {
   Delete: Delete,
   BTNCHECK: BtnCheck,
   BTNPLUS: BtnPlus,
+  BTNMINUS: BtnMinus,
 
   BILL: Bill,
 
@@ -91,6 +97,10 @@ export const IMAGE_CONSTANTS = {
   MENUEDIT: MenuEdit,
 
   CLOSE: close,
+<<<<<<< HEAD
   COUPON_RATE: COUPON_RATE,
   COUPON_PRICE: COUPON_PRICE,
+=======
+  DOWN: Down,
+>>>>>>> 2a6a26e7d06dd90b8686ffb430319207fa7f7ed9
 };

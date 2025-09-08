@@ -20,7 +20,12 @@
     "react-swipeable": "^7.0.2",
     "react-toastify": "^11.0.5",
     "slick-carousel": "^1.8.1",
+<<<<<<< HEAD
     "styled-components": "^6.1.19"
+=======
+    "styled-components": "^6.1.17",
+    "zustand": "^5.0.8"
+>>>>>>> 2a6a26e7d06dd90b8686ffb430319207fa7f7ed9
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
@@ -28,6 +33,7 @@
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@types/react-slick": "^0.23.13",
+    "@types/styled-components": "^5.1.34",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.22.0",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -35,6 +41,12 @@
     "globals": "^16.0.0",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.26.1",
+<<<<<<< HEAD
     "vite": "^6.3.5"
   }
+=======
+    "vite": "^6.3.1"
+  },
+  "packageManager": "yarn@4.3.1+sha512.af78262d7d125afbfeed740602ace8c5e4405cd7f4735c08feb327286b2fdb2390fbca01589bfd1f50b1240548b74806767f5a063c94b67e431aabd0d86f7774"
+>>>>>>> 2a6a26e7d06dd90b8686ffb430319207fa7f7ed9
 }
