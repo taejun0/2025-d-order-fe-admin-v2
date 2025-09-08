@@ -1,8 +1,13 @@
+import CouponCreateCard from "./_components/CouponCreateCard";
+import * as S from "./CouponPage.styled";
+
 const CouponPage = () => {
   return (
-    <div>
-      <h1>쿠폰 등록 페이지</h1>
-    </div>
+    <S.CouponPageWrapper>
+      <S.CouponGrid>
+        <CouponCreateCard />
+      </S.CouponGrid>
+    </S.CouponPageWrapper>
   );
 };
 

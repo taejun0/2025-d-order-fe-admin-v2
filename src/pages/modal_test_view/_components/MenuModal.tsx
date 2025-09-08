@@ -1,10 +1,10 @@
 import styled from "styled-components";
-import close from "@assets/icons/close.svg";
 import preUploadImg from "@assets/images/preUploadImg.png";
 import * as S from "./styled";
 import { useState, useEffect } from "react";
 import MenuService from "@services/MenuService";
 import imageCompression from "browser-image-compression";
+import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 // import CommonDropdown from "@pages/signup/_components/inputs/dropdown/CommonDropdown";
 import MenuDropdown from "@pages/menu/_components/MenuDropdown";
 import MenuServiceWithImg from "@services/MenuServiceWithImg";
@@ -169,7 +169,7 @@ const MenuModal2 = ({
         <S.ModalHeader>
           {text}
           <button type="button" onClick={handleCloseModal}>
-            <img src={close} alt="닫기" />
+            <img src={IMAGE_CONSTANTS.CLOSE} alt="닫기" />
           </button>
         </S.ModalHeader>
         <S.FormContentWrapper>

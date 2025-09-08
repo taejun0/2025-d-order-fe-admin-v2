@@ -27,6 +27,7 @@ import Bell from "../assets/icons/bell.svg";
 import ReloadWhite from "../assets/icons/reloadWhite.svg";
 import BtnCheck from "../assets/icons/btnCheck.svg";
 import BtnPlus from "../assets/icons/btnPlus.svg";
+import BtnMinus from "../assets/icons/btnMinus.svg";
 
 import Backward from "../assets/icons/Backward.svg";
 
@@ -34,6 +35,8 @@ import Bill from "../assets/images/billBottom.png";
 import MenuPlus from "../assets/icons/menuPlus.svg";
 import MenuEdit from "../assets/icons/grayEdit.svg";
 
+import close from "@assets/icons/close.svg";
+import Down from "@assets/icons/down.svg";
 export const IMAGE_CONSTANTS = {
   LOGO: "/images/Logo.png",
   LOGO2: "/images/Logo2.png",
@@ -80,9 +83,13 @@ export const IMAGE_CONSTANTS = {
   Delete: Delete,
   BTNCHECK: BtnCheck,
   BTNPLUS: BtnPlus,
+  BTNMINUS: BtnMinus,
 
   BILL: Bill,
 
   MENUPLUS: MenuPlus,
   MENUEDIT: MenuEdit,
+
+  CLOSE: close,
+  DOWN: Down,
 };

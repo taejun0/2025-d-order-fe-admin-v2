@@ -42,11 +42,11 @@ const LiveOrderMenuList = ({
   onOrderStatusChange,
   isLoading = false,
   onRefresh,
-  lastUpdateTime,
   getFadingStatus,
 }: LiveOrderMenuListProps) => {
   // 버튼 애니메이션 상태
   const [isAnimating, setIsAnimating] = useState(false);
+  const [activeMode, setActiveMode] = useState("주방"); // 초기값 설정
 
   // 주문 상태 변경 처리 함수 (orderId를 직접 전달)
   const handleOrderStatusChangeForMenu = (orderId?: number) => {
@@ -84,12 +84,21 @@ const LiveOrderMenuList = ({
   return (
     <S.LiveOrderMenuList>
       <S.LiveOrderMenuListHeader>
-        <div>
-          <S.HeaderTitle>실시간 주문</S.HeaderTitle>
-          {lastUpdateTime && (
-            <S.LastUpdateTime>마지막 갱신: {lastUpdateTime}</S.LastUpdateTime>
-          )}
-        </div>
+        <S.HeaderBtnWrapper>
+          <S.OrderModeBtn
+            $isActive={activeMode === "주방"}
+            onClick={() => setActiveMode("주방")}
+          >
+            주방
+          </S.OrderModeBtn>
+          |
+          <S.OrderModeBtn
+            $isActive={activeMode === "서빙"}
+            onClick={() => setActiveMode("서빙")}
+          >
+            서빙
+          </S.OrderModeBtn>
+        </S.HeaderBtnWrapper>
         <AnimatedButton onClick={handleRefresh} $isAnimating={isAnimating}>
           <img src={IMAGE_CONSTANTS.RELOADWHITE} alt="reloadWhite" />
           최신 주문 확인

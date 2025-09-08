@@ -1,5 +1,5 @@
 import * as S from './PubInfoForm.styled';
-import { useState, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import CommonInput from '../inputs/CommonInput';
 import NextButton from '../buttons/NextButton';
 import CommonDropdown from '../inputs/dropdown/CommonDropdown';
@@ -10,7 +10,7 @@ type Props = {
     pubName: string;
     tableCount: string;
     tableFee: string;
-    tableFeePolicy: string;
+    tableFeePolicy: string; // 'PP' | 'PT' | 'NO'
     maxTime: string;
   };
   onChange: (key: keyof Props['formData'], value: string) => void;
@@ -19,7 +19,8 @@ type Props = {
   setPubStage: React.Dispatch<React.SetStateAction<number>>;
 };
 
-const isValidPubName = (name: string) => /^[가-힣a-zA-Z0-9]{1,20}$/.test(name);
+const isValidPubName = (name: string) =>
+  /^[가-힣a-zA-Z0-9]{1,20}$/.test(name.trim());
 const isValidTableCount = (value: string) => {
   const number = Number(value);
   return Number.isInteger(number) && number >= 1 && number <= 100;
@@ -42,8 +43,9 @@ const PubInfoForm = ({
   pubStage,
   setPubStage,
 }: Props) => {
-  const { pubName, tableCount, tableFee, tableFeePolicy } = formData;
+  const { pubName, tableCount, tableFee, tableFeePolicy, maxTime } = formData;
 
+  // 메시지 상태
   const [pubNameError, setPubNameError] = useState<string | null>(null);
   const [pubNameSuccess, setPubNameSuccess] = useState<string | null>(null);
   const [tableCountError, setTableCountError] = useState<string | null>(null);
@@ -53,27 +55,33 @@ const PubInfoForm = ({
   const [tableFeeError, setTableFeeError] = useState<string | null>(null);
   const [tableFeeSuccess, setTableFeeSuccess] = useState<string | null>(null);
 
-  const isFirstValid =
-    pubName && tableCount && pubNameSuccess && tableCountSuccess;
-  const isSecondValid = tableFee && tableFeePolicy && tableFeeSuccess;
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        if (pubStage === 1 && isFirstValid) {
-          e.preventDefault();
-          setPubStage(2);
-        } else if (pubStage === 2 && isSecondValid) {
-          e.preventDefault();
-          onNext();
-        }
-      }
-    },
-    [pubStage, isFirstValid, isSecondValid, onNext, setPubStage]
+  // ---- 유효성(Boolean) 계산 ----
+  const isPubNameValid = useMemo(
+    () => !!pubName && isValidPubName(pubName),
+    [pubName]
+  );
+  const isTableCountValid = useMemo(
+    () => !!tableCount && isValidTableCount(tableCount),
+    [tableCount]
   );
 
+  // 정책이 NO면 이용료는 비검증/비필수
+  const isTableFeeRequired = useMemo(
+    () => pubStage >= 2 && tableFeePolicy !== 'NO',
+    [pubStage, tableFeePolicy]
+  );
+  const isTableFeeValid = useMemo(
+    () => !isTableFeeRequired || (!!tableFee && isValidTableFee(tableFee)),
+    [isTableFeeRequired, tableFee]
+  );
+
+  const isFirstValid = isPubNameValid && isTableCountValid;
+  const isSecondValid = !!tableFeePolicy && isTableFeeValid;
+
+  // ---- 렌더 ----
   return (
-    <S.Wrapper onKeyDown={handleKeyDown}>
+    // onKeyDown 제거: 즉시검증 + 버튼 진행만 사용
+    <S.Wrapper>
       {pubStage === 1 && (
         <>
           <CommonInput
@@ -112,7 +120,8 @@ const PubInfoForm = ({
             placeholder="예) 12"
             value={tableCount}
             onChange={(e) => {
-              const value = e.target.value;
+              // 숫자 외 문자 입력 방지(선택): 필요 없으면 이 줄 제거
+              const value = e.target.value.replace(/[^\d]/g, '');
               onChange('tableCount', value);
 
               if (!value) {
@@ -146,11 +155,18 @@ const PubInfoForm = ({
         <>
           <CommonInput
             label="테이블 이용료"
-            placeholder="예) 8000"
-            value={tableFee}
+            placeholder={isTableFeeRequired ? '예) 8000' : '받지 않음 선택됨'}
+            value={isTableFeeRequired ? tableFee : ''}
             onChange={(e) => {
-              const value = e.target.value;
+              // 숫자만
+              const value = e.target.value.replace(/[^\d]/g, '');
               onChange('tableFee', value);
+
+              if (!isTableFeeRequired) {
+                setTableFeeError(null);
+                setTableFeeSuccess(null);
+                return;
+              }
 
               if (!value) {
                 setTableFeeError(null);
@@ -163,20 +179,35 @@ const PubInfoForm = ({
                 setTableFeeSuccess(null);
               }
             }}
-            error={tableFeeError ?? undefined}
-            success={tableFeeSuccess ?? undefined}
-            helperText="테이블 1개당 요금 (1000~50000원)을 입력해 주세요."
+            error={isTableFeeRequired ? tableFeeError ?? undefined : undefined}
+            success={
+              isTableFeeRequired ? tableFeeSuccess ?? undefined : undefined
+            }
+            helperText={
+              isTableFeeRequired
+                ? '테이블 1개당 요금 (1000~50000원)을 입력해 주세요.'
+                : '이용료를 받지 않습니다.'
+            }
             onClear={() => {
               onChange('tableFee', '');
               setTableFeeError(null);
               setTableFeeSuccess(null);
             }}
+            disabled={!isTableFeeRequired}
           />
 
           <SelectBoxInput
             label="테이블 이용료 적용 기준"
             value={tableFeePolicy}
-            onChange={(val) => onChange('tableFeePolicy', val)}
+            onChange={(val) => {
+              onChange('tableFeePolicy', val);
+              // 정책이 NO로 바뀌면 금액 메시지 초기화
+              if (val === 'NO') {
+                setTableFeeError(null);
+                setTableFeeSuccess(null);
+                onChange('tableFee', ''); // 금액 비움
+              }
+            }}
             options={feePolicyOptions}
           />
 
@@ -191,9 +222,10 @@ const PubInfoForm = ({
           <CommonDropdown
             label="최대 이용 가능 시간"
             placeholder="시간 선택"
-            value={formData.maxTime}
+            value={maxTime}
             onChange={(e) => onChange('maxTime', e.target.value)}
-            options={['60', '90', '120', '150', '180']}
+            // 210(3시간 30분) 라벨을 쓰길래 options에도 포함해둠
+            options={['60', '90', '120', '150', '180', '210']}
             optionLabelMap={{
               '60': '1시간',
               '90': '1시간 30분',
@@ -204,7 +236,7 @@ const PubInfoForm = ({
             }}
           />
 
-          <NextButton disabled={!formData.maxTime} onClick={onNext}>
+          <NextButton disabled={!maxTime} onClick={onNext}>
             다음
           </NextButton>
         </>
