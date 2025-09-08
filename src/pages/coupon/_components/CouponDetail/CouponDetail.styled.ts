@@ -4,7 +4,8 @@ export const DetailBox = styled.div`
   display: flex;
   flex-direction: row;
   width: 100%;
-  justify-content: space-around;
+  justify-content: space-between;
+  gap: 2rem;
 `;
 export const DetailContainer = styled.div`
   display: flex;

@@ -1,9 +1,21 @@
 import * as S from "./CouponDetail.styled";
+import { useState } from "react";
 import { DetailData } from "./DetailData";
 import { CouponItem } from "./CouponItem";
 import qr from "../../../../assets/icons/qr.svg";
-
+import { DeleteModal } from "@components/DeleteModal/DeleteModal";
 export const CouponDetail = () => {
+  const [showDelete, setShowDelete] = useState(false);
+
+  const handleCancel = () => {
+    setShowDelete(false);
+  };
+
+  const handleDelete = () => {
+    console.log("쿠폰 삭제 로직 실행");
+
+    // setShowDelete(false);
+  };
   return (
     <S.DetailBox>
       <S.DetailContainer>
@@ -31,13 +43,23 @@ export const CouponDetail = () => {
             </S.BottomContainer>
           </div>
         </S.DetailWrapper>
-        <S.DeleteBtn>쿠폰 삭제</S.DeleteBtn>
+        <S.DeleteBtn onClick={() => setShowDelete(true)}>쿠폰 삭제</S.DeleteBtn>
       </S.DetailContainer>
       <S.CouponList>
         <CouponItem code="A4TH78" isUsed={true} />
         <CouponItem code="A4TH78" isUsed={false} />
         <CouponItem code="A4TH78" isUsed={true} />
       </S.CouponList>
+      {showDelete && (
+        <DeleteModal
+          onCancel={handleCancel}
+          onDelete={handleDelete}
+          Title="정말 할인 쿠폰을 삭제하시겠어요?"
+          SubText1="할인 쿠폰을 삭제하면,"
+          SubText2="사용되지 않은 쿠폰은 사라져요!"
+          BtnName="쿠폰 삭제"
+        />
+      )}
     </S.DetailBox>
   );
 };
