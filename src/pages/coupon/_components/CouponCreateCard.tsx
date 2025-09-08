@@ -2,9 +2,11 @@ import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { useState } from "react";
 import styled from "styled-components";
 import CouponRegisterModal from "./CouponRegisterModa";
-
+import { CouponCard } from "./CouponCard";
+import { CouponDetail } from "./CouponDetail/CouponDetail";
 const CouponCreateCard = () => {
   const [registerModal, setRegisterModal] = useState(false);
+  const [isDetail, setIsDetail] = useState(false);
   const handleCreateClick = () => {
     setRegisterModal(true);
   };
@@ -13,18 +15,27 @@ const CouponCreateCard = () => {
   };
   return (
     <>
-      <CouponCreateCardWrapper onClick={handleCreateClick}>
-        <CouponCreateContents>
-          <img src={IMAGE_CONSTANTS.MENUPLUS} alt="쿠폰 생성 아이콘" />
-          <span>쿠폰 등록하기</span>
-        </CouponCreateContents>
-      </CouponCreateCardWrapper>
-      {registerModal && (
-        <ModalWrapper onClick={handleCloseModal}>
-          <div onClick={(e) => e.stopPropagation()}>
-            <CouponRegisterModal />
-          </div>
-        </ModalWrapper>
+      {isDetail ? (
+        <CouponDetail />
+      ) : (
+        <>
+          <CouponCreateCardWrapper onClick={handleCreateClick}>
+            <CouponCreateContents>
+              <img src={IMAGE_CONSTANTS.MENUPLUS} alt="쿠폰 생성 아이콘" />
+              <span>쿠폰 등록하기</span>
+            </CouponCreateContents>
+          </CouponCreateCardWrapper>
+
+          {registerModal && (
+            <ModalWrapper onClick={handleCloseModal}>
+              <div onClick={(e) => e.stopPropagation()}>
+                <CouponRegisterModal onClose={handleCloseModal} />
+              </div>
+            </ModalWrapper>
+          )}
+
+          <CouponCard isSoldOut={false} setIsDetail={setIsDetail} />
+        </>
       )}
     </>
   );
