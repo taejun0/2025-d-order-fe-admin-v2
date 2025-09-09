@@ -8,4 +8,6 @@ export const ROUTE_PATHS = {
   MENU: "/menu",
   COUPON: "/coupon",
   DASHBOARD: "/dashboard",
+  // test
+  TestPage : "/Test",
 };

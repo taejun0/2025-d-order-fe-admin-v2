@@ -18,6 +18,10 @@ import CouponPage from "@pages/coupon/CouponPage";
 import DashboardPage from "@pages/dashboard/DashboardPage";
 import { ROUTE_PATHS } from "@constants/routeConstants";
 import NewLiveOrderPage from "@pages/liveorder_v2/LiveOrderPage";
+
+//근우 api 연결 테스트
+import TableListTestPage from "@pages/tableView/tableViewTestPage";
+
 // GA 추적을 위한 래퍼 컴포넌트
 const LayoutWithAnalytics = ({ children }: { children: React.ReactNode }) => {
   useGoogleAnalytics(); // Router 컨텍스트 내부에서 사용
@@ -38,6 +42,7 @@ const router = createBrowserRouter([
       { path: ROUTE_PATHS.MENU, element: <MenuPage /> },
       { path: ROUTE_PATHS.COUPON, element: <CouponPage /> },
       { path: ROUTE_PATHS.DASHBOARD, element: <DashboardPage /> },
+      { path: ROUTE_PATHS.TestPage, element : <TableListTestPage />},
     ],
   },
   {
