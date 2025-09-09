@@ -22,6 +22,12 @@ export const DetailWrapper = styled.div`
   gap: 1.5rem;
   width: 100%;
 `;
+
+export const TitleWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+`;
 export const CouponDetailTitle = styled.div`
   ${({ theme }) => theme.fonts.Bold20}
   color: ${({ theme }) => theme.colors.Black01};

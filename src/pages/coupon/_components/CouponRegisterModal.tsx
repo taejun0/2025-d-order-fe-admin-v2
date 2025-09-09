@@ -1,16 +1,31 @@
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { CouponInput } from "./CouponInput";
 import { useCouponForm } from "../hooks/useCouponForm";
+import { useCreateCoupon } from "../hooks/useCreateCoupon";
 import * as S from "./Coupon.styled";
 
-const CouponRegisterModal = ({ onClose }: { onClose: () => void }) => {
-  const { bind, radio, isReady, toPayload } = useCouponForm();
-  const handleSubmit = (e?: React.FormEvent) => {
+export const CouponRegisterModal = ({ onClose }: { onClose: () => void }) => {
+  const { bind, radio, isReady } = useCouponForm();
+  const { create } = useCreateCoupon();
+
+  const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    console.log("버튼클릭");
-    const payload = toPayload();
-    console.log(payload);
-    console.log("제출 완");
+    try {
+      await create({
+        coupon_name: bind.name.value.trim(),
+        coupon_description: bind.detail.value?.trim() || "",
+        discount_type: radio.discountType === "percent" ? "percent" : "amount",
+        discount_value:
+          radio.discountType === "percent"
+            ? Number(bind.rate.value)
+            : Number(bind.amount.value),
+
+        quantity: Number(bind.qty.value || 0),
+      });
+      onClose();
+    } catch (err) {
+      console.error("쿠폰 생성 실패:", err);
+    }
   };
 
   return (
@@ -43,29 +58,29 @@ const CouponRegisterModal = ({ onClose }: { onClose: () => void }) => {
             type="radio"
             name="discountType"
             options={[
-              { label: "가격", value: "price" },
-              { label: "할인율(%)", value: "rate" },
+              { label: "가격", value: "amount" },
+              { label: "할인율(%)", value: "percent" },
             ]}
             value={radio.discountType}
-            onChange={(v) => radio.set(v as "price" | "rate")}
+            onChange={(v) => radio.set(v as "amount" | "percent")}
           />
 
-          {radio.discountType === "price" && (
+          {radio.discountType === "amount" && (
             <CouponInput
               Title="할인 가격"
               type="number"
               placeholderText="예) 5000"
-              {...bind.price}
+              {...bind.amount}
             />
           )}
-          {radio.discountType === "rate" && (
+          {radio.discountType === "percent" && (
             <CouponInput
               Title="할인율"
               type="number"
               placeholderText="예) 10"
-              {...bind.price}
+              {...bind.rate}
               helperText="* 최대 할인율은 100% 입니다."
-              hasError={Number(bind.price.value) > 100}
+              hasError={Number(bind.rate.value) > 100}
             />
           )}
           <CouponInput
@@ -77,7 +92,7 @@ const CouponRegisterModal = ({ onClose }: { onClose: () => void }) => {
         </S.FormContentWrapper>
       </S.ModalBody>
       <S.BottomBtnContainer>
-        <S.BottomBtn type="button" disabled={false} onClick={onClose}>
+        <S.BottomBtn type="button" onClick={onClose}>
           취소
         </S.BottomBtn>
         <S.BottomBtn type="submit" disabled={!isReady} onClick={handleSubmit}>
@@ -87,5 +102,3 @@ const CouponRegisterModal = ({ onClose }: { onClose: () => void }) => {
     </S.Wrapper>
   );
 };
-
-export default CouponRegisterModal;

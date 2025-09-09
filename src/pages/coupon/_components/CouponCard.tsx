@@ -1,26 +1,20 @@
 import * as S from "./Coupon.styled";
-import { Dispatch, SetStateAction } from "react";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
-import { useCouponForm } from "../hooks/useCouponForm";
+import { Coupon } from "@services/CouponService";
+
 interface SetCouponCardProps {
-  isSoldOut: boolean;
-  setIsDetail: Dispatch<SetStateAction<boolean>>;
+  coupondata: Coupon;
+  onDetail: () => void;
 }
-export const CouponCard = ({ isSoldOut, setIsDetail }: SetCouponCardProps) => {
-  const { radio } = useCouponForm();
+export const CouponCard = ({ coupondata, onDetail }: SetCouponCardProps) => {
   const handleDeleteClick = () => {
     console.log("삭제");
-  };
-
-  const handleDetail = () => {
-    setIsDetail(true);
-    console.log(setIsDetail);
   };
 
   return (
     <>
       <S.MenuCardWrapper>
-        {isSoldOut && (
+        {coupondata.is_used && (
           <S.SoldOutOverlay>
             <S.SoldOutText>SOLD OUT</S.SoldOutText>
           </S.SoldOutOverlay>
@@ -30,26 +24,33 @@ export const CouponCard = ({ isSoldOut, setIsDetail }: SetCouponCardProps) => {
             <S.DefaultCardImg>
               <img
                 src={
-                  radio.isPrice
+                  coupondata.discount_type === "amount"
                     ? IMAGE_CONSTANTS.COUPON_PRICE
                     : IMAGE_CONSTANTS.COUPON_RATE
                 }
               />
             </S.DefaultCardImg>
-            {isSoldOut && (
+            {coupondata.is_used && (
               <S.DeleteBtn onClick={handleDeleteClick}>
                 <img src={IMAGE_CONSTANTS.VECTOR} alt="삭제" />
               </S.DeleteBtn>
             )}
           </S.CardImg>
           <S.CardInfo>
-            <S.MenuEditBtn onClick={handleDetail}>
+            <S.MenuEditBtn onClick={onDetail}>
               <img src={IMAGE_CONSTANTS.MENUEDIT} alt="수정아이콘" />
               쿠폰 상세
             </S.MenuEditBtn>
             <S.CardTextInner>
-              <S.CardText className="bold">할인쿠폰이름</S.CardText>
-              <S.CardText>10%</S.CardText>
+              <S.CardText className="bold">{coupondata.coupon_name}</S.CardText>
+              <S.CardText>
+                {coupondata.discount_value}
+                {coupondata.discount_type === "amount" ? (
+                  <span>원</span>
+                ) : (
+                  <span>%</span>
+                )}
+              </S.CardText>
             </S.CardTextInner>
           </S.CardInfo>
         </S.CardContents>

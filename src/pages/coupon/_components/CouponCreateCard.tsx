@@ -1,22 +1,37 @@
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
-import CouponRegisterModal from "./CouponRegisterModa";
+import { CouponRegisterModal } from "./CouponRegisterModal";
 import { CouponCard } from "./CouponCard";
 import { CouponDetail } from "./CouponDetail/CouponDetail";
+import { useCouponList } from "../hooks/useCouponList";
 const CouponCreateCard = () => {
   const [registerModal, setRegisterModal] = useState(false);
-  const [isDetail, setIsDetail] = useState(false);
+  const [selectedCouponId, setSelectedCouponId] = useState<number | null>(null);
+
+  const { coupons, refetch } = useCouponList();
+
   const handleCreateClick = () => {
     setRegisterModal(true);
   };
   const handleCloseModal = () => {
     setRegisterModal(false);
+    refetch();
   };
+
+  useEffect(() => {
+    if (selectedCouponId === null) {
+      refetch();
+    }
+  }, [selectedCouponId]);
+
   return (
     <>
-      {isDetail ? (
-        <CouponDetail />
+      {selectedCouponId ? (
+        <CouponDetail
+          couponId={selectedCouponId}
+          setSelectedCouponId={setSelectedCouponId}
+        />
       ) : (
         <>
           <CouponCreateCardWrapper onClick={handleCreateClick}>
@@ -34,7 +49,13 @@ const CouponCreateCard = () => {
             </ModalWrapper>
           )}
 
-          <CouponCard isSoldOut={false} setIsDetail={setIsDetail} />
+          {coupons.map((coupon) => (
+            <CouponCard
+              key={coupon.coupon_id}
+              coupondata={coupon}
+              onDetail={() => setSelectedCouponId(coupon.coupon_id)}
+            />
+          ))}
         </>
       )}
     </>

@@ -1,11 +1,12 @@
 import { useState } from "react";
 
-export type DiscountType = "price" | "rate";
+export type DiscountType = "amount" | "percent";
 
 type Init = Partial<{
   name: string;
   detail: string;
-  price: number;
+  amount?: number;
+  rate?: number;
   qty: number;
   discountType: DiscountType;
 }>;
@@ -13,19 +14,22 @@ type Init = Partial<{
 export const useCouponForm = (init: Init = {}) => {
   const [name, setName] = useState(init.name ?? "");
   const [detail, setDetail] = useState(init.detail ?? "");
-  const [price, setPrice] = useState<number | "">(init.price ?? "");
+  const [amount, setAmount] = useState<number | "">(init.amount ?? "");
+
+  const [rate, setRate] = useState<number | "">(init.rate ?? "");
 
   const [qty, setQty] = useState<number | "">(init.qty ?? "");
   const [discountType, setDiscountType] = useState<DiscountType>(
-    init.discountType ?? "price"
+    init.discountType ?? "amount"
   );
 
   const reset = () => {
     setName("");
     setDetail("");
-    setPrice("");
+    setAmount("");
+    setRate("");
     setQty("");
-    setDiscountType("price");
+    setDiscountType("amount");
   };
 
   const toNumOrEmpty = (v: string) => {
@@ -37,10 +41,15 @@ export const useCouponForm = (init: Init = {}) => {
   const bind = {
     name: { value: name, onChange: setName },
     detail: { value: detail, onChange: setDetail },
-    price: {
-      value: price,
-      onChange: (v: string) => setPrice(toNumOrEmpty(v)),
-      name: "price",
+    amount: {
+      value: amount,
+      onChange: (v: string) => setAmount(toNumOrEmpty(v)),
+      name: "amount",
+    },
+    rate: {
+      value: rate,
+      onChange: (v: string) => setRate(toNumOrEmpty(v)),
+      name: "rate",
     },
     qty: {
       value: qty,
@@ -48,38 +57,33 @@ export const useCouponForm = (init: Init = {}) => {
       name: "qty",
     },
   };
-
-  const isReady =
-    name.trim() !== "" &&
-    bind.price.value !== "" &&
-    Number(bind.price.value) <= 100 &&
-    qty !== "";
-
   const radio = {
     discountType,
     set: setDiscountType,
-    isPrice: discountType === "price",
-    isRate: discountType === "rate",
+    isAmount: discountType === "amount",
+    isRate: discountType === "percent",
   };
 
-  const toPayload = () => ({
-    name: name.trim(),
-    detail: detail.trim() || undefined,
-    price: typeof price === "number" ? price : 0,
-    qty: typeof qty === "number" ? qty : 0,
-    discountType,
-  });
+  const isReady =
+    name.trim() !== "" &&
+    (bind.rate?.value !== "" || bind.amount?.value !== "") &&
+    (radio.discountType === "percent"
+      ? Number(bind.rate.value) <= 100
+      : true) &&
+    qty !== "";
 
   return {
     name,
     detail,
-    price,
+    rate,
+    amount,
     qty,
     discountType,
 
     setName,
     setDetail,
-    setPrice,
+    setRate,
+    setAmount,
     setQty,
     setDiscountType,
 
@@ -87,6 +91,5 @@ export const useCouponForm = (init: Init = {}) => {
     radio,
     isReady,
     reset,
-    toPayload,
   };
 };

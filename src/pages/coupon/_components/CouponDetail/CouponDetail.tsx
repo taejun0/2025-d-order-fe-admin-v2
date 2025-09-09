@@ -1,39 +1,67 @@
 import * as S from "./CouponDetail.styled";
+import { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { DetailData } from "./DetailData";
 import { CouponItem } from "./CouponItem";
-import qr from "../../../../assets/icons/qr.svg";
+import qr from "@assets/icons/qr.svg";
 import { DeleteModal } from "@components/DeleteModal/DeleteModal";
-export const CouponDetail = () => {
+import { useCouponDetail } from "@pages/coupon/hooks/useCouponDetail";
+import { useCouponCode } from "@pages/coupon/hooks/useCouponCode";
+import { CouponService } from "@services/CouponService";
+import { IMAGE_CONSTANTS } from "@constants/imageConstants";
+interface Props {
+  couponId: number;
+  setSelectedCouponId: Dispatch<SetStateAction<number | null>>;
+}
+export const CouponDetail = ({ couponId, setSelectedCouponId }: Props) => {
   const [showDelete, setShowDelete] = useState(false);
+  const { detail: detailData } = useCouponDetail(couponId);
+  const { codes } = useCouponCode(couponId);
 
   const handleCancel = () => {
     setShowDelete(false);
   };
 
-  const handleDelete = () => {
-    console.log("쿠폰 삭제 로직 실행");
-
-    // setShowDelete(false);
+  const handleDelete = async () => {
+    try {
+      await CouponService.deleteCoupon(couponId);
+      console.log("쿠폰 삭제 성공");
+      setShowDelete(false);
+      setSelectedCouponId(null);
+    } catch (err) {
+      console.error("쿠폰 삭제 실패:", err);
+    }
   };
   return (
     <S.DetailBox>
       <S.DetailContainer>
         <S.DetailWrapper>
-          <S.CouponDetailTitle>쿠폰 정보</S.CouponDetailTitle>
+          <S.TitleWrapper>
+            <img src={IMAGE_CONSTANTS.BACKWARD_BLACK} />
+            <S.CouponDetailTitle>쿠폰 정보</S.CouponDetailTitle>
+          </S.TitleWrapper>
           <div>
             <S.DataContainer>
               <DetailData
                 DataTitle="쿠폰명"
-                DataContent="게임 승리 10% 할인 쿠폰"
+                DataContent={detailData?.coupon_name}
               />
               <DetailData
                 DataTitle="쿠폰 상세"
-                DataContent="현재 주문 금액에서 10% 할인됩니다."
+                DataContent={detailData?.coupon_description}
               />
-              <DetailData DataTitle="할인 유형" DataContent="할인율(%)" />
-              <DetailData DataTitle="할인율" DataContent="10" />
-              <DetailData DataTitle="수량" DataContent="29/30" />
+              <DetailData
+                DataTitle="할인 유형"
+                DataContent={detailData?.discount_type}
+              />
+              <DetailData
+                DataTitle="할인율"
+                DataContent={detailData?.discount_value}
+              />
+              <DetailData
+                DataTitle="수량"
+                DataContent={`${detailData?.unused_count}/${detailData?.quantity}`}
+              />
             </S.DataContainer>
             <S.BottomContainer>
               <S.QrContainer>
@@ -46,9 +74,9 @@ export const CouponDetail = () => {
         <S.DeleteBtn onClick={() => setShowDelete(true)}>쿠폰 삭제</S.DeleteBtn>
       </S.DetailContainer>
       <S.CouponList>
-        <CouponItem code="A4TH78" isUsed={true} />
-        <CouponItem code="A4TH78" isUsed={false} />
-        <CouponItem code="A4TH78" isUsed={true} />
+        {codes.map((c) => (
+          <CouponItem key={c.code} code={c.code} isUsed={c.is_used} />
+        ))}
       </S.CouponList>
       {showDelete && (
         <DeleteModal
