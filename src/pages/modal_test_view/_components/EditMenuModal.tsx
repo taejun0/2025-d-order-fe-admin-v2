@@ -1,15 +1,14 @@
+import { useEffect, useState } from "react";
 import preUploadImg from "@assets/images/preUploadImg.png";
 import * as S from "./styled";
-import { useState, useEffect } from "react";
-import MenuService from "@services/MenuService";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
-// import CommonDropdown from "@pages/signup/_components/inputs/dropdown/CommonDropdown";
-import MenuDropdown from "@pages/menu/_components/MenuDropdown";
-import MenuServiceWithImg from "@services/MenuServiceWithImg";
 import { HandleNumberInput } from "../_utils/HandleNumberInput";
 import { compressImage } from "../_utils/ImageCompress";
+import MenuServiceWithImg from "@services/MenuServiceWithImg";
+import MenuService from "@services/MenuService";
+import MenuDropdown from "@pages/menu/_components/MenuDropdown";
 
-interface MenuModalProps {
+interface EditModalProps {
   handleCloseModal: () => void;
   onSuccess?: () => void;
   defaultValues?: {
@@ -19,14 +18,18 @@ interface MenuModalProps {
     menu_category: string;
     menu_price: number;
     menu_amount?: number;
-    menu_image?: File | string | null; // URL
+    menu_image?: string | null; // URL
   };
 }
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 업로드 이미지 크기 제한 3MB
 const MIN_FILE_SIZE = 2.5 * 1024 * 1024;
 
-const MenuModal = ({ handleCloseModal, onSuccess }: MenuModalProps) => {
+const EditModal = ({
+  handleCloseModal,
+  onSuccess,
+  defaultValues,
+}: EditModalProps) => {
   const [UploadImg, setUploadImg] = useState<string | null>(null);
   const [buttonDisable, setButtonDisable] = useState<boolean>(true);
 
@@ -35,15 +38,8 @@ const MenuModal = ({ handleCloseModal, onSuccess }: MenuModalProps) => {
   const [desc, setDesc] = useState<string>("");
   const [price, setPrice] = useState<string>("");
   const [stock, setStock] = useState<string>("");
-  const [image, setImage] = useState<File | null>(null);
+  const [image, setImage] = useState<File | string | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
-
-  // dummy data
-  // const menuCompositionOptions = ["메뉴", "음료", "세트"];
-  // const [menuComposition, setMenuComposition] = useState<string>("메뉴");
-  // const onChangeMenuComposition = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   setMenuComposition(e.target.value);
-  // };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,19 +57,34 @@ const MenuModal = ({ handleCloseModal, onSuccess }: MenuModalProps) => {
     }
   }, [name, price, stock, category]);
 
-  // 옵션 추가
   const addOption = () => {};
-  // 제출 이벤트
+
+  useEffect(() => {
+    if (defaultValues) {
+      setName(defaultValues.menu_name);
+      setDesc(defaultValues.menu_description || "");
+      setPrice(String(defaultValues.menu_price));
+      setStock(String(defaultValues.menu_amount));
+      setUploadImg(defaultValues.menu_image || "");
+      setImage(defaultValues.menu_image || null); // 초기에는 서버 이미지 URL(string)
+      setCategory(defaultValues.menu_category);
+      setButtonDisable(false); // 수정 시 버튼 활성화
+    }
+  }, [defaultValues]);
+
+  useEffect(() => {
+    if (name && price && stock && category) {
+      setButtonDisable(false);
+    } else {
+      setButtonDisable(true);
+    }
+  }, [name, price, stock, category]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!category || !name || !price || !stock) {
       alert("모든 필수 항목을 채워주세요.");
-      return;
-    }
-
-    if (image && image.size > MAX_FILE_SIZE) {
-      alert("파일 크기가 너무 큽니다. 최대 3MB까지 업로드 가능합니다.");
       return;
     }
 
@@ -83,7 +94,14 @@ const MenuModal = ({ handleCloseModal, onSuccess }: MenuModalProps) => {
     formData.append("menu_category", category);
     formData.append("menu_price", price);
     formData.append("menu_amount", stock);
-    if (image) {
+
+    // 이미지 처리 분기: File이면 업로드, string이면 기존 유지로 판단하여 업로드 스킵
+    if (image instanceof File) {
+      if (image.size > MAX_FILE_SIZE) {
+        alert("파일 크기가 너무 큽니다. 최대 3MB까지 업로드 가능합니다.");
+        return;
+      }
+
       if (image.size <= MIN_FILE_SIZE) {
         formData.append("menu_image", image);
       } else {
@@ -130,7 +148,7 @@ const MenuModal = ({ handleCloseModal, onSuccess }: MenuModalProps) => {
     <S.Wrapper onSubmit={handleSubmit}>
       <S.ModalBody>
         <S.ModalHeader>
-          메뉴 등록
+          메뉴 수정
           <button type="button" onClick={handleCloseModal}>
             <img src={IMAGE_CONSTANTS.CLOSE} alt="닫기" />
           </button>
@@ -262,11 +280,11 @@ const MenuModal = ({ handleCloseModal, onSuccess }: MenuModalProps) => {
           취소
         </button>
         <button type="submit" disabled={buttonDisable}>
-          메뉴 등록
+          메뉴 수정
         </button>
       </S.ModalConfirmContainer>
     </S.Wrapper>
   );
 };
 
-export default MenuModal;
+export default EditModal;

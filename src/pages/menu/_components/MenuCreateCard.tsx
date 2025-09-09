@@ -5,14 +5,10 @@ import MenuModal from "../../modal_test_view/_components/MenuModal";
 import { BoothMenuData } from "../Type/Menu_type";
 
 interface MenuCreateCardProps {
-  onMenuChange: () => void;
   bootMenuData: BoothMenuData | undefined;
 }
 
-const MenuCreateCard = ({
-  onMenuChange,
-  bootMenuData,
-}: MenuCreateCardProps) => {
+const MenuCreateCard = ({ bootMenuData }: MenuCreateCardProps) => {
   const [showModal, setShowModal] = useState(false);
 
   const handleCreateClick = () => {
@@ -35,11 +31,7 @@ const MenuCreateCard = ({
       {showModal && (
         <ModalWrapper onClick={handleCloseModal}>
           <div onClick={(e) => e.stopPropagation()}>
-            <MenuModal
-              text="메뉴 등록"
-              handleCloseModal={handleCloseModal}
-              onSuccess={onMenuChange}
-            />
+            <MenuModal handleCloseModal={handleCloseModal} />
           </div>
         </ModalWrapper>
       )}

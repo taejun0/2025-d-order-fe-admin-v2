@@ -97,10 +97,7 @@ const MenuPage = () => {
   return (
     <S.MenuPageWrapper>
       <S.MenuGrid>
-        <MenuCreateCard
-          onMenuChange={fetchMenus}
-          bootMenuData={boothMenuData}
-        />
+        <MenuCreateCard bootMenuData={boothMenuData} />
         <TableFeeCard table={tableFeeMenu || defaultTableFeeMenu} />
         {boothMenuData?.menus?.map((menu) => (
           <MenuCard key={menu.menu_id} menu={menu} onMenuChange={fetchMenus} />

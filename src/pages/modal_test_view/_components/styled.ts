@@ -1,4 +1,19 @@
 import styled from "styled-components";
+
+export const Wrapper = styled.form`
+  min-width: 600px;
+  max-width: 700px;
+  width: 80%;
+
+  display: grid;
+  grid-template-rows: 12fr 1fr;
+
+  z-index: 10;
+  background-color: ${({ theme }) => theme.colors.Gray01};
+
+  border-radius: 10px;
+`;
+
 export const ModalBody = styled.div`
   box-sizing: border-box;
   padding: 1.5rem;
