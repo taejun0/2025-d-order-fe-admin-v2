@@ -126,7 +126,9 @@ const MenuModal2 = ({
             type: compressedFile.type,
           });
           formData.append("menu_image", correctedFile);
-        } catch (e) {}
+        } catch (e) {
+          console.log("이미지 압축 실패", e);
+        }
       }
     }
     try {
@@ -143,7 +145,6 @@ const MenuModal2 = ({
       }
     } catch (e) {}
   };
-  useEffect(() => {});
   return (
     <Wrapper onSubmit={handleSubmit}>
       <S.ModalBody>
