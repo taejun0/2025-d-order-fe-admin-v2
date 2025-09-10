@@ -28,6 +28,11 @@ export const TitleWrapper = styled.div`
   flex-direction: row;
   gap: 1rem;
 `;
+
+export const BackImg = styled.img`
+  width: 10px;
+  cursor: pointer;
+`;
 export const CouponDetailTitle = styled.div`
   ${({ theme }) => theme.fonts.Bold20}
   color: ${({ theme }) => theme.colors.Black01};
@@ -55,11 +60,14 @@ export const DataTitle = styled.div`
   display: flex;
   color: ${({ theme }) => theme.colors.Focused};
   width: 20%;
+  ${({ theme }) => theme.fonts.SemiBold12};
 `;
+
 export const DataContent = styled.div`
   display: flex;
   color: ${({ theme }) => theme.colors.Black01};
   width: 80%;
+  ${({ theme }) => theme.fonts.SemiBold12};
 `;
 
 //mypage에서 가져옴

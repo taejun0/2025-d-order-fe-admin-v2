@@ -37,7 +37,10 @@ export const CouponDetail = ({ couponId, setSelectedCouponId }: Props) => {
       <S.DetailContainer>
         <S.DetailWrapper>
           <S.TitleWrapper>
-            <img src={IMAGE_CONSTANTS.BACKWARD_BLACK} />
+            <S.BackImg
+              src={IMAGE_CONSTANTS.BACKWARD_BLACK}
+              onClick={() => setSelectedCouponId(null)}
+            />
             <S.CouponDetailTitle>쿠폰 정보</S.CouponDetailTitle>
           </S.TitleWrapper>
           <div>
