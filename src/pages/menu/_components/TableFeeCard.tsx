@@ -21,7 +21,9 @@ const TableFeeCard = ({ table }: TableFeeCardProps) => {
             {table.seat_tax_person === "" ? (
               <CardText>{table.seat_tax_person}</CardText>
             ) : (
-              <CardText>{table.seat_tax_person.toLocaleString()}원</CardText>
+              // <CardText>{table.seat_tax_person.toLocaleString()}원</CardText>
+              // <CardText>{table.seat_tax_person()}원</CardText>
+              <></>
             )}
           </CardTextInner>
           <CardTextInner>

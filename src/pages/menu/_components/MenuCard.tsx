@@ -4,7 +4,8 @@ import { useState } from "react";
 import MenuModal from "../../modal_test_view/_components/MenuModal";
 import MenuDeleteModal from "../../modal_test_view/_components/MenuDeleteModal";
 import { Menu } from "../Type/Menu_type";
-import MenuService from "../api/MenuService";
+import MenuService from "../../../services/MenuService";
+import EditModal from "@pages/modal_test_view/_components/EditMenuModal";
 
 interface MenuCardProps {
   menu: Menu;
@@ -35,7 +36,7 @@ const MenuCard = ({ menu, onMenuChange }: MenuCardProps) => {
 
   const handleConfirmDelete = async () => {
     try {
-      // await MenuService.deleteMenu(menu.id);
+      await MenuService.deleteMenu(menu.menu_id);
       setShowDeleteModal(false);
       onMenuChange(); // 목록 새로고침
     } catch (error) {
@@ -86,10 +87,8 @@ const MenuCard = ({ menu, onMenuChange }: MenuCardProps) => {
       {showModal && (
         <S.ModalWrapper onClick={handleCloseModal}>
           <div onClick={(e) => e.stopPropagation()}>
-            <MenuModal
+            <EditModal
               handleCloseModal={handleCloseModal}
-              text="메뉴 수정"
-              isEdit={true}
               onSuccess={onMenuChange}
               defaultValues={{
                 menu_id: menu.menu_id,

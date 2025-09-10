@@ -1,17 +1,16 @@
-import styled from "styled-components";
-import close from "@assets/icons/close.svg";
 import preUploadImg from "@assets/images/preUploadImg.png";
 import * as S from "./styled";
 import { useState, useEffect } from "react";
 import MenuService from "@services/MenuService";
-import imageCompression from "browser-image-compression";
+import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 // import CommonDropdown from "@pages/signup/_components/inputs/dropdown/CommonDropdown";
 import MenuDropdown from "@pages/menu/_components/MenuDropdown";
+import MenuServiceWithImg from "@services/MenuServiceWithImg";
+import { HandleNumberInput } from "../_utils/HandleNumberInput";
+import { compressImage } from "../_utils/ImageCompress";
 
 interface MenuModalProps {
-  text: string;
   handleCloseModal: () => void;
-  isEdit?: boolean;
   onSuccess?: () => void;
   defaultValues?: {
     menu_id: number;
@@ -20,28 +19,22 @@ interface MenuModalProps {
     menu_category: string;
     menu_price: number;
     menu_amount?: number;
-    menu_image?: string | null; // URL
+    menu_image?: File | string | null; // URL
   };
 }
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 업로드 이미지 크기 제한 3MB
 const MIN_FILE_SIZE = 2.5 * 1024 * 1024;
 
-const MenuModal2 = ({
-  text,
-  handleCloseModal,
-  isEdit = false,
-  onSuccess,
-  defaultValues,
-}: MenuModalProps) => {
+const MenuModal = ({ handleCloseModal, onSuccess }: MenuModalProps) => {
   const [UploadImg, setUploadImg] = useState<string | null>(null);
   const [buttonDisable, setButtonDisable] = useState<boolean>(true);
 
   const [category, setCategory] = useState<string>("메뉴");
-  const [name, setName] = useState<string | undefined>();
-  const [desc, setDesc] = useState<string | undefined>();
-  const [price, setPrice] = useState<string | undefined>();
-  const [stock, setStock] = useState<string | undefined>();
+  const [name, setName] = useState<string>("");
+  const [desc, setDesc] = useState<string>("");
+  const [price, setPrice] = useState<string>("");
+  const [stock, setStock] = useState<string>("");
   const [image, setImage] = useState<File | null>(null);
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -68,27 +61,6 @@ const MenuModal2 = ({
     }
   }, [name, price, stock, category]);
 
-  // 수정시 기본 값 가져오기
-  useEffect(() => {
-    if (defaultValues) {
-      setName(defaultValues.menu_name);
-      setDesc(defaultValues.menu_description || "");
-      setPrice(String(defaultValues.menu_price));
-      setStock(String(defaultValues.menu_amount));
-      setUploadImg(defaultValues.menu_image || "");
-      setCategory(defaultValues.menu_category);
-      setButtonDisable(false); // 수정 시 버튼 활성화
-    }
-  }, [defaultValues]);
-
-  // 숫자만 허용하는 함수
-  const handleNumberInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // 숫자만 허용
-    if (!/^\d*$/.test(value)) {
-      e.target.value = value.replace(/[^\d]/g, ""); // 숫자만 남기고 나머지 제거
-    }
-  };
   // 옵션 추가
   const addOption = () => {};
   // 제출 이벤트
@@ -110,48 +82,57 @@ const MenuModal2 = ({
     formData.append("menu_description", desc || "");
     formData.append("menu_category", category);
     formData.append("menu_price", price);
-    formData.append("menu_remain", stock);
+    formData.append("menu_amount", stock);
     if (image) {
       if (image.size <= MIN_FILE_SIZE) {
         formData.append("menu_image", image);
       } else {
         try {
-          const options = {
-            maxSizeMB: 3,
-            maxWidthOrHeight: 1024,
-            useWebWorker: true,
-          };
-          const compressedFile = await imageCompression(image, options);
-          const correctedFile = new File([compressedFile], image.name, {
-            type: compressedFile.type,
-          });
+          const correctedFile = await compressImage(image);
           formData.append("menu_image", correctedFile);
         } catch (e) {
-          console.log("이미지 압축 실패", e);
+          console.log(e);
+        }
+      }
+      if (category !== "세트") {
+        try {
+          await MenuServiceWithImg.createMenu(formData);
+
+          handleCloseModal();
+        } catch (e) {
+          alert("dddd");
+          console.log(e);
+        }
+      } else {
+        // 세트 메뉴일 경우 로직
+      }
+    }
+    // 이미지 없을 경우
+    else {
+      if (category !== "세트") {
+        try {
+          await MenuService.createMenu(formData);
+          handleCloseModal();
+        } catch (e) {
+          console.log(e);
+        }
+      } else {
+        try {
+          // 세트 메뉴 일 경우 로직 추가
+          handleCloseModal();
+        } catch (e) {
+          console.log(e);
         }
       }
     }
-    try {
-      if (isEdit && defaultValues?.menu_id !== undefined) {
-        await MenuService.editMenu(formData, defaultValues.menu_id);
-        handleCloseModal();
-        if (onSuccess) onSuccess();
-      } else {
-        formData.delete("menu_remain");
-        formData.append("menu_amount", stock);
-        await MenuService.postMenu(formData);
-        handleCloseModal();
-        if (onSuccess) onSuccess();
-      }
-    } catch (e) {}
   };
   return (
-    <Wrapper onSubmit={handleSubmit}>
+    <S.Wrapper onSubmit={handleSubmit}>
       <S.ModalBody>
         <S.ModalHeader>
-          {text}
+          메뉴 등록
           <button type="button" onClick={handleCloseModal}>
-            <img src={close} alt="닫기" />
+            <img src={IMAGE_CONSTANTS.CLOSE} alt="닫기" />
           </button>
         </S.ModalHeader>
         <S.FormContentWrapper>
@@ -223,7 +204,7 @@ const MenuModal2 = ({
               placeholder="예) 20000"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              onInput={handleNumberInput}
+              onInput={HandleNumberInput}
             />
           </S.ele>
           {category === "세트" && (
@@ -252,7 +233,7 @@ const MenuModal2 = ({
                 placeholder="예) 100"
                 value={stock}
                 onChange={(e) => setStock(e.target.value)}
-                onInput={handleNumberInput}
+                onInput={HandleNumberInput}
               />
             </S.ele>
           )}
@@ -281,25 +262,11 @@ const MenuModal2 = ({
           취소
         </button>
         <button type="submit" disabled={buttonDisable}>
-          {text}
+          메뉴 등록
         </button>
       </S.ModalConfirmContainer>
-    </Wrapper>
+    </S.Wrapper>
   );
 };
 
-export default MenuModal2;
-
-const Wrapper = styled.form`
-  min-width: 600px;
-  max-width: 700px;
-  width: 80%;
-
-  display: grid;
-  grid-template-rows: 12fr 1fr;
-
-  z-index: 10;
-  background-color: ${({ theme }) => theme.colors.Gray01};
-
-  border-radius: 10px;
-`;
+export default MenuModal;
