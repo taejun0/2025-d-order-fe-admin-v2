@@ -1,18 +1,17 @@
 import * as S from "./MenuCard.styled";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
-import { useState } from "react";
-import MenuModal from "../../modal_test_view/_components/MenuModal";
+import React, { SetStateAction, useState } from "react";
 import MenuDeleteModal from "../../modal_test_view/_components/MenuDeleteModal";
 import { Menu } from "../Type/Menu_type";
 import MenuService from "../../../services/MenuService";
-import EditModal from "@pages/modal_test_view/_components/EditMenuModal";
+import EditMenuModal from "@pages/modal_test_view/_components/EditMenuModal";
 
 interface MenuCardProps {
   menu: Menu;
-  onMenuChange: () => void;
+  onSuccess: React.Dispatch<SetStateAction<boolean>>;
 }
 
-const MenuCard = ({ menu, onMenuChange }: MenuCardProps) => {
+const MenuCard = ({ menu, onSuccess }: MenuCardProps) => {
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -38,7 +37,7 @@ const MenuCard = ({ menu, onMenuChange }: MenuCardProps) => {
     try {
       await MenuService.deleteMenu(menu.menu_id);
       setShowDeleteModal(false);
-      onMenuChange(); // 목록 새로고침
+      onSuccess((prev) => !prev); // 목록 새로고침
     } catch (error) {
       alert("메뉴 삭제에 실패했습니다.");
     }
@@ -87,9 +86,9 @@ const MenuCard = ({ menu, onMenuChange }: MenuCardProps) => {
       {showModal && (
         <S.ModalWrapper onClick={handleCloseModal}>
           <div onClick={(e) => e.stopPropagation()}>
-            <EditModal
+            <EditMenuModal
               handleCloseModal={handleCloseModal}
-              onSuccess={onMenuChange}
+              onSuccess={onSuccess}
               defaultValues={{
                 menu_id: menu.menu_id,
                 menu_name: menu.menu_name,

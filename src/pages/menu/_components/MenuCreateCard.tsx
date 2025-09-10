@@ -1,14 +1,15 @@
 import styled from "styled-components";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 import MenuModal from "../../modal_test_view/_components/MenuModal";
 import { BoothMenuData } from "../Type/Menu_type";
 
 interface MenuCreateCardProps {
   bootMenuData: BoothMenuData | undefined;
+  onSuccess: React.Dispatch<SetStateAction<boolean>>;
 }
 
-const MenuCreateCard = ({ bootMenuData }: MenuCreateCardProps) => {
+const MenuCreateCard = ({ bootMenuData, onSuccess }: MenuCreateCardProps) => {
   const [showModal, setShowModal] = useState(false);
 
   const handleCreateClick = () => {
@@ -17,6 +18,7 @@ const MenuCreateCard = ({ bootMenuData }: MenuCreateCardProps) => {
 
   const handleCloseModal = () => {
     setShowModal(false);
+    onSuccess((prev) => !prev);
   };
 
   return (

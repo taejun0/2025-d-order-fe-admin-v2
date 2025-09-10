@@ -1,6 +1,6 @@
 import preUploadImg from "@assets/images/preUploadImg.png";
 import * as S from "./styled";
-import { useState, useEffect } from "react";
+import { useState, useEffect, SetStateAction } from "react";
 import MenuService from "@services/MenuService";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 // import CommonDropdown from "@pages/signup/_components/inputs/dropdown/CommonDropdown";
@@ -11,7 +11,6 @@ import { compressImage } from "../_utils/ImageCompress";
 
 interface MenuModalProps {
   handleCloseModal: () => void;
-  onSuccess?: () => void;
   defaultValues?: {
     menu_id: number;
     menu_name: string;
@@ -26,7 +25,7 @@ interface MenuModalProps {
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 업로드 이미지 크기 제한 3MB
 const MIN_FILE_SIZE = 2.5 * 1024 * 1024;
 
-const MenuModal = ({ handleCloseModal, onSuccess }: MenuModalProps) => {
+const MenuModal = ({ handleCloseModal }: MenuModalProps) => {
   const [UploadImg, setUploadImg] = useState<string | null>(null);
   const [buttonDisable, setButtonDisable] = useState<boolean>(true);
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import preUploadImg from "@assets/images/preUploadImg.png";
 import * as S from "./styled";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
@@ -10,7 +10,7 @@ import MenuDropdown from "@pages/menu/_components/MenuDropdown";
 
 interface EditModalProps {
   handleCloseModal: () => void;
-  onSuccess?: () => void;
+  onSuccess: React.Dispatch<SetStateAction<boolean>>;
   defaultValues?: {
     menu_id: number;
     menu_name: string;
@@ -25,7 +25,7 @@ interface EditModalProps {
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 업로드 이미지 크기 제한 3MB
 const MIN_FILE_SIZE = 2.5 * 1024 * 1024;
 
-const EditModal = ({
+const EditMenuModal = ({
   handleCloseModal,
   onSuccess,
   defaultValues,
@@ -287,4 +287,4 @@ const EditModal = ({
   );
 };
 
-export default EditModal;
+export default EditMenuModal;

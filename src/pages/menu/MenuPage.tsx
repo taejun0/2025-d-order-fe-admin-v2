@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import MenuService from "../../services/MenuService";
 import { LoadingSpinner } from "./api/LoadingSpinner";
 import { BoothMenuData, Menu, TableInfo } from "./Type/Menu_type";
-// import { boothDataDummy } from "./dummy/dummydata";
 import SetMenuCard from "./_components/SetMenuCard";
 
 const MenuPage = () => {
@@ -15,7 +14,7 @@ const MenuPage = () => {
   >();
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [onSuccess, setOnSuccess] = useState<boolean>(false);
   const fetchMenus = async () => {
     try {
       setLoading(true);
@@ -31,8 +30,9 @@ const MenuPage = () => {
 
   useEffect(() => {
     fetchMenus();
-  }, []);
+  }, [onSuccess]);
 
+  // 추후 삭제
   useEffect(() => {
     if (boothMenuData) {
       console.log(boothMenuData);
@@ -97,10 +97,10 @@ const MenuPage = () => {
   return (
     <S.MenuPageWrapper>
       <S.MenuGrid>
-        <MenuCreateCard bootMenuData={boothMenuData} />
-        <TableFeeCard table={tableFeeMenu || defaultTableFeeMenu} />
+        <MenuCreateCard bootMenuData={boothMenuData} onSuccess={setOnSuccess} />
+        {/* <TableFeeCard table={tableFeeMenu || defaultTableFeeMenu} /> */}
         {boothMenuData?.menus?.map((menu) => (
-          <MenuCard key={menu.menu_id} menu={menu} onMenuChange={fetchMenus} />
+          <MenuCard key={menu.menu_id} menu={menu} onSuccess={setOnSuccess} />
         ))}
         {setMenus?.map((setMenu) => (
           <SetMenuCard

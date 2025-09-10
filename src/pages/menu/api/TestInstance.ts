@@ -5,7 +5,7 @@ export const TestInstance: AxiosInstance = axios.create({
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN}`,
+    Authorization: `Bearer ${import.meta.env.VITE_TOKEN}`,
   },
 });
 
@@ -15,6 +15,6 @@ export const TestInstatnceWithImg: AxiosInstance = axios.create({
   withCredentials: true,
   headers: {
     "Content-Type": "multipart/form-data",
-    Authorization: `Bearer ${import.meta.env.VITE_ACCESS_TOKEN}`,
+    Authorization: `Bearer ${import.meta.env.VITE_TOKEN}`,
   },
 });
