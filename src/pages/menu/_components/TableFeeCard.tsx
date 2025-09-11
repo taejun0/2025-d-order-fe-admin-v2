@@ -4,13 +4,14 @@ import { TableInfo } from "../Type/Menu_type";
 type TableFeeCardProps = { table: TableInfo };
 
 const TableFeeCard = ({ table }: TableFeeCardProps) => {
+  console.log(table);
   return (
     <TableFeeCardWrapper>
-      {/* {!table.table && (
+      {table.seat_type === "테이블 이용료 없음" && (
         <SoldOutOverlay>
           <SoldOutText>SOLD OUT</SoldOutText>
         </SoldOutOverlay>
-      )} */}
+      )}
       <CardContents>
         <CardImg>
           <img src={IMAGE_CONSTANTS.CHARACTER} alt="테이블 이용료" />
@@ -18,17 +19,29 @@ const TableFeeCard = ({ table }: TableFeeCardProps) => {
         <CardInfo>
           <CardTextInner>
             <CardText className="bold">{table.seat_type}</CardText>
-            {table.seat_tax_person === "" ? (
-              <CardText>{table.seat_tax_person}</CardText>
+            {table.seat_type === "테이블 이용료 없음" ? (
+              <CardText>0원</CardText>
             ) : (
-              // <CardText>{table.seat_tax_person.toLocaleString()}원</CardText>
-              // <CardText>{table.seat_tax_person()}원</CardText>
-              <></>
+              <>
+                {/* <CardText>{table.seat_tax_person.toLocaleString()}원</CardText> */}
+                <CardText>
+                  {table.seat_type === "person"
+                    ? table.seat_tax_person.toLocaleString()
+                    : table.seat_tax_table.toLocaleString()}
+                  원
+                </CardText>
+              </>
             )}
           </CardTextInner>
           <CardTextInner>
             <CardText>기준</CardText>
-            <CardText>인원 수</CardText>
+            <CardText>
+              {table.seat_type === "person"
+                ? "인원수"
+                : table.seat_type === "table"
+                ? "테이블"
+                : "기준없음"}
+            </CardText>
           </CardTextInner>
         </CardInfo>
       </CardContents>

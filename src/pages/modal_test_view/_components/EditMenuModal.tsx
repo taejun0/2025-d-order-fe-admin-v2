@@ -11,7 +11,7 @@ import MenuDropdown from "@pages/menu/_components/MenuDropdown";
 interface EditModalProps {
   handleCloseModal: () => void;
   onSuccess: React.Dispatch<SetStateAction<boolean>>;
-  defaultValues?: {
+  defaultValues: {
     menu_id: number;
     menu_name: string;
     menu_description: string;
@@ -25,11 +25,7 @@ interface EditModalProps {
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 업로드 이미지 크기 제한 3MB
 const MIN_FILE_SIZE = 2.5 * 1024 * 1024;
 
-const EditMenuModal = ({
-  handleCloseModal,
-  onSuccess,
-  defaultValues,
-}: EditModalProps) => {
+const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
   const [UploadImg, setUploadImg] = useState<string | null>(null);
   const [buttonDisable, setButtonDisable] = useState<boolean>(true);
 
@@ -114,7 +110,7 @@ const EditMenuModal = ({
       }
       if (category !== "세트") {
         try {
-          await MenuServiceWithImg.createMenu(formData);
+          await MenuServiceWithImg.updateMenu(defaultValues.menu_id, formData);
 
           handleCloseModal();
         } catch (e) {
@@ -129,7 +125,7 @@ const EditMenuModal = ({
     else {
       if (category !== "세트") {
         try {
-          await MenuService.createMenu(formData);
+          await MenuService.updateMenu(defaultValues.menu_id, formData);
           handleCloseModal();
         } catch (e) {
           console.log(e);

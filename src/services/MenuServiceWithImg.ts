@@ -1,4 +1,3 @@
-import { TestInstatnceWithImg } from "@pages/menu/api/TestInstance";
 import { instatnceWithImg } from "./instance";
 
 export interface MenuRegistResponse {
@@ -18,7 +17,7 @@ export interface MenuRegistResponse {
 const MenuServiceWithImg = {
   createMenu: async (formData: FormData): Promise<MenuRegistResponse> => {
     try {
-      const response = await TestInstatnceWithImg.post<MenuRegistResponse>(
+      const response = await instatnceWithImg.post<MenuRegistResponse>(
         "/api/v2/booth/menus/",
         formData
       );
@@ -34,12 +33,12 @@ const MenuServiceWithImg = {
     }
   },
   updateMenu: async (
-    formData: FormData,
-    menu_id: number
+    menu_id: number,
+    formData: FormData
   ): Promise<MenuRegistResponse> => {
     try {
       const response = await instatnceWithImg.patch<MenuRegistResponse>(
-        `/api/manager/menu/${menu_id}/`,
+        `/api/v2/booth/menus/${menu_id}/`,
         formData
       );
       return response.data;

@@ -26,6 +26,7 @@ const MenuCard = ({ menu, onSuccess }: MenuCardProps) => {
   };
 
   const handleCloseModal = () => {
+    onSuccess((prev) => !prev);
     setShowModal(false);
   };
 

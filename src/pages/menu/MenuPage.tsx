@@ -5,7 +5,7 @@ import MenuCard from "./_components/MenuCard";
 import { useEffect, useState } from "react";
 import MenuService from "../../services/MenuService";
 import { LoadingSpinner } from "./api/LoadingSpinner";
-import { BoothMenuData, Menu, TableInfo } from "./Type/Menu_type";
+import { BoothMenuData, TableInfo } from "./Type/Menu_type";
 import SetMenuCard from "./_components/SetMenuCard";
 
 const MenuPage = () => {
@@ -39,52 +39,36 @@ const MenuPage = () => {
     }
   }, [boothMenuData]);
 
-  // 테이블 이용료 분류 (menu_category가 "테이블 이용료"인 메뉴)
-  // const tableFeeMenu = menus.find(
-  //   (menu) => menu.menu_category === "테이블 이용료"
-  // );
+  // 테이블 이용료 정보 (BoothMenuData.table)
+  const tableInfo: TableInfo | undefined = boothMenuData?.table;
 
-  // // 테이블 이용료가 없을 때 사용할 기본 메뉴 객체
-  // const defaultTableFeeMenu: Menu = {
-  //   menu_id: -1,
-  //   menu_name: "테이블 이용료",
-  //   menu_price: 0,
-  //   menu_description: "테이블 이용료 없음",
-  //   menu_category: "테이블 이용료",
-  //   is_selling: true,
-  //   menu_image: "",
-  // };
-
-  // 테이블 이용료 분류
-  const tableFeeMenu = boothMenuData?.table;
-
-  const defaultTableFeeMenu: TableInfo = {
+  // 테이블 이용료가 없을 때 사용할 기본 TableInfo 객체
+  const defaultTableInfo: TableInfo = {
     seat_type: "테이블 이용료 없음",
-    seat_tax_person: "",
+    seat_tax_person: 0,
+    seat_tax_table: 0,
   };
 
-  // 일반 메뉴 분류 (menu_category가 "테이블 이용료"가 아닌 메뉴)
-  // const regularMenus = boothMenuData?.menus
-  //   // 카테고리 우선순위: 차지 -> 메뉴 -> 음료
-  //   .sort((a, b) => {
-  //     const categoryOrder = {
-  //       차지: 0,
-  //       메인: 1,
-  //       음료: 2,
-  //     };
-  //
-  //     // 카테고리가 다르면 카테고리 순서로 정렬
-  //     if (a.menu_category !== b.menu_category) {
-  //       return (
-  //         (categoryOrder[a.menu_category as keyof typeof categoryOrder] ||
-  //           999) -
-  //         (categoryOrder[b.menu_category as keyof typeof categoryOrder] || 999)
-  //       );
-  //     }
-  //
-  //     // 같은 카테고리면 비싼 순서로 정렬
-  //     return b.menu_price - a.menu_price;
-  //   });
+  // 일반 메뉴 정렬 (카테고리 우선순위: 차지 -> 메인 -> 음료), '테이블 이용료' 제외
+  const regularMenus = boothMenuData?.menus
+    ?.filter((m) => m.menu_category !== "seat_fee")
+    .sort((a, b) => {
+      const categoryOrder = {
+        차지: 0,
+        메인: 1,
+        음료: 2,
+      };
+
+      if (a.menu_category !== b.menu_category) {
+        return (
+          (categoryOrder[a.menu_category as keyof typeof categoryOrder] ||
+            999) -
+          (categoryOrder[b.menu_category as keyof typeof categoryOrder] || 999)
+        );
+      }
+
+      return b.menu_price - a.menu_price;
+    });
   const setMenus = boothMenuData?.setmenus;
   if (loading) {
     return <LoadingSpinner />;
@@ -97,9 +81,9 @@ const MenuPage = () => {
   return (
     <S.MenuPageWrapper>
       <S.MenuGrid>
-        <MenuCreateCard bootMenuData={boothMenuData} onSuccess={setOnSuccess} />
-        {/* <TableFeeCard table={tableFeeMenu || defaultTableFeeMenu} /> */}
-        {boothMenuData?.menus?.map((menu) => (
+        <MenuCreateCard bootMenuData={regularMenus} onSuccess={setOnSuccess} />
+        <TableFeeCard table={tableInfo || defaultTableInfo} />
+        {regularMenus?.map((menu) => (
           <MenuCard key={menu.menu_id} menu={menu} onSuccess={setOnSuccess} />
         ))}
         {setMenus?.map((setMenu) => (

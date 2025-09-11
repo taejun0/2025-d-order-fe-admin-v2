@@ -2,10 +2,10 @@ import styled from "styled-components";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { SetStateAction, useState } from "react";
 import MenuModal from "../../modal_test_view/_components/MenuModal";
-import { BoothMenuData } from "../Type/Menu_type";
+import { Menu } from "../Type/Menu_type";
 
 interface MenuCreateCardProps {
-  bootMenuData: BoothMenuData | undefined;
+  bootMenuData: Menu[] | undefined;
   onSuccess: React.Dispatch<SetStateAction<boolean>>;
 }
 

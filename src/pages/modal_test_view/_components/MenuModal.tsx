@@ -1,6 +1,6 @@
 import preUploadImg from "@assets/images/preUploadImg.png";
 import * as S from "./styled";
-import { useState, useEffect, SetStateAction } from "react";
+import { useState, useEffect } from "react";
 import MenuService from "@services/MenuService";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 // import CommonDropdown from "@pages/signup/_components/inputs/dropdown/CommonDropdown";
