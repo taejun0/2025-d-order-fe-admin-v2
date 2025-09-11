@@ -1,4 +1,19 @@
 import styled from "styled-components";
+
+export const Wrapper = styled.form`
+  min-width: 600px;
+  max-width: 700px;
+  width: 80%;
+
+  display: grid;
+  grid-template-rows: 12fr 1fr;
+
+  z-index: 10;
+  background-color: ${({ theme }) => theme.colors.Gray01};
+
+  border-radius: 10px;
+`;
+
 export const ModalBody = styled.div`
   box-sizing: border-box;
   padding: 1.5rem;
@@ -27,7 +42,7 @@ export const ele = styled.div`
   flex-direction: column;
   gap: 1rem;
 
-  div {
+  > div {
     display: flex;
     flex-direction: row;
     gap: 3rem;
@@ -62,8 +77,22 @@ export const ele = styled.div`
     // 그림자가 없으면 그냥 설정한 색상이 꽉 찬 원으로만 나옵니다.
   }
 
-  img {
+  > img {
     width: 170px;
+  }
+`;
+
+export const setComposition = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  button {
+    ${({ theme }) => theme.fonts.SemiBold16}
+    background-color: ${({ theme }) => theme.colors.Orange01};
+    color: ${({ theme }) => theme.colors.Bg};
+    border-radius: 10px;
+    padding: 0.75em 1.25em;
   }
 `;
 
@@ -94,6 +123,7 @@ export const FormContentWrapper = styled.div`
 
   max-height: 450px;
   overflow-y: auto;
+  scrollbar-width: none;
 `;
 
 export const SubTitle = styled.p`

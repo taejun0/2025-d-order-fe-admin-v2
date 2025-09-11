@@ -1,13 +1,15 @@
 import styled from "styled-components";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 import MenuModal from "../../modal_test_view/_components/MenuModal";
+import { BoothMenuData } from "../Type/Menu_type";
 
 interface MenuCreateCardProps {
-  onMenuChange: () => void;
+  bootMenuData: BoothMenuData | undefined;
+  onSuccess: React.Dispatch<SetStateAction<boolean>>;
 }
 
-const MenuCreateCard = ({ onMenuChange }: MenuCreateCardProps) => {
+const MenuCreateCard = ({ bootMenuData, onSuccess }: MenuCreateCardProps) => {
   const [showModal, setShowModal] = useState(false);
 
   const handleCreateClick = () => {
@@ -16,6 +18,7 @@ const MenuCreateCard = ({ onMenuChange }: MenuCreateCardProps) => {
 
   const handleCloseModal = () => {
     setShowModal(false);
+    onSuccess((prev) => !prev);
   };
 
   return (
@@ -30,11 +33,7 @@ const MenuCreateCard = ({ onMenuChange }: MenuCreateCardProps) => {
       {showModal && (
         <ModalWrapper onClick={handleCloseModal}>
           <div onClick={(e) => e.stopPropagation()}>
-            <MenuModal
-              text="메뉴 등록"
-              handleCloseModal={handleCloseModal}
-              onSuccess={onMenuChange}
-            />
+            <MenuModal handleCloseModal={handleCloseModal} />
           </div>
         </ModalWrapper>
       )}
