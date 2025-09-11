@@ -1,55 +1,67 @@
-import { instatnceWithImg } from "./instance";
+import { AxiosResponse } from "axios";
+import { instance } from "./instance";
+import { BoothMenuData, Menu } from "../pages/menu/Type/Menu_type";
+import { TestInstance } from "../pages/menu/api/TestInstance";
 
-export interface MenuRegistResponse {
-  status: string;
-  message: string;
-  code: number;
-  data: {
-    booth_id: number;
-    menu_name: string;
-    menu_category: string;
-    menu_price: number;
-    menu_amount: number;
-    menu_remain: number;
-    menu_image: string;
-  } | null;
+// Define precise response shapes per endpoint
+interface GetMenuListResponse {
+  data: BoothMenuData;
 }
-const MenuService = {
-  postMenu: async (formData: FormData): Promise<MenuRegistResponse> => {
+
+interface CreateMenuResponse {
+  data: Menu;
+}
+
+class MenuService {
+  // 메뉴 리스트 조회
+  static async getMenuList(): Promise<BoothMenuData> {
     try {
-      const response = await instatnceWithImg.post<MenuRegistResponse>(
-        "/api/manager/menu/add/",
-        formData
-      );
-      return response.data;
+      const response: AxiosResponse<GetMenuListResponse> =
+        await TestInstance.get("/api/v2/booth/all-menus/");
+      return response.data.data;
     } catch (error) {
-      return {
-        status: "error",
-        message: "메뉴 등록에 실패했습니다.",
-        code: 500,
-        data: null,
-      };
+      throw error;
     }
-  },
-  editMenu: async (
-    formData: FormData,
-    menu_id: number
-  ): Promise<MenuRegistResponse> => {
+  }
+
+  // 메뉴 생성
+  static async createMenu(formData: FormData): Promise<Menu> {
     try {
-      const response = await instatnceWithImg.patch<MenuRegistResponse>(
-        `/api/manager/menu/${menu_id}/`,
-        formData
-      );
-      return response.data;
+      const response: AxiosResponse<CreateMenuResponse> =
+        await TestInstance.post("/api/v2/booth/menus/", formData);
+      return response.data.data;
     } catch (error) {
-      return {
-        status: "error",
-        message: "메뉴 수정에 실패했습니다.",
-        code: 500,
-        data: null,
-      };
+      throw error;
     }
-  },
-};
+  }
+
+  // 메뉴 수정
+  static async updateMenu(
+    id: number,
+    menuData: Partial<Omit<Menu, "id">>
+  ): Promise<Menu> {
+    try {
+      const response: AxiosResponse<{ data: Menu }> = await instance.put(
+        `/api/v2/booth/menus/${id}/`,
+        menuData
+      );
+      return response.data.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // 메뉴 삭제
+  static async deleteMenu(id: number): Promise<void> {
+    try {
+      await TestInstance.delete(`/api/v2/booth/menus/${id}/`);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // 세트메뉴생성
+  // static async createSetMenu(formData: FormData): Promise<Menu> {}
+}
 
 export default MenuService;

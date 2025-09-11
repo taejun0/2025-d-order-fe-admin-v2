@@ -72,13 +72,6 @@ const SetMenuCard = ({ menu, onMenuChange }: SetMenuCardProps) => {
               <S.CardText className="bold">{menu.set_name}</S.CardText>
               <S.CardText>{menu.set_price.toLocaleString()}원</S.CardText>
             </S.CardTextInner>
-            <S.CardTextInner>
-              <S.CardText>재고수량</S.CardText>
-              <S.CardText>
-                {/* {menu.menu_amount !== undefined ? `${menu.menu_amount}개` : "-"} */}
-                임시갯수
-              </S.CardText>
-            </S.CardTextInner>
           </S.CardInfo>
         </S.CardContents>
       </S.MenuCardWrapper>
