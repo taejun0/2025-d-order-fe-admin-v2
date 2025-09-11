@@ -6,11 +6,11 @@ import { HandleNumberInput } from "../_utils/HandleNumberInput";
 import { compressImage } from "../_utils/ImageCompress";
 import MenuServiceWithImg from "@services/MenuServiceWithImg";
 import MenuService from "@services/MenuService";
-import MenuDropdown from "@pages/menu/_components/MenuDropdown";
-
+import { BoothMenuData } from "@pages/menu/Type/Menu_type";
 interface EditModalProps {
   handleCloseModal: () => void;
   onSuccess: React.Dispatch<SetStateAction<boolean>>;
+  boothMenuData: BoothMenuData | undefined;
   defaultValues: {
     menu_id: number;
     menu_name: string;
@@ -35,7 +35,6 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
   const [price, setPrice] = useState<string>("");
   const [stock, setStock] = useState<string>("");
   const [image, setImage] = useState<File | string | null>(null);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -52,8 +51,6 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
       setButtonDisable(true);
     }
   }, [name, price, stock, category]);
-
-  const addOption = () => {};
 
   useEffect(() => {
     if (defaultValues) {
@@ -152,43 +149,6 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
         <S.FormContentWrapper>
           <S.ele>
             <S.SubTitle>
-              메뉴 카테고리<span>*</span>
-            </S.SubTitle>
-            <div>
-              <label className="custom-label">
-                <input
-                  type="radio"
-                  name="category"
-                  value="메뉴"
-                  onChange={() => setCategory("메뉴")}
-                  checked={category === "메뉴"}
-                />
-                메뉴
-              </label>
-              <label className="custom-label">
-                <input
-                  type="radio"
-                  name="category"
-                  value="음료"
-                  onChange={() => setCategory("음료")}
-                  checked={category === "음료"}
-                />
-                음료
-              </label>
-              <label className="custom-label">
-                <input
-                  type="radio"
-                  name="category"
-                  value="세트"
-                  onChange={() => setCategory("세트")}
-                  checked={category === "세트"}
-                />
-                세트
-              </label>
-            </div>
-          </S.ele>
-          <S.ele>
-            <S.SubTitle>
               메뉴명<span>*</span>
             </S.SubTitle>
             <S.inputText
@@ -221,36 +181,19 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
               onInput={HandleNumberInput}
             />
           </S.ele>
-          {category === "세트" && (
-            <S.ele>
-              <S.setComposition>
-                <S.SubTitle>
-                  메뉴 구성<span>*</span>
-                </S.SubTitle>
-                <button type="button" onClick={addOption}>
-                  + 추가
-                </button>
-              </S.setComposition>
-              <MenuDropdown
-                isOpen={isOpen}
-                setIsOpen={setIsOpen}
-              ></MenuDropdown>
-            </S.ele>
-          )}
-          {category !== "세트" && (
-            <S.ele>
-              <S.SubTitle>
-                재고수량<span>*</span>
-              </S.SubTitle>
-              <S.inputText
-                type="number"
-                placeholder="예) 100"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                onInput={HandleNumberInput}
-              />
-            </S.ele>
-          )}
+          <S.ele>
+            <S.SubTitle>
+              재고수량<span>*</span>
+            </S.SubTitle>
+            <S.inputText
+              type="number"
+              placeholder="예) 100"
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              onInput={HandleNumberInput}
+            />
+          </S.ele>
+
           <S.ele>
             <S.SubTitle>메뉴 이미지</S.SubTitle>
             <S.OtherText>이미지 파일 (JPG,PNG)을 첨부해 주세요</S.OtherText>

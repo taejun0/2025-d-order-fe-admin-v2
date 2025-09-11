@@ -2,10 +2,10 @@ import styled from "styled-components";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { SetStateAction, useState } from "react";
 import MenuModal from "../../modal_test_view/_components/MenuModal";
-import { Menu } from "../Type/Menu_type";
+import { BoothMenuData, Menu } from "../Type/Menu_type";
 
 interface MenuCreateCardProps {
-  bootMenuData: Menu[] | undefined;
+  bootMenuData: BoothMenuData | undefined;
   onSuccess: React.Dispatch<SetStateAction<boolean>>;
 }
 
@@ -33,7 +33,10 @@ const MenuCreateCard = ({ bootMenuData, onSuccess }: MenuCreateCardProps) => {
       {showModal && (
         <ModalWrapper onClick={handleCloseModal}>
           <div onClick={(e) => e.stopPropagation()}>
-            <MenuModal handleCloseModal={handleCloseModal} />
+            <MenuModal
+              handleCloseModal={handleCloseModal}
+              boothMenuData={bootMenuData}
+            />
           </div>
         </ModalWrapper>
       )}

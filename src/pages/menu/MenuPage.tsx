@@ -57,7 +57,7 @@ const MenuPage = () => {
         차지: 0,
         메인: 1,
         음료: 2,
-      };
+      } as const;
 
       if (a.menu_category !== b.menu_category) {
         return (
@@ -81,16 +81,22 @@ const MenuPage = () => {
   return (
     <S.MenuPageWrapper>
       <S.MenuGrid>
-        <MenuCreateCard bootMenuData={regularMenus} onSuccess={setOnSuccess} />
+        <MenuCreateCard bootMenuData={boothMenuData} onSuccess={setOnSuccess} />
         <TableFeeCard table={tableInfo || defaultTableInfo} />
         {regularMenus?.map((menu) => (
-          <MenuCard key={menu.menu_id} menu={menu} onSuccess={setOnSuccess} />
+          <MenuCard
+            key={menu.menu_id}
+            menu={menu}
+            onSuccess={setOnSuccess}
+            boothMenuData={boothMenuData}
+          />
         ))}
         {setMenus?.map((setMenu) => (
           <SetMenuCard
             key={setMenu.set_menu_id}
             menu={setMenu}
             onMenuChange={fetchMenus}
+            boothMenuData={boothMenuData}
           />
         ))}
       </S.MenuGrid>

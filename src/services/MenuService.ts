@@ -11,9 +11,9 @@ interface CreateMenuResponse {
   data: Menu;
 }
 
-class MenuService {
+const MenuService = {
   // 메뉴 리스트 조회
-  static async getMenuList(): Promise<BoothMenuData> {
+  getMenuList: async (): Promise<BoothMenuData> => {
     try {
       const response: AxiosResponse<GetMenuListResponse> = await instance.get(
         "/api/v2/booth/all-menus/"
@@ -22,10 +22,10 @@ class MenuService {
     } catch (error) {
       throw error;
     }
-  }
+  },
 
   // 메뉴 생성
-  static async createMenu(formData: FormData): Promise<Menu> {
+  createMenu: async (formData: FormData): Promise<Menu> => {
     try {
       const response: AxiosResponse<CreateMenuResponse> = await instance.post(
         "/api/v2/booth/menus/",
@@ -35,10 +35,10 @@ class MenuService {
     } catch (error) {
       throw error;
     }
-  }
+  },
 
   // 메뉴 수정
-  static async updateMenu(id: number, formData: FormData): Promise<Menu> {
+  updateMenu: async (id: number, formData: FormData): Promise<Menu> => {
     try {
       const response: AxiosResponse<{ data: Menu }> = await instance.put(
         `/api/v2/booth/menus/${id}/`,
@@ -48,19 +48,55 @@ class MenuService {
     } catch (error) {
       throw error;
     }
-  }
+  },
 
   // 메뉴 삭제
-  static async deleteMenu(id: number): Promise<void> {
+  deleteMenu: async (id: number) => {
     try {
       await instance.delete(`/api/v2/booth/menus/${id}/`);
     } catch (error) {
       throw error;
     }
-  }
+  },
 
   // 세트메뉴생성
-  // static async createSetMenu(formData: FormData): Promise<Menu> {}
-}
+  createSettMenu: async (payload: {
+    set_name: string;
+    set_description: string;
+    set_price: number | string;
+    menu_items: { menu_id: number; quantity: number }[];
+  }): Promise<void> => {
+    try {
+      await instance.post(`/api/v2/booth/setmenus/`, payload);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // 세트메뉴 수정
+  editSetMenu: async (
+    id: number,
+    payload: {
+      set_name: string;
+      set_description: string;
+      set_price: number | string;
+      menu_items: { menu_id: number; quantity: number }[];
+    }
+  ): Promise<void> => {
+    try {
+      await instance.patch(`/api/v2/booth/setmenus/${id}/`, payload);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  deleteSetMenu: async (id: number): Promise<void> => {
+    try {
+      await instance.delete(`/api/v2/booth/setmenus/${id}/`);
+    } catch (error) {
+      throw error;
+    }
+  },
+};
 
 export default MenuService;

@@ -37,6 +37,9 @@ import MenuEdit from "../assets/icons/grayEdit.svg";
 
 import close from "@assets/icons/close.svg";
 import Down from "@assets/icons/down.svg";
+
+import minus from "@assets/icons/minus.svg";
+import plus from "@assets/icons/add.svg";
 export const IMAGE_CONSTANTS = {
   LOGO: "/images/Logo.png",
   LOGO2: "/images/Logo2.png",
@@ -92,4 +95,7 @@ export const IMAGE_CONSTANTS = {
 
   CLOSE: close,
   DOWN: Down,
+
+  Minus: minus,
+  Add: plus,
 };
