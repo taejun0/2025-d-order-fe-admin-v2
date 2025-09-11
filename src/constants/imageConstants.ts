@@ -36,6 +36,9 @@ import MenuPlus from "../assets/icons/menuPlus.svg";
 import MenuEdit from "../assets/icons/grayEdit.svg";
 
 import close from "@assets/icons/close.svg";
+import COUPON_RATE from "../assets/images/couponRate.png";
+import COUPON_PRICE from "../assets/images/couponPrice.png";
+
 import Down from "@assets/icons/down.svg";
 export const IMAGE_CONSTANTS = {
   LOGO: "/images/Logo.png",
@@ -91,5 +94,7 @@ export const IMAGE_CONSTANTS = {
   MENUEDIT: MenuEdit,
 
   CLOSE: close,
+  COUPON_RATE: COUPON_RATE,
+  COUPON_PRICE: COUPON_PRICE,
   DOWN: Down,
 };
