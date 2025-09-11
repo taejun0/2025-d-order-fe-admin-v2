@@ -4,10 +4,13 @@ export const ROUTE_PATHS = {
   SIGNUP: "/signup",
   HOME: "/home",
   TABLE_VIEW: "/table-view",
+  TABLE_DETAIL: "/table-view/:tableNum",
   MYPAGE: "/mypage",
   MENU: "/menu",
   COUPON: "/coupon",
   DASHBOARD: "/dashboard",
-  // test
-  TestPage : "/Test",
 };
+
+//근우 경로설정
+export const buildTableDetailPath = (tableNum: number | string) =>
+  `/table-view/${tableNum}`;

@@ -1,4 +1,4 @@
-// 2025-d-order-fe-admin-v2/src/pages/tableView/_components/tableGrid.tsx
+// tableView/_components/tableGrid.tsx
 import { useMemo, useState, useEffect, useCallback } from "react";
 import * as S from "./tableComponents.styled";
 import { useSwipeable } from "react-swipeable";
@@ -18,14 +18,21 @@ interface TableOrder {
   isOverdue: boolean;
 }
 
+// ✅ API 필드명 변경에 맞춘 매핑 함수
 const mapToTableOrder = (item: TableItem): TableOrder => ({
-  tableNumber: item.table_num,
-  totalAmount: item.table_price,
-  orderedAt: item.created_at
-    ? new Date(item.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+  tableNumber: item.tableNum,
+  totalAmount: item.amount,
+  orderedAt: item.createdAt
+    ? new Date(item.createdAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
     : "주문 없음",
-  orders: item.orders.map((o) => ({ menu: o.menu_name, quantity: o.menu_num })),
-  isOverdue: (item as any).is_overdue ?? false,
+  orders: item.latestOrders.map((o) => ({
+    menu: o.name,
+    quantity: o.qty,
+  })),
+  isOverdue: false, // API 명세에 없으므로 기본값 유지
 });
 
 const chunk = <T,>(arr: T[], size: number) =>
@@ -37,25 +44,29 @@ const ITEMS_PER_PAGE = 15; // 5 x 3 고정
 
 const TableViewGrid: React.FC<Props> = ({ tableList, onSelectTable }) => {
   const mapped = useMemo(
-    () => tableList.map((item) => ({ original: item, viewData: mapToTableOrder(item) })),
+    () =>
+      tableList.map((item) => ({
+        original: item,
+        viewData: mapToTableOrder(item),
+      })),
     [tableList]
   );
 
   const pages = useMemo(() => chunk(mapped, ITEMS_PER_PAGE), [mapped]);
-  const pageCount = Math.max(1, pages.length); // 최소 1
+  const pageCount = Math.max(1, pages.length);
 
   const [page, setPage] = useState(0);
 
-  // 데이터가 줄어들어 현재 페이지가 초과 상태면 보정
   useEffect(() => {
     setPage((p) => (p >= pageCount ? pageCount - 1 : p));
   }, [pageCount]);
 
-  // 키보드 ← / → 이동
   const onKey = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") setPage((p) => (p === 0 ? pageCount - 1 : p - 1));
-      if (e.key === "ArrowRight") setPage((p) => (p === pageCount - 1 ? 0 : p + 1));
+      if (e.key === "ArrowLeft")
+        setPage((p) => (p === 0 ? pageCount - 1 : p - 1));
+      if (e.key === "ArrowRight")
+        setPage((p) => (p === pageCount - 1 ? 0 : p + 1));
     },
     [pageCount]
   );
@@ -78,13 +89,14 @@ const TableViewGrid: React.FC<Props> = ({ tableList, onSelectTable }) => {
   return (
     <S.GridWrapper {...handlers}>
       <S.GridViewport>
-        {/* ✅ 페이지 수 기준으로 이동 비율 계산 */}
         <S.PagesTrack $pageCount={pageCount} $currentPage={page}>
           {pages.map((items, idx) => (
-            // ✅ 각 페이지의 너비를 트랙 대비 (100 / pageCount)%로 고정
             <S.PageGrid key={idx} $pageCount={pageCount}>
               {items.map(({ original, viewData }) => (
-                <div key={original.table_num} onClick={() => onSelectTable(original)}>
+                <div
+                  key={original.tableNum}
+                  onClick={() => onSelectTable(original)} // ✅ 그대로 유지
+                >
                   <TableCard data={viewData} />
                 </div>
               ))}

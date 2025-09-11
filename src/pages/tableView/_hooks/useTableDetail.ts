@@ -1,29 +1,33 @@
-import { useEffect, useState } from "react";
-import { getTableDetail, TableDetailResponse } from "../_apis/getTableDetail";
+// tableView/_hooks/useTableDetail.ts
+import { useCallback, useEffect, useState } from "react";
+import { getTableDetail, type TableDetailData } from "../_apis/getTableDetail";
 
 export const useTableDetail = (tableNum: number) => {
-  const [data, setData] = useState<TableDetailResponse["data"] | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [tableDetail, setTableDetail] = useState<TableDetailData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchDetail = async () => {
+  const fetchDetail = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      const response = await getTableDetail(tableNum);
-      setData(response.data);
+      const res = await getTableDetail(tableNum);
+      setTableDetail(res.data);
+      console.info("[useTableDetail] detail:", res.data);
     } catch (err: any) {
-      setError(err);
+      setError(err instanceof Error ? err : new Error(String(err)));
+      console.error("[useTableDetail] error:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [tableNum]);
 
   useEffect(() => {
     fetchDetail();
-  }, [tableNum]);
+  }, [fetchDetail]);
 
   return {
-    tableDetail: data,
+    tableDetail,
     loading,
     error,
     refetch: fetchDetail,
