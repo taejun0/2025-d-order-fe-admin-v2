@@ -110,3 +110,33 @@ export function useManagers(options: UseManagersOptions = {}) {
   };
 }
 
+/* ─────────────────────────────
+  사용 예시 (MyPage.tsx)
+───────────────────────────────
+import { useManagers } from "./hooks/useManagers";
+
+const MyPage = () => {
+  const { data, loading, error, update, reload } = useManagers();
+
+  const onSave = async () => {
+    await update({
+      booth_name: "멋사랑산악회",
+      seat_type: "NO",
+      seat_tax_person: null,
+      seat_tax_table: null,
+      table_limit_hours: 120,
+    });
+  };
+
+  if (loading) return <div>불러오는 중…</div>;
+  if (error) return <div>에러: {error}</div>;
+
+  return (
+    <div>
+      <h2>{data?.booth_name}</h2>
+      <button onClick={onSave}>저장</button>
+      <button onClick={reload}>다시 불러오기</button>
+    </div>
+  );
+};
+*/
