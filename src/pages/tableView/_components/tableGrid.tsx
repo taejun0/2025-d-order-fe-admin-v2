@@ -16,8 +16,11 @@ interface TableOrder {
   totalAmount: number;
   orderedAt: string;
   orders: { menu: string; quantity: number }[];
-  isOverdue: boolean; // ✅ 이 값을 expired로 대체
+  isOverdue: boolean; // websocket expired
 }
+
+const TAG = "%c[TableGrid]";
+const TAG_STYLE = "background:#555;color:#fff;padding:2px 6px;border-radius:4px";
 
 const formatTime = (iso: string | null) => {
   if (!iso) return "주문 없음";
@@ -34,7 +37,6 @@ const chunk = <T,>(arr: T[], size: number) =>
 const ITEMS_PER_PAGE = 15;
 
 const TableViewGrid: React.FC<Props> = ({ tableList, onSelectTable }) => {
-  // ✅ 웹소켓으로부터 expired 상태를 받는다
   const { expiredMap } = useTableStatus();
 
   const mapped = useMemo(
@@ -48,7 +50,6 @@ const TableViewGrid: React.FC<Props> = ({ tableList, onSelectTable }) => {
             menu: o.name,
             quantity: o.qty,
           })),
-          // ✅ 핵심: isOverdue ← websocket의 expired
           isOverdue: !!expiredMap[item.tableNum],
         };
         return { original: item, viewData };
@@ -56,19 +57,39 @@ const TableViewGrid: React.FC<Props> = ({ tableList, onSelectTable }) => {
     [tableList, expiredMap]
   );
 
-  const pages = useMemo(() => chunk(mapped, ITEMS_PER_PAGE), [mapped]);
-  const pageCount = Math.max(1, pages.length);
+  const pages = useMemo(() => {
+    const p = chunk(mapped, ITEMS_PER_PAGE);
+    console.debug(TAG, TAG_STYLE, "페이지 재계산", {
+      totalTables: mapped.length,
+      itemsPerPage: ITEMS_PER_PAGE,
+      pageCount: p.length,
+    });
+    return p;
+  }, [mapped]);
 
+  const pageCount = Math.max(1, pages.length);
   const [page, setPage] = useState(0);
 
+  // 페이지 개수 변동 시 현재 페이지 보정
   useEffect(() => {
-    setPage((p) => (p >= pageCount ? pageCount - 1 : p));
+    setPage((prev) => {
+      const next = prev >= pageCount ? pageCount - 1 : prev;
+      if (prev !== next) {
+        console.debug(TAG, TAG_STYLE, "페이지 보정", { prev, next, pageCount });
+      }
+      return next;
+    });
   }, [pageCount]);
 
+  // 키보드 네비게이션
   const onKey = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") setPage((p) => (p === 0 ? pageCount - 1 : p - 1));
-      if (e.key === "ArrowRight") setPage((p) => (p === pageCount - 1 ? 0 : p + 1));
+      if (e.key === "ArrowLeft") {
+        setPage((p) => (p === 0 ? pageCount - 1 : p - 1));
+      }
+      if (e.key === "ArrowRight") {
+        setPage((p) => (p === pageCount - 1 ? 0 : p + 1));
+      }
     },
     [pageCount]
   );
@@ -88,6 +109,17 @@ const TableViewGrid: React.FC<Props> = ({ tableList, onSelectTable }) => {
     trackMouse: true,
   });
 
+  // expiredMap 변화 디버깅
+  useEffect(() => {
+    const expiredTrue = Object.entries(expiredMap)
+      .filter(([, v]) => v)
+      .map(([k]) => k);
+    console.debug(TAG, TAG_STYLE, "expiredMap 변경", {
+      size: Object.keys(expiredMap).length,
+      expiredTrue,
+    });
+  }, [expiredMap]);
+
   return (
     <S.GridWrapper {...handlers}>
       <S.GridViewport>
@@ -95,7 +127,10 @@ const TableViewGrid: React.FC<Props> = ({ tableList, onSelectTable }) => {
           {pages.map((items, idx) => (
             <S.PageGrid key={idx} $pageCount={pageCount}>
               {items.map(({ original, viewData }) => (
-                <div key={original.tableNum} onClick={() => onSelectTable(original)}>
+                <div
+                  key={original.tableNum}
+                  onClick={() => onSelectTable(original)}
+                >
                   <TableCard data={viewData} />
                 </div>
               ))}

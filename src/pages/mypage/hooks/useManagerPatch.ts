@@ -28,10 +28,13 @@ export function useManagerPatch(options: UseManagerPatchOptions = {}) {
     async (patch: Partial<ManagerInfo>): Promise<ApiEnvelope<ManagerInfo> | null> => {
       setState({ updating: true, error: null });
       try {
-        const res = await patchManagerInfo(
-          options.normalizeSeat === false ? patch : normalizeSeatFields(patch),
-          { token: options.token, normalizeSeat: false } // 위에서 이미 보정
-        );
+        // 훅에서 보정 여부 결정 (기본 true)
+        const shouldNormalize = options.normalizeSeat !== false;
+        const payload = shouldNormalize ? normalizeSeatFields(patch) : patch;
+
+        // ✅ token만 전달 (normalizeSeat는 없음)
+        const res = await patchManagerInfo(payload, { token: options.token });
+
         setState({ updating: false, error: null });
         return res;
       } catch (e: any) {

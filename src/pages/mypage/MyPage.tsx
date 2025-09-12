@@ -32,7 +32,7 @@ const StyledDropdown = styled(CommonDropdown)`
   }
 `;
 
-// 좌석 타입 매핑
+// 좌석 타입 <-> 레이블 매핑
 const SeatTypeLabel: Record<ManagerInfo["seat_type"], string> = {
   PP: "인원 수",
   PT: "테이블",
@@ -44,7 +44,7 @@ const LabelToSeatType: Record<string, ManagerInfo["seat_type"]> = {
   "받지 않음": "NO",
 };
 
-// 이용 시간 매핑 (분 ↔ 한글)
+// 이용 시간 (분 ↔ 한글)
 const minutesToLabel = (m?: number) => {
   switch (m) {
     case 60:
@@ -82,7 +82,8 @@ type PatchField = "storeName" | "account" | "seat" | "time";
 
 const MyPage = () => {
   const { data: my, loading, error, reload } = useManagers();
-  const { update, updating, error: updateError } = useManagerPatch({ normalizeSeat: true });
+  // ZERO 모드 정규화는 getManagerPatch.ts에서 처리됩니다.
+  const { update, updating, error: updateError } = useManagerPatch({});
 
   const [editingName, setEditingName] = useState(false);
   const [editingAccount, setEditingAccount] = useState(false);
@@ -109,6 +110,7 @@ const MyPage = () => {
   // 이용 시간 편집 상태
   const [timeLabelLocal, setTimeLabelLocal] = useState<string>("2시간");
 
+  // GET 응답 들어오면 로컬 입력값 동기화
   useEffect(() => {
     if (!my) return;
 
@@ -122,17 +124,18 @@ const MyPage = () => {
       setSeatTypeLocal(my.seat_type);
       const amt =
         my.seat_type === "PP"
-          ? my.seat_tax_person ?? null
+          ? my.seat_tax_person ?? 0
           : my.seat_type === "PT"
-          ? my.seat_tax_table ?? null
-          : null;
-      setSeatAmountLocal(amt != null ? String(amt) : "");
+          ? my.seat_tax_table ?? 0
+          : 0;
+      setSeatAmountLocal(String(amt || ""));
     }
     if (!editingTime) {
       setTimeLabelLocal(minutesToLabel(my.table_limit_hours));
     }
   }, [my, editingName, editingAccount, editingSeat, editingTime]);
 
+  // 드롭다운/입력 핸들러들
   const handleBankChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedBank(e.target.value);
     setIsBankDropdownOpen(false);
@@ -142,7 +145,7 @@ const MyPage = () => {
     const label = e.target.value;
     const code = LabelToSeatType[label] ?? "NO";
     setSeatTypeLocal(code);
-    if (code === "NO") setSeatAmountLocal("");
+    if (code === "NO") setSeatAmountLocal(""); // 금액 비우기
     setIsSeatDropdownOpen(false);
   };
 
@@ -166,11 +169,11 @@ const MyPage = () => {
       setSeatTypeLocal(my.seat_type);
       const amt =
         my.seat_type === "PP"
-          ? my.seat_tax_person ?? null
+          ? my.seat_tax_person ?? 0
           : my.seat_type === "PT"
-          ? my.seat_tax_table ?? null
-          : null;
-      setSeatAmountLocal(amt != null ? String(amt) : "");
+          ? my.seat_tax_table ?? 0
+          : 0;
+      setSeatAmountLocal(String(amt || ""));
     } else if (field === "time") {
       setEditingTime(true);
       setTimeLabelLocal(minutesToLabel(my.table_limit_hours));
@@ -192,11 +195,11 @@ const MyPage = () => {
       setSeatTypeLocal(my.seat_type);
       const amt =
         my.seat_type === "PP"
-          ? my.seat_tax_person ?? null
+          ? my.seat_tax_person ?? 0
           : my.seat_type === "PT"
-          ? my.seat_tax_table ?? null
-          : null;
-      setSeatAmountLocal(amt != null ? String(amt) : "");
+          ? my.seat_tax_table ?? 0
+          : 0;
+      setSeatAmountLocal(String(amt || ""));
     } else if (field === "time") {
       setEditingTime(false);
       setTimeLabelLocal(minutesToLabel(my.table_limit_hours));
@@ -217,15 +220,18 @@ const MyPage = () => {
     } else if (field === "seat") {
       payload.seat_type = seatTypeLocal;
 
+      // ZERO 모드: 비활성 과금 필드 0으로 전송
+      const amount = seatAmountLocal.trim() === "" ? 0 : Number(seatAmountLocal.trim());
       if (seatTypeLocal === "PP") {
-        payload.seat_tax_person = seatAmountLocal ? Number(seatAmountLocal) : 0;
-        payload.seat_tax_table = null;
+        payload.seat_tax_person = amount; // 숫자
+        payload.seat_tax_table = 0;
       } else if (seatTypeLocal === "PT") {
-        payload.seat_tax_table = seatAmountLocal ? Number(seatAmountLocal) : 0;
-        payload.seat_tax_person = null;
+        payload.seat_tax_table = amount; // 숫자
+        payload.seat_tax_person = 0;
       } else {
-        payload.seat_tax_person = null;
-        payload.seat_tax_table = null;
+        // NO
+        payload.seat_tax_person = 0;
+        payload.seat_tax_table = 0;
       }
     } else if (field === "time") {
       payload.table_limit_hours = labelToMinutes(timeLabelLocal);
@@ -296,7 +302,7 @@ const MyPage = () => {
   const handleQrClick = async () => {
     if (!my) return;
     try {
-      // manager_id 사용
+      // backend 요구: manager_id 사용
       await downloadManagerQR(my.user);
       toast.success("QR코드 다운로드가 완료되었어요!", {
         icon: <img src={check} alt="체크" />,
@@ -430,12 +436,15 @@ const MyPage = () => {
                   )}
                 </S.BanckContainer>
 
+                {/* 금액 입력 (NO가 아닐 때만) */}
                 {seatTypeLocal !== "NO" && (
                   <S.AccountInput
                     type="text"
                     placeholder="금액"
                     value={seatAmountLocal}
-                    onChange={(e) => setSeatAmountLocal(e.target.value.replace(/[^\d]/g, ""))}
+                    onChange={(e) =>
+                      setSeatAmountLocal(e.target.value.replace(/[^\d]/g, ""))
+                    }
                   />
                 )}
               </>
@@ -445,7 +454,9 @@ const MyPage = () => {
                   <>
                     <S.FeeTag>인원 수</S.FeeTag>
                     <S.Value>
-                      {my.seat_tax_person ? `${my.seat_tax_person.toLocaleString()}원` : "-"}
+                      {my.seat_tax_person
+                        ? `${my.seat_tax_person.toLocaleString()}원`
+                        : "-"}
                     </S.Value>
                   </>
                 )}
@@ -453,7 +464,9 @@ const MyPage = () => {
                   <>
                     <S.FeeTag>테이블</S.FeeTag>
                     <S.Value>
-                      {my.seat_tax_table ? `${my.seat_tax_table.toLocaleString()}원` : "-"}
+                      {my.seat_tax_table
+                        ? `${my.seat_tax_table.toLocaleString()}원`
+                        : "-"}
                     </S.Value>
                   </>
                 )}
