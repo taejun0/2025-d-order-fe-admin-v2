@@ -1,10 +1,10 @@
-import { Outlet } from 'react-router-dom';
-import styled from 'styled-components';
-// import useAuthRedirect from "@hooks/useAuthRedirect";
-import backIMAGES from '/images/background.webp';
+import { Outlet } from "react-router-dom";
+import styled from "styled-components";
+import useAuthRedirect from "@hooks/useAuthRedirect";
+import backIMAGES from "/images/background.webp";
 
 const UserLayout = () => {
-  // useAuthRedirect();
+  useAuthRedirect();
   return (
     <Wrapper>
       <Background src={backIMAGES} />
