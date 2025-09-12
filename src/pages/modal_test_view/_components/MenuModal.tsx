@@ -1,6 +1,6 @@
 import preUploadImg from "@assets/images/preUploadImg.png";
 import * as S from "./styled";
-import { useState, useEffect, SetStateAction } from "react";
+import { useState, useEffect } from "react";
 import MenuService from "@services/MenuService";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 // import CommonDropdown from "@pages/signup/_components/inputs/dropdown/CommonDropdown";
@@ -8,9 +8,11 @@ import MenuDropdown from "@pages/menu/_components/MenuDropdown";
 import MenuServiceWithImg from "@services/MenuServiceWithImg";
 import { HandleNumberInput } from "../_utils/HandleNumberInput";
 import { compressImage } from "../_utils/ImageCompress";
+import { BoothMenuData } from "@pages/menu/Type/Menu_type";
 
 interface MenuModalProps {
   handleCloseModal: () => void;
+  boothMenuData: BoothMenuData | undefined;
   defaultValues?: {
     menu_id: number;
     menu_name: string;
@@ -25,7 +27,14 @@ interface MenuModalProps {
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 업로드 이미지 크기 제한 3MB
 const MIN_FILE_SIZE = 2.5 * 1024 * 1024;
 
-const MenuModal = ({ handleCloseModal }: MenuModalProps) => {
+type SetItem = {
+  menuId: number | null;
+  menuName: string;
+  amount: number;
+  isOpen: boolean;
+};
+
+const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
   const [UploadImg, setUploadImg] = useState<string | null>(null);
   const [buttonDisable, setButtonDisable] = useState<boolean>(true);
 
@@ -35,14 +44,40 @@ const MenuModal = ({ handleCloseModal }: MenuModalProps) => {
   const [price, setPrice] = useState<string>("");
   const [stock, setStock] = useState<string>("");
   const [image, setImage] = useState<File | null>(null);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
 
-  // dummy data
-  // const menuCompositionOptions = ["메뉴", "음료", "세트"];
-  // const [menuComposition, setMenuComposition] = useState<string>("메뉴");
-  // const onChangeMenuComposition = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   setMenuComposition(e.target.value);
-  // };
+  // 세트 구성 항목 상태
+  const [setItems, setSetItems] = useState<SetItem[]>([]);
+
+  const handleAddSetItem = () => {
+    setSetItems((prev) => [
+      ...prev,
+      { menuId: null, menuName: "", amount: 1, isOpen: true },
+    ]);
+  };
+
+  const handleChangeSelected = (idx: number, id: number, menuName: string) => {
+    setSetItems((prev) =>
+      prev.map((it, i) =>
+        i === idx ? { ...it, menuId: id, menuName, isOpen: false } : it
+      )
+    );
+  };
+
+  const handleChangeAmount = (idx: number, value: number) => {
+    setSetItems((prev) =>
+      prev.map((it, i) => (i === idx ? { ...it, amount: value } : it))
+    );
+  };
+
+  const handleToggleOpen = (idx: number, value: boolean) => {
+    setSetItems((prev) =>
+      prev.map((it, i) => (i === idx ? { ...it, isOpen: value } : it))
+    );
+  };
+
+  const handleRemoveItem = (idx: number) => {
+    setSetItems((prev) => prev.filter((_, i) => i !== idx));
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,20 +88,28 @@ const MenuModal = ({ handleCloseModal }: MenuModalProps) => {
     setImage(file); // 선택한 파일 상태에 저장
   };
   useEffect(() => {
-    if (name && price && stock && category) {
+    if (
+      name &&
+      price &&
+      (category === "세트" ? setItems.length > 0 : stock) &&
+      category
+    ) {
       setButtonDisable(false);
     } else {
       setButtonDisable(true);
     }
-  }, [name, price, stock, category]);
+  }, [name, price, stock, category, setItems]);
 
-  // 옵션 추가
-  const addOption = () => {};
   // 제출 이벤트
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!category || !name || !price || !stock) {
+    if (
+      !category ||
+      !name ||
+      !price ||
+      (category === "세트" ? setItems.length === 0 : !stock)
+    ) {
       alert("모든 필수 항목을 채워주세요.");
       return;
     }
@@ -76,12 +119,40 @@ const MenuModal = ({ handleCloseModal }: MenuModalProps) => {
       return;
     }
 
+    if (category === "세트") {
+      const menu_items = setItems
+        .filter((it) => it.menuId !== null)
+        .map((it) => ({ menu_id: it.menuId as number, quantity: it.amount }));
+
+      const formData = new FormData();
+      formData.append("set_name", name);
+      formData.append("set_description", desc || "");
+      formData.append("set_price", String(Number(price)));
+      formData.append("menu_items", JSON.stringify(menu_items));
+
+      if (image) {
+        const fileToUpload =
+          image.size <= MIN_FILE_SIZE ? image : await compressImage(image);
+        formData.append("set_image", fileToUpload);
+      }
+
+      try {
+        await MenuServiceWithImg.createSetMenu(formData);
+        handleCloseModal();
+      } catch (e) {
+        console.log(e);
+      }
+      return;
+    }
+
+    // 단일 메뉴 처리
     const formData = new FormData();
     formData.append("menu_name", name);
     formData.append("menu_description", desc || "");
     formData.append("menu_category", category);
     formData.append("menu_price", price);
     formData.append("menu_amount", stock);
+
     if (image) {
       if (image.size <= MIN_FILE_SIZE) {
         formData.append("menu_image", image);
@@ -93,35 +164,19 @@ const MenuModal = ({ handleCloseModal }: MenuModalProps) => {
           console.log(e);
         }
       }
-      if (category !== "세트") {
-        try {
-          await MenuServiceWithImg.createMenu(formData);
-
-          handleCloseModal();
-        } catch (e) {
-          alert("dddd");
-          console.log(e);
-        }
-      } else {
-        // 세트 메뉴일 경우 로직
+      try {
+        await MenuServiceWithImg.createMenu(formData);
+        handleCloseModal();
+      } catch (e) {
+        alert("dddd");
+        console.log(e);
       }
-    }
-    // 이미지 없을 경우
-    else {
-      if (category !== "세트") {
-        try {
-          await MenuService.createMenu(formData);
-          handleCloseModal();
-        } catch (e) {
-          console.log(e);
-        }
-      } else {
-        try {
-          // 세트 메뉴 일 경우 로직 추가
-          handleCloseModal();
-        } catch (e) {
-          console.log(e);
-        }
+    } else {
+      try {
+        await MenuService.createMenu(formData);
+        handleCloseModal();
+      } catch (e) {
+        console.log(e);
       }
     }
   };
@@ -212,14 +267,31 @@ const MenuModal = ({ handleCloseModal }: MenuModalProps) => {
                 <S.SubTitle>
                   메뉴 구성<span>*</span>
                 </S.SubTitle>
-                <button type="button" onClick={addOption}>
+                <button type="button" onClick={handleAddSetItem}>
                   + 추가
                 </button>
               </S.setComposition>
-              <MenuDropdown
-                isOpen={isOpen}
-                setIsOpen={setIsOpen}
-              ></MenuDropdown>
+              {setItems.map((it, idx) => (
+                <MenuDropdown
+                  key={idx}
+                  isOpen={it.isOpen}
+                  setIsOpen={(v) =>
+                    handleToggleOpen(
+                      idx,
+                      typeof v === "boolean" ? v : !it.isOpen
+                    )
+                  }
+                  boothMenuData={boothMenuData}
+                  selectedId={it.menuId}
+                  selectedName={it.menuName}
+                  onChangeSelected={(id, name) =>
+                    handleChangeSelected(idx, id, name)
+                  }
+                  amount={it.amount}
+                  onChangeAmount={(val) => handleChangeAmount(idx, val)}
+                  onRemove={() => handleRemoveItem(idx)}
+                />
+              ))}
             </S.ele>
           )}
           {category !== "세트" && (

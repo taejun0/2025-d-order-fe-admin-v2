@@ -2,16 +2,17 @@ import * as S from "./MenuCard.styled";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import React, { SetStateAction, useState } from "react";
 import MenuDeleteModal from "../../modal_test_view/_components/MenuDeleteModal";
-import { Menu } from "../Type/Menu_type";
+import { BoothMenuData, Menu } from "../Type/Menu_type";
 import MenuService from "../../../services/MenuService";
 import EditMenuModal from "@pages/modal_test_view/_components/EditMenuModal";
 
 interface MenuCardProps {
   menu: Menu;
   onSuccess: React.Dispatch<SetStateAction<boolean>>;
+  boothMenuData: BoothMenuData | undefined;
 }
 
-const MenuCard = ({ menu, onSuccess }: MenuCardProps) => {
+const MenuCard = ({ menu, onSuccess, boothMenuData }: MenuCardProps) => {
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -26,6 +27,7 @@ const MenuCard = ({ menu, onSuccess }: MenuCardProps) => {
   };
 
   const handleCloseModal = () => {
+    onSuccess((prev) => !prev);
     setShowModal(false);
   };
 
@@ -89,6 +91,7 @@ const MenuCard = ({ menu, onSuccess }: MenuCardProps) => {
             <EditMenuModal
               handleCloseModal={handleCloseModal}
               onSuccess={onSuccess}
+              boothMenuData={boothMenuData}
               defaultValues={{
                 menu_id: menu.menu_id,
                 menu_name: menu.menu_name,

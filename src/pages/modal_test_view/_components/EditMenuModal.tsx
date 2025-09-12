@@ -6,12 +6,12 @@ import { HandleNumberInput } from "../_utils/HandleNumberInput";
 import { compressImage } from "../_utils/ImageCompress";
 import MenuServiceWithImg from "@services/MenuServiceWithImg";
 import MenuService from "@services/MenuService";
-import MenuDropdown from "@pages/menu/_components/MenuDropdown";
-
+import { BoothMenuData } from "@pages/menu/Type/Menu_type";
 interface EditModalProps {
   handleCloseModal: () => void;
   onSuccess: React.Dispatch<SetStateAction<boolean>>;
-  defaultValues?: {
+  boothMenuData: BoothMenuData | undefined;
+  defaultValues: {
     menu_id: number;
     menu_name: string;
     menu_description: string;
@@ -25,11 +25,7 @@ interface EditModalProps {
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 업로드 이미지 크기 제한 3MB
 const MIN_FILE_SIZE = 2.5 * 1024 * 1024;
 
-const EditMenuModal = ({
-  handleCloseModal,
-  onSuccess,
-  defaultValues,
-}: EditModalProps) => {
+const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
   const [UploadImg, setUploadImg] = useState<string | null>(null);
   const [buttonDisable, setButtonDisable] = useState<boolean>(true);
 
@@ -39,7 +35,6 @@ const EditMenuModal = ({
   const [price, setPrice] = useState<string>("");
   const [stock, setStock] = useState<string>("");
   const [image, setImage] = useState<File | string | null>(null);
-  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -56,8 +51,6 @@ const EditMenuModal = ({
       setButtonDisable(true);
     }
   }, [name, price, stock, category]);
-
-  const addOption = () => {};
 
   useEffect(() => {
     if (defaultValues) {
@@ -114,7 +107,7 @@ const EditMenuModal = ({
       }
       if (category !== "세트") {
         try {
-          await MenuServiceWithImg.createMenu(formData);
+          await MenuServiceWithImg.updateMenu(defaultValues.menu_id, formData);
 
           handleCloseModal();
         } catch (e) {
@@ -129,7 +122,7 @@ const EditMenuModal = ({
     else {
       if (category !== "세트") {
         try {
-          await MenuService.createMenu(formData);
+          await MenuService.updateMenu(defaultValues.menu_id, formData);
           handleCloseModal();
         } catch (e) {
           console.log(e);
@@ -154,43 +147,6 @@ const EditMenuModal = ({
           </button>
         </S.ModalHeader>
         <S.FormContentWrapper>
-          <S.ele>
-            <S.SubTitle>
-              메뉴 카테고리<span>*</span>
-            </S.SubTitle>
-            <div>
-              <label className="custom-label">
-                <input
-                  type="radio"
-                  name="category"
-                  value="메뉴"
-                  onChange={() => setCategory("메뉴")}
-                  checked={category === "메뉴"}
-                />
-                메뉴
-              </label>
-              <label className="custom-label">
-                <input
-                  type="radio"
-                  name="category"
-                  value="음료"
-                  onChange={() => setCategory("음료")}
-                  checked={category === "음료"}
-                />
-                음료
-              </label>
-              <label className="custom-label">
-                <input
-                  type="radio"
-                  name="category"
-                  value="세트"
-                  onChange={() => setCategory("세트")}
-                  checked={category === "세트"}
-                />
-                세트
-              </label>
-            </div>
-          </S.ele>
           <S.ele>
             <S.SubTitle>
               메뉴명<span>*</span>
@@ -225,36 +181,19 @@ const EditMenuModal = ({
               onInput={HandleNumberInput}
             />
           </S.ele>
-          {category === "세트" && (
-            <S.ele>
-              <S.setComposition>
-                <S.SubTitle>
-                  메뉴 구성<span>*</span>
-                </S.SubTitle>
-                <button type="button" onClick={addOption}>
-                  + 추가
-                </button>
-              </S.setComposition>
-              <MenuDropdown
-                isOpen={isOpen}
-                setIsOpen={setIsOpen}
-              ></MenuDropdown>
-            </S.ele>
-          )}
-          {category !== "세트" && (
-            <S.ele>
-              <S.SubTitle>
-                재고수량<span>*</span>
-              </S.SubTitle>
-              <S.inputText
-                type="number"
-                placeholder="예) 100"
-                value={stock}
-                onChange={(e) => setStock(e.target.value)}
-                onInput={HandleNumberInput}
-              />
-            </S.ele>
-          )}
+          <S.ele>
+            <S.SubTitle>
+              재고수량<span>*</span>
+            </S.SubTitle>
+            <S.inputText
+              type="number"
+              placeholder="예) 100"
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+              onInput={HandleNumberInput}
+            />
+          </S.ele>
+
           <S.ele>
             <S.SubTitle>메뉴 이미지</S.SubTitle>
             <S.OtherText>이미지 파일 (JPG,PNG)을 첨부해 주세요</S.OtherText>

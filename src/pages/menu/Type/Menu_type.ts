@@ -1,6 +1,7 @@
 export type TableInfo = {
   seat_type: "person" | "table" | "테이블 이용료 없음";
-  seat_tax_person: number | string;
+  seat_tax_person: number;
+  seat_tax_table: number;
 };
 
 export interface Menu {
