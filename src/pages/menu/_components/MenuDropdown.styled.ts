@@ -66,3 +66,14 @@ export const Option = styled.li`
     background-color: ${({ theme }) => theme.colors.Bg};
   }
 `;
+
+export const AmountWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: 12px;
+  gap: 4px;
+`;
+
+export const Button = styled.button``;
