@@ -122,4 +122,47 @@ export const CouponService = {
       throw error;
     }
   },
+  getDownCouponExcel: async (coupon_id: number) => {
+    const res = await instance.get(
+      `/api/v2/coupons/${coupon_id}/codes/download/`,
+      {
+        responseType: "blob",
+      }
+    );
+
+    const getTodayString = () => {
+      const now = new Date();
+      return `${now.getFullYear()}${String(now.getMonth() + 1).padStart(
+        2,
+        "0"
+      )}${String(now.getDate()).padStart(2, "0")}`;
+    };
+
+    const cd = res.headers["content-disposition"] || "";
+    const m =
+      cd.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i) ||
+      cd.match(/filename="?([^";]+)"?/i);
+
+    let filename = `coupons_${coupon_id}_${getTodayString()}.xlsx`;
+    if (m?.[1]) {
+      try {
+        filename = decodeURIComponent(m[1]);
+      } catch {
+        filename = m[1];
+      }
+    }
+
+    const blob = new Blob([res.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    a.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  },
 };

@@ -21,7 +21,14 @@ export const CouponDetail = ({ couponId, setSelectedCouponId }: Props) => {
   const handleCancel = () => {
     setShowDelete(false);
   };
-
+  const handleDownExcel = async () => {
+    try {
+      await CouponService.getDownCouponExcel(couponId);
+      console.log("쿠폰 엑셀 다운 성공");
+    } catch (err) {
+      console.error("쿠폰 엑셀 다운 실패:", err);
+    }
+  };
   const handleDelete = async () => {
     try {
       await CouponService.deleteCoupon(couponId);
@@ -69,7 +76,9 @@ export const CouponDetail = ({ couponId, setSelectedCouponId }: Props) => {
             <S.BottomContainer>
               <S.QrContainer>
                 <S.QrImg src={qr} />
-                <span>쿠폰 번호 엑셀 파일 다운로드</span>
+                <span onClick={handleDownExcel}>
+                  쿠폰 번호 엑셀 파일 다운로드
+                </span>
               </S.QrContainer>
             </S.BottomContainer>
           </div>
