@@ -40,10 +40,10 @@ export const KpiLabel = styled.div`
   color: ${({ theme }) => theme.colors.Black};
 `;
 
-export const KpiValue = styled.div<{ orange?: boolean }>`
+export const KpiValue = styled.div<{ $orange?: boolean }>`
   ${({ theme }) => theme.fonts.Bold24};
-  color: ${({ theme, orange }) =>
-    orange ? theme.colors.Orange01 : theme.colors.Black};
+  color: ${({ theme, $orange }) =>
+    $orange ? theme.colors.Orange01 : theme.colors.Black};
 `;
 export const KpiNote = styled.div`
   ${({ theme }) => theme.fonts.SemiBold10};
@@ -124,6 +124,26 @@ export const CardGrid = styled.div<{ columns: number }>`
   }
 `;
 
+export const CardGrid2 = styled.div<{ columns: number }>`
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(${({ columns }) => columns}, minmax(0, 1fr));
+  gap: 16px;
+
+  place-items: center;
+`;
+
+export const EmptyMessage = styled.div`
+  grid-column: 0 / 16;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+
+  ${({ theme }) => theme.fonts.Medium14};
+  color: ${({ theme }) => theme.colors.Error};
+`;
+
 export const MenuCard = styled.div`
   position: relative;
   background-color: ${({ theme }) => theme.colors.Gray01};
@@ -159,16 +179,20 @@ export const ItemName = styled.div`
   color: ${({ theme }) => theme.colors.Black01};
 `;
 
-export const ItemCost = styled.div<{ Focused?: boolean }>`
+export const ItemCost = styled.div<{ $Focused?: boolean }>`
   ${({ theme }) => theme.fonts.SemiBold12};
-  color: ${({ theme, Focused }) =>
-    Focused ? theme.colors.Focused : theme.colors.Error};
+  color: ${({ theme, $Focused }) =>
+    $Focused ? theme.colors.Focused : theme.colors.Error};
 `;
 
-export const ItemAmount = styled.div<{ Focused?: boolean }>`
+export const ItemAmount = styled.div<{ $Focused?: boolean }>`
   ${({ theme }) => theme.fonts.SemiBold10};
-  color: ${({ theme, Focused }) =>
-    Focused ? theme.colors.Focused : theme.colors.Error};
+  color: ${({ theme, $Focused }) =>
+    $Focused ? theme.colors.Focused : theme.colors.Error};
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 /* 2~3행 우 - 대기시간 패널 */
@@ -224,18 +248,19 @@ export const PanelSmall = styled.div`
   ${({ theme }) => theme.fonts.Medium14};
 `;
 
-export const PanelStrong = styled.div<{ orange?: boolean }>`
+export const PanelStrong = styled.div<{ $orange?: boolean }>`
   ${({ theme }) => theme.fonts.Bold24};
-  color: ${({ theme, orange }) =>
-    orange ? theme.colors.Orange01 : theme.colors.Black};
+  color: ${({ theme, $orange }) =>
+    $orange ? theme.colors.Orange01 : theme.colors.Black};
 `;
 
-export const RowLine = styled.div<{ check?: boolean }>`
+export const RowLine = styled.div<{ $check?: boolean }>`
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
   background-color: ${({ theme }) => theme.colors.Orange01};
-  height: ${({ check }) => (check ? 'calc(100% - 16px)' : 'calc(100% - 48px)')};
-  top: ${({ check }) => (check ? '18px' : '24px')};
+  height: ${({ $check }) =>
+    $check ? 'calc(100% - 16px)' : 'calc(100% - 48px)'};
+  top: ${({ $check }) => ($check ? '18px' : '24px')};
   width: 1px;
 `;

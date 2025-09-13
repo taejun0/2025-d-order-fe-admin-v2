@@ -45,6 +45,9 @@ const UserService = {
       if (!response.data?.token?.access) {
         throw new Error('로그인 응답이 올바르지 않습니다.');
       }
+      console.log(response);
+
+      localStorage.setItem('Booth-ID', String(response.data.data.booth_id));
 
       return response.data;
     } catch (error: any) {

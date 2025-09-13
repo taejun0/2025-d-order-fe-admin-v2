@@ -8,7 +8,7 @@ export interface BoothRevenueResponse {
   data: {
     booth_id: number;
     booth_name: string;
-    total_revenues: number;
+    total_revenue: number;
   } | null;
 }
 
@@ -23,7 +23,7 @@ const BoothService = {
   getBoothRevenue: async (): Promise<BoothRevenueResponse> => {
     try {
       const response = await instance.get<BoothRevenueResponse>(
-        "/api/booth/total_revenues/"
+        "/api/v2/booth/revenues/"
       );
       return response.data;
     } catch (error) {

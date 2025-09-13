@@ -156,8 +156,8 @@ export const TotalPrice = styled.div`
 `;
 
 // grid style
-
 export const GridWrapper = styled.div`
+  position: relative;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -166,40 +166,72 @@ export const GridWrapper = styled.div`
   padding: 10px 20px;
   gap: 0.55rem;
   box-sizing: border-box;
+  user-select: none;
 `;
 
-export const GridView = styled.div`
+/* 좌우 네비 */
+const navBase = css`
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 22px;
+  line-height: 36px;
+  text-align: center;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  &:hover { opacity: 0.9; }
+`;
+export const NavButtonLeft = styled.button`${navBase}; left: 8px;`;
+export const NavButtonRight = styled.button`${navBase}; right: 8px;`;
+
+/* 뷰포트 */
+export const GridViewport = styled.div`
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+`;
+
+/* ✅ 트랙: 전체 폭 = pageCount * 100% (부모 기준)
+   ✅ 이동: 한 페이지당 (100 / pageCount)% 만큼 이동 */
+export const PagesTrack = styled.div<{
+  $pageCount: number;
+  $currentPage: number;
+}>`
+  display: flex;
+  width: ${({ $pageCount }) => $pageCount * 100}%;
+  transform: ${({ $currentPage, $pageCount }) =>
+    `translateX(-${$pageCount ? ($currentPage * 100) / $pageCount : 0}%)`};
+  transition: transform 320ms ease-in-out;
+`;
+
+/* ✅ 각 페이지: 트랙 대비 (100 / pageCount)% */
+export const PageGrid = styled.div<{ $pageCount: number }>`
+  width: ${({ $pageCount }) => (100 / $pageCount)}%;
+  padding: 8px;
+  box-sizing: border-box;
+
   display: grid;
-  grid-template-columns: repeat(5, 1fr);  // ✅ 가로 5개 고정
-  grid-template-rows: repeat(3, 1fr);     // ✅ 세로 3줄 고정
-  gap: 1rem;
-
-  // ✅ 모든 반응형 조건에서 동일한 레이아웃 유지
-  @media (max-width: 1367px) {
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    gap: 1.6rem;
-  }
-
-  @media (max-width: 1180px) {
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    gap: 1.4rem;
-  }
-
-  @media (max-width: 1024px) {
-    grid-template-columns: repeat(5, 1fr);
-    grid-template-rows: repeat(3, 1fr);
-    gap: 1rem;
-  }
+  grid-template-columns: repeat(5, minmax(0, 1fr)); /* 가로 5 */
+  grid-auto-rows: 1fr;                               /* 세로 동일 비율 */
+  row-gap: 12px;
+  column-gap: 12px;
 `;
 
-
+/* 인디케이터 (중복 정의 없게 유지) */
 export const PageIndicatorWrapper = styled.div`
   display: flex;
+  gap: 8px;
   justify-content: center;
   align-items: center;
-  gap: 0.4rem;
+  height: 28px;
+  margin-top: 8px;
 `;
 
 export const Dot = styled.div<{ $active: boolean }>`
@@ -209,4 +241,5 @@ export const Dot = styled.div<{ $active: boolean }>`
   background-color: ${({ theme, $active }) =>
     $active ? theme.colors.Orange01 : theme.colors.Gray01};
   transition: all 0.3s ease;
+  cursor: pointer;
 `;
