@@ -87,6 +87,8 @@ instance.interceptors.response.use(
         try {
           const res = await instance.get("/api/v2/manager/auth/");
 
+          console.log(res);
+
           const newAccessToken = res.data?.data?.access_token;
           if (!newAccessToken) throw new Error("토큰이 응답에 없습니다.");
 
@@ -102,6 +104,7 @@ instance.interceptors.response.use(
           removeAccessToken();
 
           window.location.href = "/login";
+
 
           return Promise.reject(err);
         } finally {
@@ -177,7 +180,8 @@ instatnceWithImg.interceptors.response.use(
 
         try {
           // 토큰 갱신 요청 (일반 instance 사용)
-          const res = await instance.post("/api/v2/manager/auth/");
+          const res = await instance.get('/api/v2/manager/auth/');
+
 
           const newAccessToken = res.data?.data?.access_token;
           if (!newAccessToken) throw new Error("토큰이 응답에 없습니다.");
