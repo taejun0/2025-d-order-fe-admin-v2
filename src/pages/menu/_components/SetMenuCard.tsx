@@ -1,16 +1,22 @@
 import * as S from "./MenuCard.styled";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { useState } from "react";
-import MenuModal from "../../modal_test_view/_components/MenuModal";
+import EditSetMenuModal from "../../modal_test_view/_components/EditSetMenuModal";
 import MenuDeleteModal from "../../modal_test_view/_components/MenuDeleteModal";
-import { SetMenu } from "../Type/Menu_type";
+import { BoothMenuData, SetMenu } from "../Type/Menu_type";
+import MenuService from "@services/MenuService";
 
 interface SetMenuCardProps {
   menu: SetMenu;
   onMenuChange: () => void;
+  boothMenuData: BoothMenuData | undefined;
 }
 
-const SetMenuCard = ({ menu, onMenuChange }: SetMenuCardProps) => {
+const SetMenuCard = ({
+  menu,
+  onMenuChange,
+  boothMenuData,
+}: SetMenuCardProps) => {
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -34,7 +40,7 @@ const SetMenuCard = ({ menu, onMenuChange }: SetMenuCardProps) => {
 
   const handleConfirmDelete = async () => {
     try {
-      // await MenuService.deleteMenu(menu.id);
+      await MenuService.deleteSetMenu(menu.set_menu_id);
       setShowDeleteModal(false);
       onMenuChange(); // 목록 새로고침
     } catch (error) {
@@ -72,38 +78,22 @@ const SetMenuCard = ({ menu, onMenuChange }: SetMenuCardProps) => {
               <S.CardText className="bold">{menu.set_name}</S.CardText>
               <S.CardText>{menu.set_price.toLocaleString()}원</S.CardText>
             </S.CardTextInner>
-            <S.CardTextInner>
-              <S.CardText>재고수량</S.CardText>
-              <S.CardText>
-                {/* {menu.menu_amount !== undefined ? `${menu.menu_amount}개` : "-"} */}
-                임시갯수
-              </S.CardText>
-            </S.CardTextInner>
           </S.CardInfo>
         </S.CardContents>
       </S.MenuCardWrapper>
 
-      {/* {showModal && (
+      {showModal && (
         <S.ModalWrapper onClick={handleCloseModal}>
           <div onClick={(e) => e.stopPropagation()}>
-            <MenuModal
+            <EditSetMenuModal
               handleCloseModal={handleCloseModal}
-              text="메뉴 수정"
-              isEdit={true}
+              boothMenuData={boothMenuData}
+              setMenu={menu}
               onSuccess={onMenuChange}
-              defaultValues={{
-                menu_id: menu.menu_id,
-                menu_name: menu.menu_name,
-                menu_description: menu.menu_description,
-                menu_category: menu.menu_category,
-                menu_price: menu.menu_price,
-                menu_amount: menu.menu_amount,
-                menu_image: menu.menu_image,
-              }}
             />
           </div>
         </S.ModalWrapper>
-      )} */}
+      )}
 
       {showDeleteModal && (
         <MenuDeleteModal

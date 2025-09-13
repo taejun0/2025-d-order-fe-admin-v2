@@ -3,13 +3,13 @@ import axios, {
   AxiosResponse,
   AxiosError,
   InternalAxiosRequestConfig,
-} from 'axios';
+} from "axios";
 
 export const instance: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   timeout: 10000,
 });
@@ -18,11 +18,11 @@ export const instance: AxiosInstance = axios.create({
 instance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 로컬 스토리지에서 토큰 가져오기
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem("accessToken");
 
     // 토큰이 있으면 요청 헤더에 추가
-    if (token && !config.url?.includes('/api/v2/manager/auth/')) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+    if (token && !config.url?.includes("/api/v2/manager/auth/")) {
+      config.headers["Authorization"] = `Bearer ${token}`;
     }
 
     return config;
@@ -45,11 +45,11 @@ const processQueue = (token: string | null, error: AxiosError | null) => {
 };
 
 const setAccessToken = (token: string) => {
-  localStorage.setItem('accessToken', token);
+  localStorage.setItem("accessToken", token);
 };
 
 const removeAccessToken = () => {
-  localStorage.removeItem('accessToken');
+  localStorage.removeItem("accessToken");
 };
 
 // 응답 인터셉터
@@ -59,13 +59,13 @@ instance.interceptors.response.use(
     const originalRequest: any = error.config;
 
     if (
-      originalRequest.url?.includes('/api/v2/manager/auth/') &&
+      originalRequest.url?.includes("/api/v2/manager/auth/") &&
       error.response?.status === 401
     ) {
       removeAccessToken();
-      window.location.href = '/login';
+      window.location.href = "/login";
       return Promise.reject(
-        new Error('리프레시 토큰이 만료되었습니다. 다시 로그인해주세요.')
+        new Error("리프레시 토큰이 만료되었습니다. 다시 로그인해주세요.")
       );
     }
 
@@ -74,7 +74,7 @@ instance.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({
             resolve: (token: string) => {
-              originalRequest.headers['Authorization'] = `Bearer ${token}`;
+              originalRequest.headers["Authorization"] = `Bearer ${token}`;
               resolve(instance(originalRequest));
             },
             reject,
@@ -85,23 +85,26 @@ instance.interceptors.response.use(
         isRefreshing = true;
 
         try {
-          const res = await instance.get('/api/v2/manager/auth/');
+          const res = await instance.get("/api/v2/manager/auth/");
+
+          console.log(res);
 
           const newAccessToken = res.data?.data?.access_token;
-          if (!newAccessToken) throw new Error('토큰이 응답에 없습니다.');
+          if (!newAccessToken) throw new Error("토큰이 응답에 없습니다.");
 
           // 토큰 저장 및 큐 처리
           setAccessToken(newAccessToken);
           processQueue(newAccessToken, null);
 
           // 요청 재시도
-          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
           return instance(originalRequest);
         } catch (err) {
           processQueue(null, err as AxiosError);
           removeAccessToken();
 
-          window.location.href = '/login';
+          window.location.href = "/login";
+
 
           return Promise.reject(err);
         } finally {
@@ -119,7 +122,7 @@ export const instatnceWithImg: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL,
   withCredentials: true,
   headers: {
-    'Content-Type': 'multipart/form-data',
+    "Content-Type": "multipart/form-data",
   },
   timeout: 10000,
 });
@@ -128,11 +131,11 @@ export const instatnceWithImg: AxiosInstance = axios.create({
 instatnceWithImg.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 로컬 스토리지에서 토큰 가져오기
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem("accessToken");
 
     // 토큰이 있으면 요청 헤더에 추가 (리프레시 요청 제외)
-    if (token && !config.url?.includes('/api/v2/manager/auth/')) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+    if (token && !config.url?.includes("/api/v2/manager/auth/")) {
+      config.headers["Authorization"] = `Bearer ${token}`;
     }
 
     return config;
@@ -148,13 +151,13 @@ instatnceWithImg.interceptors.response.use(
 
     // 리프레시 토큰 요청 자체가 실패한 경우
     if (
-      originalRequest.url?.includes('/api/v2/manager/auth/') &&
+      originalRequest.url?.includes("/api/v2/manager/auth/") &&
       error.response?.status === 401
     ) {
       removeAccessToken();
-      window.location.href = '/login';
+      window.location.href = "/login";
       return Promise.reject(
-        new Error('리프레시 토큰이 만료되었습니다. 다시 로그인해주세요.')
+        new Error("리프레시 토큰이 만료되었습니다. 다시 로그인해주세요.")
       );
     }
 
@@ -165,7 +168,7 @@ instatnceWithImg.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({
             resolve: (token: string) => {
-              originalRequest.headers['Authorization'] = `Bearer ${token}`;
+              originalRequest.headers["Authorization"] = `Bearer ${token}`;
               resolve(instatnceWithImg(originalRequest));
             },
             reject,
@@ -177,22 +180,23 @@ instatnceWithImg.interceptors.response.use(
 
         try {
           // 토큰 갱신 요청 (일반 instance 사용)
-          const res = await instance.post('/api/v2/manager/auth/');
+          const res = await instance.get('/api/v2/manager/auth/');
+
 
           const newAccessToken = res.data?.data?.access_token;
-          if (!newAccessToken) throw new Error('토큰이 응답에 없습니다.');
+          if (!newAccessToken) throw new Error("토큰이 응답에 없습니다.");
 
           // 토큰 저장 및 큐 처리
           setAccessToken(newAccessToken);
           processQueue(newAccessToken, null);
 
           // 원본 요청 재시도
-          originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
           return instatnceWithImg(originalRequest);
         } catch (err) {
           processQueue(null, err as AxiosError);
           removeAccessToken();
-          window.location.href = '/login';
+          window.location.href = "/login";
           return Promise.reject(err);
         } finally {
           isRefreshing = false;
@@ -201,8 +205,8 @@ instatnceWithImg.interceptors.response.use(
     }
 
     // 연결 타임아웃 에러 처리
-    if (error.code === 'ECONNABORTED') {
-      window.location.href = '/error';
+    if (error.code === "ECONNABORTED") {
+      window.location.href = "/error";
     }
 
     return Promise.reject(error);

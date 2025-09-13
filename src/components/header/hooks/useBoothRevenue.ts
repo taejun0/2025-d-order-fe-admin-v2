@@ -30,7 +30,7 @@ const useBoothRevenue = (): UseBoothRevenueReturn => {
 
       if (response.status === "success" && response.data) {
         setBoothName(response.data.booth_name);
-        setTotalRevenues(response.data.total_revenues);
+        setTotalRevenues(response.data.total_revenue);
       } else {
         setError(
           new Error(response.message || "데이터를 불러오는데 실패했습니다.")

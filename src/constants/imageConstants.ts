@@ -40,6 +40,9 @@ import COUPON_RATE from "../assets/images/couponRate.png";
 import COUPON_PRICE from "../assets/images/couponPrice.png";
 
 import Down from "@assets/icons/down.svg";
+
+import minus from "@assets/icons/minus.svg";
+import plus from "@assets/icons/add.svg";
 export const IMAGE_CONSTANTS = {
   LOGO: "/images/Logo.png",
   LOGO2: "/images/Logo2.png",
@@ -97,4 +100,7 @@ export const IMAGE_CONSTANTS = {
   COUPON_RATE: COUPON_RATE,
   COUPON_PRICE: COUPON_PRICE,
   DOWN: Down,
+
+  Minus: minus,
+  Add: plus,
 };

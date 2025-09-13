@@ -1,11 +1,16 @@
 import styled from "styled-components";
-import { dummyNotifications } from "../dummy/dummyNotifications"; // 추가
+
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 
-const LiveNotice = () => {
+interface LiveNoticeProps {
+  message: string;
+  show: boolean;
+}
+
+const LiveNotice = ({ message, show }: LiveNoticeProps) => {
   return (
-    <Wrapper>
-      {dummyNotifications[0].message}
+    <Wrapper show={show}>
+      {message}
       <img
         src={IMAGE_CONSTANTS.BELL}
         alt="종모양 아이콘"
@@ -17,7 +22,7 @@ const LiveNotice = () => {
 
 export default LiveNotice;
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ show: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -35,4 +40,8 @@ const Wrapper = styled.div`
   color: ${({ theme }) => theme.colors.Black01};
 
   gap: 4px;
+
+  /* 애니메이션 효과 */
+  opacity: ${({ show }) => (show ? 1 : 0)};
+  transition: opacity 0.5s ease-in-out;
 `;
