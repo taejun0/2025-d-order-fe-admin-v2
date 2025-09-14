@@ -31,7 +31,12 @@ const MenuListItem = ({ order, onStatusChange }: MenuListItemProps) => {
       </MenuImg>
       <MenuItemText>{time}</MenuItemText>
       <MenuItemText>{table}</MenuItemText>
-      <MenuItemText style={{ flex: 2 }}>{order.menu_name}</MenuItemText>
+      <MenuItemText style={{ flex: 2 }}>
+        <LEE>
+          <SET>세트</SET>
+          <TEXT>{order.menu_name}</TEXT>
+        </LEE>
+      </MenuItemText>
       <MenuItemText>{order.menu_num}개</MenuItemText>
       <MenuItemText>
         {/* 4. OrderStateBtn에 동적인 데이터를 props로 전달합니다. */}
@@ -96,4 +101,33 @@ const MenuItemText = styled.div`
 
   color: ${({ theme }) => theme.colors.Black01};
   ${({ theme }) => theme.fonts.Bold14}
+`;
+
+const LEE = styled.div`
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  padding-left: 10px;
+
+  width: 100%;
+`;
+const TEXT = styled.div`
+  color: ${({ theme }) => theme.colors.Black01};
+  ${({ theme }) => theme.fonts.Bold14}
+
+  max-width: 112px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+const SET = styled.div`
+  display: flex;
+  justify-content: center;
+  width: 26px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  background: var(--Main-Orange-Orange01, #ff6e3f);
+  color: var(--White-White01, #ffffff);
+  ${({ theme }) => theme.fonts.SemiBold10}
 `;
