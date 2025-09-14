@@ -175,6 +175,20 @@ export const BankTag = styled.div`
     padding: 3px 8px;
 `;
 
+export const ColorSection = styled.div`
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: ${({ theme }) => theme.colors.Orange02};
+    color: ${({ theme }) => theme.colors.Orange01};
+    ${({ theme }) => theme.fonts.Bold16};
+    width: fit-content;
+    height: 1.75rem;
+    font-weight: 700;
+    border-radius: 0.3125rem;
+    padding: 3px 0.8rem;
+`;
+
 export const OwnerTag = styled.div`
     display: flex;
     justify-content: center;
@@ -182,11 +196,11 @@ export const OwnerTag = styled.div`
     background-color: rgba(192, 192, 192, 0.30);
     color: ${({ theme }) => theme.colors.Focused};
     ${({ theme }) => theme.fonts.Bold16};
-    min-width: 4.625rem;
+    width: fit-content;
     height: 1.75rem;
     font-weight: 700;
     border-radius: 0.3125rem;
-    padding: 3px 8px;
+    padding: 3px 0.8rem;
     width: fit-content;
 `;
 

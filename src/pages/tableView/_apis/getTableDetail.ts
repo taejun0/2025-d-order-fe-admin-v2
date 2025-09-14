@@ -47,7 +47,7 @@ export type TableDetailResponse = {
   status: string;
   message: string;
   code: number;
-  data: TableDetailData;
+  data: TableDetailData; // ' | null'을 제거
 };
 
 /** ── 정규화 함수 ─────────────────────────────────────────────────── */
