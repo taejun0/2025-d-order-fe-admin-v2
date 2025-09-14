@@ -12,9 +12,9 @@ const BellModal = ({ $active, notifications }: BellModalProps) => {
       {notifications.length === 0 ? (
         <S.DefaultText>알림이 없습니다.</S.DefaultText>
       ) : (
-        notifications.map((n) => (
-          <S.ContentsBox key={n.id}>{n.message}</S.ContentsBox>
-        ))
+        notifications
+          .slice(0, 7)
+          .map((n) => <S.ContentsBox key={n.id}>{n.message}</S.ContentsBox>)
       )}
     </S.BellModalWrapper>
   );
