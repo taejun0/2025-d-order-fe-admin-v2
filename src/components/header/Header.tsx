@@ -1,6 +1,6 @@
 import * as S from "./Header.styled";
-import { useState, useEffect } from "react";
-
+import { useState, useEffect, useRef } from "react";
+import bellSoundURL from "@assets/sounds/bellsound.mp3";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import useBoothRevenue from "./hooks/useBoothRevenue";
 import Bell from "./_components/Bell";
@@ -26,6 +26,45 @@ const Header = () => {
   const [hasUnread, setHasUnread] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
+  // 오디오 재생 관련 ref
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const isAudioUnlocked = useRef(false);
+
+  // 페이지 클릭하는걸 기준으로 오디오 활성화
+  useEffect(() => {
+    if (typeof window !== "undefined" && !audioRef.current) {
+      audioRef.current = new Audio(bellSoundURL);
+      audioRef.current.load();
+    }
+
+    const unlockAudioOnFirstClick = () => {
+      console.log("🖱️ 페이지 클릭 감지! 오디오 활성화를 시도합니다...");
+      if (audioRef.current && !isAudioUnlocked.current) {
+        audioRef.current
+          .play()
+          .then(() => {
+            audioRef.current?.pause();
+            audioRef.current!.currentTime = 0;
+            isAudioUnlocked.current = true;
+            console.log("✅ 🔔 오디오가 성공적으로 활성화되었습니다!");
+            document.removeEventListener("click", unlockAudioOnFirstClick);
+          })
+          .catch((error) => {
+            console.error("🔴 🔔 오디오 활성화 실패! 원인:", error);
+          });
+      } else if (isAudioUnlocked.current) {
+        // 이미 활성화된 상태라면 이벤트 리스너 제거
+        document.removeEventListener("click", unlockAudioOnFirstClick);
+      }
+    };
+
+    document.addEventListener("click", unlockAudioOnFirstClick);
+
+    return () => {
+      document.removeEventListener("click", unlockAudioOnFirstClick);
+    };
+  }, []);
+
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
 
@@ -45,6 +84,15 @@ const Header = () => {
         console.log("📥 [CALL] 새로운 호출 메시지 수신:", message);
 
         if (message.type === "CALL_STAFF") {
+          if (isAudioUnlocked.current && audioRef.current) {
+            audioRef.current.currentTime = 0;
+            audioRef.current.play();
+          } else {
+            console.warn(
+              "🔔 오디오가 아직 활성화되지 않아 소리 재생을 건너뜁니다. 페이지를 한 번 클릭해주세요."
+            );
+          }
+
           const noticeMessage = `${message.tableNumber}번 테이블에서 직원 호출! 메시지: "${message.message}"`;
 
           // 1. 실시간 팝업 알림 처리
