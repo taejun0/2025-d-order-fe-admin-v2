@@ -8,69 +8,77 @@ import ResetModal from "../../_modal/ResetModal";
 import EmptyOrder from "./emptyOrder";
 
 import {
-    getTableDetail,
-    type TableDetailData as APITableDetail, // ✅ 실제 타입명 일치
+  getTableDetail,
+  type TableDetailData as APITableDetail, // ✅ 실제 타입(정규화된 데이터)
 } from "../../_apis/getTableDetail";
 import { resetTable as resetTableAPI } from "../../_apis/resetTable";
 import {
-    updateOrderQuantity,            // ✅ 새 시그니처 (orderId, items[])
-    type CancelItem,
+  updateOrderQuantity, // ✅ (orderId, items[])
+  type CancelItem,
 } from "../../_apis/updateOrderQuantity";
 
 import { useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface Props {
-    data: APITableDetail;  // ✅ 실제 타입 반영
+    data: APITableDetail; // ✅ 실제 타입 반영
     onBack?: () => void;
 }
 
-/** 기존 렌더 코드가 기대하던 필드명으로 변환 */
+/** 기존 화면 컴포넌트가 쓰던 형태(레거시)로 매핑 */
 type LegacyOrder = {
-    id?: number;                 // 서버가 주면 사용
+    id?: number;               // 화면 내부 키 (= order_item_id/ordermenu_id)
+    order_id?: number;         // 주문 PK
     menu_name: string;
-    menu_price: number;
-    menu_num: number;
+    menu_price: number;        // 단가
+    menu_num: number;          // 수량
     menu_image: string | null;
     order_status?: string;
-};
+    };
 
-type LegacyDetail = {
+    type LegacyDetail = {
     table_num: number;
-    table_price: number;         // = table_amount
+    table_price: number;       // = table_amount
     table_status: string;
     created_at: string | null;
     orders: LegacyOrder[];
 };
 
-const normalizeDetail = (api: APITableDetail): LegacyDetail => {
-    return {
-        table_num: api.table_num,
-        table_price: api.table_amount ?? 0,
-        table_status: api.table_status ?? "unknown",
-        created_at: api.created_at ?? null,
-        orders: (api.orders ?? []).map((o: any, idx: number) => ({
-        id: o?.id, // 명세상 없을 수 있음
+/** 정규화된 API 데이터 → 레거시 화면 데이터로 변환 */
+const normalizeDetail = (api: APITableDetail): LegacyDetail => ({
+    table_num: api.table_num,
+    table_price: api.table_amount ?? 0,
+    table_status: api.table_status ?? "unknown",
+    created_at: api.created_at ?? null,
+    orders: (api.orders ?? []).map((o: any) => ({
+        // ✅ 항목 PK를 화면 id 로 사용
+        id:
+        typeof o?.order_item_id === "number" ? o.order_item_id :
+        typeof o?.ordermenu_id === "number" ? o.ordermenu_id :
+        typeof o?.order_menu_id === "number" ? o.order_menu_id :
+        typeof o?.ordersetmenu_id === "number" ? o.ordersetmenu_id :
+        typeof o?.order_setmenu_id === "number" ? o.order_setmenu_id :
+        undefined,
+        order_id: typeof o?.order_id === "number" ? o.order_id : undefined,
         menu_name: o?.menu_name ?? "(이름 없음)",
         menu_price:
-            typeof o?.price === "number"
+        typeof o?.price === "number"
             ? o.price
             : typeof o?.menu_price === "number"
             ? o.menu_price
             : 0,
         menu_num:
-            typeof o?.quantity === "number"
+        typeof o?.quantity === "number"
             ? o.quantity
             : typeof o?.menu_num === "number"
             ? o.menu_num
             : 1,
         menu_image: o?.menu_image ?? null,
         order_status: o?.order_status,
-        })),
-    };
-    };
+    })),
+});
 
-    const TableDetail: React.FC<Props> = ({ data, onBack }) => {
+const TableDetail: React.FC<Props> = ({ data, onBack }) => {
     const initial = useMemo(() => normalizeDetail(data), [data]);
     const navigate = useNavigate();
 
@@ -93,9 +101,8 @@ const normalizeDetail = (api: APITableDetail): LegacyDetail => {
         <S.DetailWrapper>
             <S.DetailHeader>
             <S.TextWrapper>
-                <S.BackButton onClick={onBack}>
+                <S.BackButton onClick={() => (onBack ? onBack() : navigate("/table-view"))}>
                 <img
-                    onClick={() => (onBack ? onBack() : navigate("/table-view"))}
                     src={IMAGE_CONSTANTS.BACKWARD_BLACK}
                     alt="뒤로가기버튼"
                 />
@@ -122,7 +129,7 @@ const normalizeDetail = (api: APITableDetail): LegacyDetail => {
                 <EmptyOrder />
             ) : (
                 tableDetailData.orders.map((order, idx) => (
-                <div key={order.id ?? idx}>
+                <div key={order.id ?? `${order.order_id ?? "noorder"}-${idx}`}>
                     <S.ItemWrapper>
                     <S.ContentContainer>
                         <S.ImageWrapper>
@@ -179,36 +186,38 @@ const normalizeDetail = (api: APITableDetail): LegacyDetail => {
             <CancelConfirmModal
             onConfirm={async () => {
                 try {
+                // 같은 이름의 메뉴가 여러 개 있을 가능성 → 첫 번째 매칭
                 const order = tableDetailData.orders.find(
                     (o) => o.menu_name === confirmInfo.name
                 );
+
                 if (!order) {
                     alert("해당 주문을 찾을 수 없습니다.");
                     setConfirmInfo(null);
                     return;
                 }
 
-                // ✅ 새 명세: order_item_id 필요 (ordermenu_id / ordersetmenu_id)
-                if (!order.id) {
-                    alert(
-                    "이 주문 항목에는 ID가 없어 취소 요청을 보낼 수 없습니다.\n(백엔드에서 order_item_id 제공 필요)"
-                    );
+                // ✅ URL의 {order_id}는 상세 응답의 각 항목에 포함된 order_id 사용
+                if (!order.order_id) {
+                    alert("주문 ID가 없어 취소 요청을 보낼 수 없습니다. (order_id 미제공)");
                     setConfirmInfo(null);
                     return;
                 }
 
-                // 🔁 새 시그니처: (orderId, [{ order_item_id, quantity }])
+                // ✅ 바디의 order_item_id(= ordermenu_id 등) 필요
+                if (!order.id) {
+                    alert("주문 항목 ID가 없어 취소 요청을 보낼 수 없습니다. (order_item_id 미제공)");
+                    setConfirmInfo(null);
+                    return;
+                }
+
                 const payloadItem: CancelItem = {
                     order_item_id: order.id,
                     quantity: confirmInfo.quantity,
                 };
 
-                // 주문 PK: 이 화면에서는 단일 주문 기준으로 보이지 않아서
-                // 서버 설계에 따라 "주문 ID"를 별도 전달받아야 함.
-                // (현재 상세 응답엔 order_id 맥락이 없으므로, 임시로 order.id를 주문아이템 PK로 사용)
-                // 만약 별도 orderId가 있다면 아래 첫 번째 인자에 넣어야 함.
                 await updateOrderQuantity(
-                    /* orderId */ order.id,          // ⚠️ TODO: 실제 주문 ID로 교체 필요
+                    order.order_id,        // ✅ 실제 주문 PK
                     [payloadItem]
                 );
 
@@ -225,16 +234,16 @@ const normalizeDetail = (api: APITableDetail): LegacyDetail => {
         {/* 초기화 모달 */}
         {showResetModal && (
             <ResetModal
-            resetTable={async () => {
-                try {
-                await resetTableAPI(tableDetailData.table_num);
-                setShowResetModal(false);
-                await refetchTableDetail();
-                } catch {
-                setShowResetModal(false);
-                }
-            }}
-            onCancel={() => setShowResetModal(false)}
+                resetTable={async () => {
+                    try {
+                    await resetTableAPI(tableDetailData.table_num);
+                    setShowResetModal(false);
+                    await refetchTableDetail();
+                    } catch {
+                    setShowResetModal(false);
+                    }
+                }}
+                onCancel={() => setShowResetModal(false)}
             />
         )}
         </>

@@ -9,12 +9,17 @@ const TableDetailPage = () => {
   const { tableNum } = useParams();
   const navigate = useNavigate();
 
+  const parsedNum = Number(tableNum);
   const {
     detail: tableDetail,           // ✅ 이름 맞춤
     loading,
     errorMsg: error,               // ✅ 이름 맞춤
     refetch,                       // 필요시 사용
-  } = useTableDetail(Number(tableNum));
+  } = useTableDetail(Number.isFinite(parsedNum) ? parsedNum : -1);
+
+  if (!Number.isFinite(parsedNum)) {
+    return <div>잘못된 테이블 번호입니다.</div>;
+  }
 
   if (loading) return <LoadingSpinner />;
   if (error || !tableDetail) return <div>에러 발생 또는 데이터 없음</div>;
