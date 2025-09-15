@@ -36,7 +36,12 @@ const TableBillItem = ({
               )}
             </OrderImg>
             <OrderTextWrapper>
-              <OrderText>{order.menu_name}</OrderText>
+              <OrderText>
+                <OrderSetWrapper>
+                  {order.set_id && <SET>세트</SET>}
+                  {order.menu_name}
+                </OrderSetWrapper>
+              </OrderText>
               <OrderText className="orderNum">수량: {order.menu_num}</OrderText>
             </OrderTextWrapper>
           </OrderInfo>
@@ -112,6 +117,12 @@ const OrderTextWrapper = styled.div`
   min-width: 0;
 `;
 
+const OrderSetWrapper = styled.div`
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+`;
 const OrderText = styled.div`
   color: ${({ theme }) => theme.colors.Black01};
   ${({ theme }) => theme.fonts.SemiBold12};
@@ -123,8 +134,23 @@ const OrderText = styled.div`
   }
 
   //말줄임
-  max-width: 112px;
+  /* max-width: 112px; */
+  flex: 1;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+`;
+
+const SET = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 26px;
+  height: 14px;
+  flex-shrink: 0;
+  border-radius: 3px;
+  background: var(--Main-Orange-Orange01, #ff6e3f);
+  color: var(--White-White01, #ffffff);
+  ${({ theme }) => theme.fonts.SemiBold10}
 `;

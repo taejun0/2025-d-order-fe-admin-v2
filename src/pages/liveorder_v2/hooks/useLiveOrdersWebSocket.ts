@@ -30,6 +30,9 @@ export const useLiveOrdersWebSocket = (accessToken: string | null) => {
             menu_image: apiOrder.menu_image,
             isFadingOut: false,
             servedAt: null,
+            from_set: apiOrder.from_set,
+            set_id: apiOrder.set_id,
+            set_name: apiOrder.set_name,
           }));
           setOrders(initialOrders);
           break;
@@ -59,6 +62,9 @@ export const useLiveOrdersWebSocket = (accessToken: string | null) => {
                 menu_image: apiOrder.menu_image,
                 isFadingOut: false,
                 servedAt: null,
+                from_set: apiOrder.from_set,
+                set_id: apiOrder.set_id,
+                set_name: apiOrder.set_name,
               };
               addNewOrders([newOrderItem]);
             }

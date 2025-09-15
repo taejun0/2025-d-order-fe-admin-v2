@@ -49,5 +49,5 @@ export const revertOrderStatus = async (
   targetStatus: OrderStatus
 ): Promise<void> => {
   const body = { id: ordermenuId, target_status: targetStatus };
-  await instance.post("/api/v2/booth/orders/revert_status/", body);
+  await instance.patch("/api/v2/booth/revert/orders", body);
 };

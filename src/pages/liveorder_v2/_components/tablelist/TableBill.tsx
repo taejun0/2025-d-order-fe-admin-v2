@@ -3,7 +3,7 @@ import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import TableBillItem from "./TableBillItem";
 import { OrderItem, OrderStatus } from "@pages/liveorder_v2/types";
 import { useMemo } from "react";
-// const ORDER_DELETE_TIME = 1 * 10 * 1000;
+import { ORDER_DELETE_TIME } from "@constants/timeConstant";
 
 interface TableBillProps {
   orders: OrderItem[];
@@ -22,14 +22,14 @@ const TableBill = ({
   // TableList에서 이미 필터링/정렬된 단일 아이템 배열을 받으므로
   // 이 로직은 불필요하지만, 기존 코드의 호환성을 위해 유지
   const visibleItems = useMemo(() => {
-    // const timeFiltered = orders.filter((order) => {
-    //   if (order.status !== "served") return true;
-    //   if (order.servedAt && currentTime - order.servedAt < ORDER_DELETE_TIME) {
-    //     return true;
-    //   }
-    //   return false;
-    // });
-    const timeFiltered = orders;
+    const timeFiltered = orders.filter((order) => {
+      if (order.status !== "served") return true;
+      if (order.servedAt && currentTime - order.servedAt < ORDER_DELETE_TIME) {
+        return true;
+      }
+      return false;
+    });
+    // const timeFiltered = orders;
     return timeFiltered.sort(
       (a, b) =>
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()

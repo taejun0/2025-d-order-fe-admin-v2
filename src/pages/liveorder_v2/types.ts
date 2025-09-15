@@ -12,6 +12,11 @@ export interface OrderItem {
   menu_image: string | null;
   isFadingOut?: boolean;
   servedAt?: number | null; // 추가: 서빙된 시간 (타임스탬프)
+
+  // API 명세서의 세트 메뉴 관련 필드 추가
+  from_set: boolean;
+  set_id: number | null;
+  set_name: string | null;
 }
 
 // API 명세서에 따른 새로운 타입 정의
@@ -74,5 +79,10 @@ export const mapApiOrdersToOrderItems = (
     menu_image: apiOrder.menu_image,
     isFadingOut: false,
     servedAt: null,
+
+    // 추가된 필드들 매핑
+    from_set: apiOrder.from_set,
+    set_id: apiOrder.set_id,
+    set_name: apiOrder.set_name,
   }));
 };
