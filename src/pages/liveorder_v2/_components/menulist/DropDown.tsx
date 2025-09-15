@@ -14,8 +14,8 @@ interface StyleProps {
 }
 
 const DropDown = ({ selectedOption, onOptionSelect }: DropDownProps) => {
-  //저스탠드 메뉴목록가져오기
-  const { menuItems, fetchMenuItems } = useLiveOrderStore();
+  // Zustand 스토어에서 menuList를 직접 가져옴
+  const { menuList } = useLiveOrderStore();
 
   // 드롭다운 열림/닫힘 상태
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -23,23 +23,18 @@ const DropDown = ({ selectedOption, onOptionSelect }: DropDownProps) => {
   // 바깥화면을 클릭해도 드롭다운 닫히게 하기위해 DOM 요소를 참조하기 위한 ref 생성
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  //드롭다운 클릭시 호출할 함수 드롭다운을 열림상태로바꿈
+  // 드롭다운 클릭시 호출할 함수 드롭다운을 열림상태로바꿈
   const dropdownOpen = () => {
     setIsOpen(!isOpen);
     console.log("드롭다운 오픈");
   };
 
-  //드롭다운 옵션클릭할때 호출되는 함수(옵션을 선택하고 드롭다운 닫음)
+  // 드롭다운 옵션클릭할때 호출되는 함수(옵션을 선택하고 드롭다운 닫음)
   // 옵션 클릭 시 부모에게 선택된 값을 알립니다.
   const handleOptionClick = (option: string) => {
     onOptionSelect(option);
     setIsOpen(false);
   };
-
-  //컴포넌트 랜더링될때 저스탠드에서 메뉴리스트 불러오기
-  useEffect(() => {
-    fetchMenuItems();
-  }, [fetchMenuItems]);
 
   // 외부 클릭을 감지하는 useEffect 추가
   useEffect(() => {
@@ -80,13 +75,18 @@ const DropDown = ({ selectedOption, onOptionSelect }: DropDownProps) => {
 
       {isOpen && (
         <DropDownList>
-          {menuItems.map((item) => (
+          {/* "전체" 옵션은 항상 첫 번째로 표시 */}
+          <DropDownItem onClick={() => handleOptionClick("전체")}>
+            <DropDownText>전체</DropDownText>
+          </DropDownItem>
+          {/* API에서 가져온 메뉴 목록을 순회하여 옵션 렌더링 */}
+          {menuList.map((menuName, index) => (
             <DropDownItem
-              key={item.id}
-              onClick={() => handleOptionClick(item.name)}
-              $isSelected={selectedOption === item.name}
+              key={menuName} // key를 menuName으로 설정
+              onClick={() => handleOptionClick(menuName)}
+              $isSelected={selectedOption === menuName}
             >
-              <DropDownText>{item.name}</DropDownText>
+              <DropDownText>{menuName}</DropDownText>
             </DropDownItem>
           ))}
         </DropDownList>
