@@ -3,22 +3,25 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { OrderItem, OrderStatus } from "./types";
+import {
+  updateOrderToCooked,
+  updateOrderToServed,
+  revertOrderStatus,
+} from "./services/LiveOrderServiceV2"; // 새로 만든 API 서비스 임포트
 
-// 기존 타입 복구 및 확장
 export type OrderViewMode = "kitchen" | "serving";
 const ANIMATION_DURATION = 1000; // 1초
 
-// async/await를 사용하기 위한 delay 헬퍼 함수
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 interface LiveOrderState {
   orders: OrderItem[];
   menuList: string[];
-  viewMode: OrderViewMode; // 뷰 모드 상태 추가
+  viewMode: OrderViewMode;
   fadingOutTables: Set<number>;
   setOrders: (orders: OrderItem[]) => void;
   setMenuList: (menuNames: string[]) => void;
-  setViewMode: (mode: OrderViewMode) => void; // 뷰 모드 변경 액션 추가
+  setViewMode: (mode: OrderViewMode) => void;
   updateOrderStatusWithAnimation: (
     orderId: number,
     newStatus: OrderStatus
@@ -30,7 +33,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
   devtools((set, get) => ({
     orders: [],
     menuList: [],
-    viewMode: "kitchen", // 기본 뷰 모드 설정
+    viewMode: "kitchen",
     fadingOutTables: new Set(),
 
     setOrders: (orders) => set({ orders }),
@@ -43,80 +46,80 @@ export const useLiveOrderStore = create<LiveOrderState>()(
       const targetOrder = get().orders.find((o) => o.id === orderId);
       if (!targetOrder) return;
 
-      // 상태값을 소문자로 통일
-      if (newStatus === "served") {
-        // 1. MenuList 아이템 페이드아웃 시작
-        set((state) => ({
-          orders: state.orders.map((order) =>
-            order.id === orderId ? { ...order, isFadingOut: true } : order
-          ),
-        }));
+      const currentStatus = targetOrder.status;
 
-        await delay(ANIMATION_DURATION);
+      try {
+        // API 호출 로직 추가
+        if (currentStatus === "pending" && newStatus === "cooked") {
+          await updateOrderToCooked(orderId);
+        } else if (currentStatus === "cooked" && newStatus === "served") {
+          await updateOrderToServed(orderId);
+        } else if (currentStatus === "served" && newStatus === "cooked") {
+          await revertOrderStatus(orderId, "cooked");
+        } else if (currentStatus === "cooked" && newStatus === "pending") {
+          await revertOrderStatus(orderId, "pending");
+        } else {
+          // API 호출이 필요 없는 상태 변경일 경우 (예: 초기화 등)
+          set({
+            orders: get().orders.map((o) =>
+              o.id === orderId ? { ...o, status: newStatus } : o
+            ),
+          });
+          return;
+        }
 
-        // 2. 상태를 'served'로 변경
-        const ordersAfterItemServed = get().orders.map((order) =>
-          order.id === orderId
-            ? {
-                ...order,
-                status: "served" as OrderStatus,
-                isFadingOut: false,
-                servedAt: Date.now(),
-              }
-            : order
-        );
-        set({ orders: ordersAfterItemServed });
-
-        const tableNum = targetOrder.table_num;
-        const tableOrders = get().orders.filter(
-          (o) => o.table_num === tableNum
-        );
-        const isTableFullyServed = tableOrders.every(
-          (o) => o.status === "served"
-        );
-
-        // 3. 만약 테이블이 모두 완료되었다면, 'fadingOutTables' 상태를 업데이트
-        if (isTableFullyServed) {
+        // API 호출이 성공한 경우에만 기존 로직 실행
+        if (newStatus === "served") {
           set((state) => ({
-            fadingOutTables: new Set(state.fadingOutTables).add(tableNum),
+            orders: state.orders.map((order) =>
+              order.id === orderId ? { ...order, isFadingOut: true } : order
+            ),
           }));
 
           await delay(ANIMATION_DURATION);
 
-          set((state) => {
-            const newSet = new Set(state.fadingOutTables);
-            newSet.delete(tableNum);
-            return { fadingOutTables: newSet };
+          const ordersAfterItemServed = get().orders.map((order) =>
+            order.id === orderId
+              ? {
+                  ...order,
+                  status: "served" as OrderStatus,
+                  isFadingOut: false,
+                  servedAt: Date.now(),
+                }
+              : order
+          );
+          set({ orders: ordersAfterItemServed });
+
+          const tableNum = targetOrder.table_num;
+          const tableOrders = get().orders.filter(
+            (o) => o.table_num === tableNum
+          );
+          const isTableFullyServed = tableOrders.every(
+            (o) => o.status === "served"
+          );
+
+          if (isTableFullyServed) {
+            set((state) => ({
+              fadingOutTables: new Set(state.fadingOutTables).add(tableNum),
+            }));
+
+            await delay(ANIMATION_DURATION);
+
+            set((state) => {
+              const newSet = new Set(state.fadingOutTables);
+              newSet.delete(tableNum);
+              return { fadingOutTables: newSet };
+            });
+          }
+        } else {
+          set({
+            orders: get().orders.map((o) =>
+              o.id === orderId ? { ...o, status: newStatus } : o
+            ),
           });
         }
-      }
-      // "cooked"로 상태 되돌리기 시
-      else if (newStatus === "cooked" && targetOrder.status === "served") {
-        const tableNum = targetOrder.table_num;
-        set({
-          orders: get().orders.map((order) => {
-            if (order.id === orderId) {
-              return {
-                ...order,
-                status: "cooked",
-                isFadingOut: false,
-                servedAt: null,
-              };
-            }
-            if (order.table_num === tableNum) {
-              return { ...order, isFadingOut: false };
-            }
-            return order;
-          }),
-        });
-      }
-      // 그 외의 모든 상태 변경
-      else {
-        set({
-          orders: get().orders.map((o) =>
-            o.id === orderId ? { ...o, status: newStatus } : o
-          ),
-        });
+      } catch (error) {
+        console.error(`🔴 주문 상태 변경 실패: ${error}`);
       }
     },
 

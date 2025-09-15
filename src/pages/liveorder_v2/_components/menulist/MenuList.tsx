@@ -8,7 +8,7 @@ import { useLiveOrderStore } from "@pages/liveorder_v2/LiveOrderStore";
 import { useCurrentTime } from "../../hooks/useCurrentTime";
 import { useMenuData } from "../../hooks/useMemoData"; // 새로 만든 훅 임포트
 
-const ORDER_DELETE_TIME = 1 * 10 * 1000;
+// const ORDER_DELETE_TIME = 1 * 10 * 1000;
 
 const MenuList = () => {
   const { orders, updateOrderStatusWithAnimation } = useLiveOrderStore();
@@ -19,13 +19,14 @@ const MenuList = () => {
   useMenuData();
 
   const processedOrders = useMemo(() => {
-    const timeFiltered = orders.filter((order) => {
-      if (order.status !== "served") return true;
-      if (order.servedAt && currentTime - order.servedAt < ORDER_DELETE_TIME) {
-        return true;
-      }
-      return false;
-    });
+    // const timeFiltered = orders.filter((order) => {
+    //   if (order.status !== "served") return true;
+    //   if (order.servedAt && currentTime - order.servedAt < ORDER_DELETE_TIME) {
+    //     return true;
+    //   }
+    //   return false;
+    // });
+    const timeFiltered = orders;
 
     const menuFiltered =
       selectedMenu === "메뉴" || selectedMenu === "전체"
