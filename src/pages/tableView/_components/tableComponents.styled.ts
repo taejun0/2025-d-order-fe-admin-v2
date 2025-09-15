@@ -163,8 +163,7 @@ export const GridWrapper = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px 20px;
-  gap: 0.55rem;
+  padding: 10px 20px 0;
   box-sizing: border-box;
   user-select: none;
 `;

@@ -5,7 +5,7 @@ import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import useBoothRevenue from "./hooks/useBoothRevenue";
 import Bell from "./_components/Bell";
 import LiveNotice from "./_components/LiveNotice";
-
+import bellSound from "@assets/sounds/bellsound.mp3";
 // 알림 타입 정의
 interface Notification {
   id: number;
@@ -45,8 +45,10 @@ const Header = () => {
         console.log("📥 [CALL] 새로운 호출 메시지 수신:", message);
 
         if (message.type === "CALL_STAFF") {
-          const noticeMessage = `${message.tableNumber}번 테이블에서 직원 호출! 메시지: "${message.message}"`;
+          const noticeMessage = `${message.message}`;
 
+          const audio = new Audio(bellSound);
+          audio.play();
           // 1. 실시간 팝업 알림 처리
           setLiveNotice(noticeMessage);
           setShowLiveNotice(true);

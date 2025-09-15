@@ -102,6 +102,7 @@ export const ItemWrapper = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 1rem;
 `;
 
 export const ContentContainer = styled.div`
