@@ -22,7 +22,10 @@ const MenuListItem = ({ order, onStatusChange }: MenuListItemProps) => {
     <Wrapper $isFading={order.isFadingOut}>
       <MenuImg>
         {order.menu_image ? (
-          <MenuImage src={order.menu_image} alt={order.menu_name} />
+          <MenuImage
+            src={`${import.meta.env.VITE_BASE_URL}${order.menu_image}`}
+            alt={order.menu_name}
+          />
         ) : (
           <DefaultOrderImage>
             <img src={IMAGE_CONSTANTS.CHARACTER} alt="기본 아코 이미지" />
@@ -33,7 +36,7 @@ const MenuListItem = ({ order, onStatusChange }: MenuListItemProps) => {
       <MenuItemText>{table}</MenuItemText>
       <MenuItemText style={{ flex: 2 }}>
         <LEE>
-          <SET>세트</SET>
+          {order.set_id && <SET>세트</SET>}
           <TEXT>{order.menu_name}</TEXT>
         </LEE>
       </MenuItemText>
@@ -101,12 +104,16 @@ const MenuItemText = styled.div`
 
   color: ${({ theme }) => theme.colors.Black01};
   ${({ theme }) => theme.fonts.Bold14}
+
+  //말줄임
+  min-width: 0;
 `;
 
 const LEE = styled.div`
   display: flex;
   gap: 6px;
   justify-content: center;
+  align-items: center;
   padding-left: 10px;
 
   width: 100%;
@@ -123,6 +130,7 @@ const TEXT = styled.div`
 const SET = styled.div`
   display: flex;
   justify-content: center;
+  align-items: center;
   width: 26px;
   height: 14px;
   flex-shrink: 0;

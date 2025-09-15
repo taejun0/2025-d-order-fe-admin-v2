@@ -3,9 +3,8 @@ import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import TableBillItem from "./TableBillItem";
 import { OrderItem, OrderStatus } from "@pages/liveorder_v2/types";
 import { useMemo } from "react";
-const ORDER_DELETE_TIME = 1 * 10 * 1000;
+import { ORDER_DELETE_TIME } from "@constants/timeConstant";
 
-// 1. 부모 컴포넌트로부터 받을 props 타입을 정의합니다.
 interface TableBillProps {
   orders: OrderItem[];
   onOrderStatusChange: (orderId: number, newStatus: OrderStatus) => void;
@@ -20,36 +19,40 @@ const TableBill = ({
   currentTime,
 }: TableBillProps) => {
   // 1. useMemo를 사용해 보여줄 아이템 목록을 계산
+  // TableList에서 이미 필터링/정렬된 단일 아이템 배열을 받으므로
+  // 이 로직은 불필요하지만, 기존 코드의 호환성을 위해 유지
   const visibleItems = useMemo(() => {
-    // 3분 규칙으로 아이템 필터링
     const timeFiltered = orders.filter((order) => {
-      if (order.status !== "SERVED") return true;
+      if (order.status !== "served") return true;
       if (order.servedAt && currentTime - order.servedAt < ORDER_DELETE_TIME) {
         return true;
       }
       return false;
     });
-    // 시간순으로 정렬
+    // const timeFiltered = orders;
     return timeFiltered.sort(
       (a, b) =>
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     );
   }, [orders, currentTime]);
-  // 보여줄 아이템이 하나도 없으면 렌더링하지 않음 (이 경우는 거의 없음)
+
   if (visibleItems.length === 0) {
     return null;
   }
 
-  const tableNumber = `테이블 ${visibleItems[0].table_num}`;
+  // 이제 visibleItems 배열에는 단일 아이템만 들어있으므로, 첫 번째 항목을 사용
+  const singleOrder = visibleItems[0];
+  const tableNumber = `테이블 ${singleOrder.table_num}`;
 
-  // 가장 이른 주문 시간 계산
-  const earliestOrderTime = new Date(
-    visibleItems[0].created_at
-  ).toLocaleTimeString("ko-KR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  // 가장 이른 주문 시간 계산 (단일 주문의 시간)
+  const earliestOrderTime = new Date(singleOrder.created_at).toLocaleTimeString(
+    "ko-KR",
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }
+  );
 
   return (
     <TableBillWrapper $isFading={isFadingOut}>
@@ -63,7 +66,6 @@ const TableBill = ({
 
         <TableBillItemWrapper>
           <TableBillItem
-            // 2. 필터링되고 정렬된 목록을 전달
             orderItems={visibleItems}
             onOrderStatusChange={onOrderStatusChange}
           />
