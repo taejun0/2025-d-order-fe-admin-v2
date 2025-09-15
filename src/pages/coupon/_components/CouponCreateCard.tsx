@@ -1,30 +1,63 @@
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
-import CouponRegisterModal from "./CouponRegisterModa";
-
+import { CouponRegisterModal } from "./CouponRegisterModal";
+import { CouponCard } from "./CouponCard";
+import { CouponDetail } from "./CouponDetail/CouponDetail";
+import { useCouponList } from "../hooks/useCouponList";
 const CouponCreateCard = () => {
   const [registerModal, setRegisterModal] = useState(false);
+  const [selectedCouponId, setSelectedCouponId] = useState<number | null>(null);
+
+  const { coupons, refetch } = useCouponList();
+  console.log(selectedCouponId);
+
   const handleCreateClick = () => {
     setRegisterModal(true);
   };
   const handleCloseModal = () => {
     setRegisterModal(false);
+    refetch();
   };
+
+  useEffect(() => {
+    if (selectedCouponId === null) {
+      refetch();
+    }
+  }, [selectedCouponId]);
+
   return (
     <>
-      <CouponCreateCardWrapper onClick={handleCreateClick}>
-        <CouponCreateContents>
-          <img src={IMAGE_CONSTANTS.MENUPLUS} alt="쿠폰 생성 아이콘" />
-          <span>쿠폰 등록하기</span>
-        </CouponCreateContents>
-      </CouponCreateCardWrapper>
-      {registerModal && (
-        <ModalWrapper onClick={handleCloseModal}>
-          <div onClick={(e) => e.stopPropagation()}>
-            <CouponRegisterModal />
-          </div>
-        </ModalWrapper>
+      {selectedCouponId ? (
+        <CouponDetail
+          couponId={selectedCouponId}
+          setSelectedCouponId={setSelectedCouponId}
+        />
+      ) : (
+        <>
+          <CouponCreateCardWrapper onClick={handleCreateClick}>
+            <CouponCreateContents>
+              <img src={IMAGE_CONSTANTS.MENUPLUS} alt="쿠폰 생성 아이콘" />
+              <span>쿠폰 등록하기</span>
+            </CouponCreateContents>
+          </CouponCreateCardWrapper>
+
+          {registerModal && (
+            <ModalWrapper onClick={handleCloseModal}>
+              <div onClick={(e) => e.stopPropagation()}>
+                <CouponRegisterModal onClose={handleCloseModal} />
+              </div>
+            </ModalWrapper>
+          )}
+
+          {coupons.map((coupon) => (
+            <CouponCard
+              key={coupon.coupon_id}
+              coupondata={coupon}
+              onDetail={() => setSelectedCouponId(coupon.coupon_id)}
+            />
+          ))}
+        </>
       )}
     </>
   );
