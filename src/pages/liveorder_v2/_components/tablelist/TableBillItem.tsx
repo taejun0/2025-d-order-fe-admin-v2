@@ -25,7 +25,10 @@ const TableBillItem = ({
           <OrderInfo>
             <OrderImg>
               {order.menu_image ? (
-                <OrderImage src={order.menu_image} alt={order.menu_name} />
+                <OrderImage
+                  src={`${import.meta.env.VITE_BASE_URL}${order.menu_image}`}
+                  alt={order.menu_name}
+                />
               ) : (
                 <DefaultOrderImage>
                   <img src={IMAGE_CONSTANTS.CHARACTER} alt="기본 아코 이미지" />

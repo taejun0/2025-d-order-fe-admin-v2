@@ -22,7 +22,10 @@ const MenuListItem = ({ order, onStatusChange }: MenuListItemProps) => {
     <Wrapper $isFading={order.isFadingOut}>
       <MenuImg>
         {order.menu_image ? (
-          <MenuImage src={order.menu_image} alt={order.menu_name} />
+          <MenuImage
+            src={`${import.meta.env.VITE_BASE_URL}${order.menu_image}`}
+            alt={order.menu_name}
+          />
         ) : (
           <DefaultOrderImage>
             <img src={IMAGE_CONSTANTS.CHARACTER} alt="기본 아코 이미지" />
