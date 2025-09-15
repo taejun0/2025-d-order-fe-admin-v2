@@ -16,11 +16,13 @@ export type DashboardResponse = {
     top3_menus: Array<{
       menu_name: string;
       menu_image: string;
+      price: number;
       total_quantity: number;
     }>;
     low_stock: Array<{
       menu_name: string;
       menu_image: string;
+      price: number;
       remaining: number;
     }>;
   };
@@ -39,8 +41,13 @@ export type DashboardData = {
     servedCount: number;
     waitingCount: number;
   };
-  top3: Array<{ name: string; image: string; quantity: number }>;
-  lowStock: Array<{ name: string; image: string; remaining: number }>;
+  top3: Array<{ name: string; image: string; price: number; quantity: number }>;
+  lowStock: Array<{
+    name: string;
+    image: string;
+    price: number;
+    remaining: number;
+  }>;
   wait: {
     avgWaitTimeMin: number;
   };
