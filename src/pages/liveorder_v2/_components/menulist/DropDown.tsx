@@ -80,7 +80,7 @@ const DropDown = ({ selectedOption, onOptionSelect }: DropDownProps) => {
             <DropDownText>전체</DropDownText>
           </DropDownItem>
           {/* API에서 가져온 메뉴 목록을 순회하여 옵션 렌더링 */}
-          {menuList.map((menuName, index) => (
+          {menuList.map((menuName) => (
             <DropDownItem
               key={menuName} // key를 menuName으로 설정
               onClick={() => handleOptionClick(menuName)}
