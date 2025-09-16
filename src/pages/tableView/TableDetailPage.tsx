@@ -11,10 +11,10 @@ const TableDetailPage = () => {
 
   const parsedNum = Number(tableNum);
   const {
-    detail: tableDetail,           // ✅ 이름 맞춤
+    detail: tableDetail,          
     loading,
-    errorMsg: error,               // ✅ 이름 맞춤
-    refetch,                       // 필요시 사용
+    errorMsg: error,               
+    // refetch,                      
   } = useTableDetail(Number.isFinite(parsedNum) ? parsedNum : -1);
 
   if (!Number.isFinite(parsedNum)) {

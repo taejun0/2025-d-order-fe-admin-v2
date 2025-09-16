@@ -8,7 +8,7 @@ import { buildTableDetailPath } from "@constants/routeConstants";
 
 const TableViewPage = () => {
     const navigate = useNavigate();
-    const { tables: tableList, loading, error, refetch } = useTableList();
+    const { tables: tableList, loading, error, /*refetch*/ } = useTableList();
 
     const handleSelectTable = (table: TableItem) => {
         navigate(buildTableDetailPath(table.tableNum));
