@@ -93,7 +93,7 @@ export function useStatisticsWS({
         console.warn('WS error', e);
       };
 
-      ws.onclose = (e) => {
+      ws.onclose = () => {
         clearTimers();
         if (closedByUser.current) return; // 언마운트 등 사용자 종료면 끝
         // 정상종료(1000)도 여기서 재시도하고 싶지 않으면 return;
