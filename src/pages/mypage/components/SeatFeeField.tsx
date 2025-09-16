@@ -49,12 +49,19 @@ const SeatFeeField = ({
                 {isDropdownOpen && (
                 <S.DropdownWrapper>
                     <Dropdown
-                    value={seatTypeLabel}
-                    options={OPTIONS}
-                    placeholder="유형 선택"
-                    isOpen={isDropdownOpen}
-                    setIsOpen={setDropdownOpen} // ✅ 타입 일치
-                    onChange={(e) => { setSeatTypeLabel(e.target.value); setDropdownOpen(false); }}
+                        value={seatTypeLabel}
+                        options={OPTIONS}
+                        placeholder="유형 선택"
+                        isOpen={isDropdownOpen}
+                        setIsOpen={setDropdownOpen}
+                        onChange={(e) => {
+                            const v = e.target.value;
+                            setSeatTypeLabel(v);
+                            if (v === "받지 않음") {
+                            setAmount("");          // ✅ 금액 즉시 초기화
+                            }
+                            setDropdownOpen(false);
+                        }}
                     />
                 </S.DropdownWrapper>
                 )}
