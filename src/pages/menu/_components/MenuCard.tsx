@@ -71,16 +71,27 @@ const MenuCard = ({ menu, onSuccess, boothMenuData }: MenuCardProps) => {
               <img src={IMAGE_CONSTANTS.MENUEDIT} alt="수정아이콘" />
               메뉴 수정
             </S.MenuEditBtn>
-            <S.CardTextInner>
-              <S.CardText className="bold">{menu.menu_name}</S.CardText>
-              <S.CardText>{menu.menu_price.toLocaleString()}원</S.CardText>
-            </S.CardTextInner>
-            <S.CardTextInner>
-              <S.CardText>재고수량</S.CardText>
-              <S.CardText>
-                {menu.menu_amount !== undefined ? `${menu.menu_amount}개` : "-"}
-              </S.CardText>
-            </S.CardTextInner>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                flexDirection: "column",
+                height: "100%",
+              }}
+            >
+              <S.CardTextInner>
+                <S.CardText className="bold">{menu.menu_name}</S.CardText>
+                <S.CardText>{menu.menu_price.toLocaleString()}원</S.CardText>
+              </S.CardTextInner>
+              <S.CardTextInner>
+                <S.CardText>재고수량</S.CardText>
+                <S.CardText>
+                  {menu.menu_amount !== undefined
+                    ? `${menu.menu_amount}개`
+                    : "-"}
+                </S.CardText>
+              </S.CardTextInner>
+            </div>
           </S.CardInfo>
         </S.CardContents>
       </S.MenuCardWrapper>
