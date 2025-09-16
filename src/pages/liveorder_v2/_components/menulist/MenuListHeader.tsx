@@ -4,7 +4,13 @@ import { useLiveOrderStore } from "@pages/liveorder_v2/LiveOrderStore";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 const MenuListHeader = () => {
   //저스탠드 스토어 훅 호출 주방,서빙 뷰모드 상태꺼내오기
-  const { viewMode, setViewMode } = useLiveOrderStore();
+  const { viewMode, setViewMode, reconnectWebSocket } = useLiveOrderStore();
+  // '최신 주문 확인' 버튼 클릭 시 실행될 핸들러
+  const handleReconnect = () => {
+    console.log("최신 주문 확인 버튼 클릭 - 웹소켓 재연결 시도");
+    reconnectWebSocket();
+  };
+
   return (
     <S.LiveOrderMenuListHeader>
       <S.HeaderBtnWrapper>
@@ -22,7 +28,7 @@ const MenuListHeader = () => {
           서빙
         </S.OrderModeBtn>
       </S.HeaderBtnWrapper>
-      <S.HeaderReloadButton>
+      <S.HeaderReloadButton onClick={handleReconnect}>
         <img src={IMAGE_CONSTANTS.RELOADWHITE} alt="reloadWhite" />
         최신 주문 확인
       </S.HeaderReloadButton>
