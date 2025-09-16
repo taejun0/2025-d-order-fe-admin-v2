@@ -13,14 +13,14 @@ export const dashboardMock: DashboardData = {
     waitingCount: 0,
   },
   top3: [
-    { name: '--', image: '', quantity: 0 },
-    { name: '--', image: '', quantity: 0 },
-    { name: '--', image: '', quantity: 0 },
+    { name: '--', image: '', price: 0, quantity: 0 },
+    { name: '--', image: '', price: 0, quantity: 0 },
+    { name: '--', image: '', price: 0, quantity: 0 },
   ],
   lowStock: [
-    { name: '--', image: '', remaining: 0 },
-    { name: '--', image: '', remaining: 0 },
-    { name: '--', image: '', remaining: 0 },
+    { name: '--', image: '', price: 0, remaining: 0 },
+    { name: '--', image: '', price: 0, remaining: 0 },
+    { name: '--', image: '', price: 0, remaining: 0 },
   ],
   wait: {
     avgWaitTimeMin: 0,
