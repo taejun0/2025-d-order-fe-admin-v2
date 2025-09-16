@@ -25,6 +25,15 @@ export const Container2 = styled.div`
   padding: 2rem;
   box-sizing: border-box;
   gap: 5rem;
+
+  @media (max-width: 800px) {
+    padding: 1.5rem;
+    gap: 4rem;
+  }
+  @media (max-width: 500px) {
+    padding: 1rem;
+    gap: 3rem;
+  }
 `;
 
 export const ImageBox = styled.div`
@@ -43,6 +52,13 @@ export const Image = styled.img`
 export const Image2 = styled.img`
   height: 162.752px;
   aspect-ratio: 250/162.75;
+
+  @media (max-width: 800px) {
+    height: 140px;
+  }
+  @media (max-width: 500px) {
+    height: 100px;
+  }
 `;
 
 export const TitleBox = styled.div`
