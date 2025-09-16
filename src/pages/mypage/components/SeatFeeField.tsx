@@ -91,8 +91,8 @@ const SeatFeeField = ({
             )}
             {readonlyType === "NO" && (
                 <>
-                <S.FeeTag>-</S.FeeTag>
-                <S.Value>-</S.Value>
+                    <S.FeeTag>받지 않음</S.FeeTag>
+                    <S.Value>0원</S.Value>
                 </>
             )}
             </>
