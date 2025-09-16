@@ -114,6 +114,15 @@ export const inputText = styled.input`
 export const inputImg = styled.input`
   display: none;
 `;
+export const ImgContainer = styled.div`
+  position: relative;
+  width: fit-content;
+  button {
+    position: absolute;
+    top: 0px;
+    right: 4px;
+  }
+`;
 export const FormContentWrapper = styled.div`
   box-sizing: border-box;
   display: flex;

@@ -4,8 +4,8 @@ export const MenuCardWrapper = styled.div`
   display: flex;
   justify-content: center;
   position: relative; // 오버레이 포지셔닝을 위해 추가
-  width: 190px;
-  height: 273px;
+  width: 200px;
+  height: 300px;
 
   border: none;
   border-radius: 10px;
@@ -99,6 +99,7 @@ export const CardInfo = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1;
 `;
 export const MenuEditBtn = styled.button`
   z-index: 12;
@@ -127,12 +128,15 @@ export const MenuEditBtn = styled.button`
 export const CardTextInner = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
 `;
 export const CardText = styled.div`
+  display: flex;
   ${({ theme }) => theme.fonts.SemiBold12};
   color: ${({ theme }) => theme.colors.Black02};
   &.bold {
+    box-sizing: border-box;
+    max-width: 90px;
     ${({ theme }) => theme.fonts.Bold14};
     color: ${({ theme }) => theme.colors.Black01};
   }
