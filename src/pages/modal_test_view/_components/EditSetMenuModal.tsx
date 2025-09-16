@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as S from "./styled";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { HandleNumberInput } from "../_utils/HandleNumberInput";
@@ -34,6 +34,7 @@ const EditSetMenuModal = ({
   const [setItems, setSetItems] = useState<SetItem[]>([]);
   const [uploadImg, setUploadImg] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setName(setMenu.set_name);
@@ -92,6 +93,32 @@ const EditSetMenuModal = ({
     setImage(file);
   };
 
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value || "";
+    const digitsOnly = raw.replace(/\D/g, "");
+    if (!digitsOnly) {
+      setPrice("");
+      return;
+    }
+    const num = Number(digitsOnly);
+    const clamped = Math.min(num, 999999);
+    setPrice(String(clamped));
+  };
+
+  const handleRemoveImage = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (uploadImg) {
+      URL.revokeObjectURL(uploadImg);
+    }
+    setUploadImg(null);
+    setImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !price || setItems.length === 0) {
@@ -168,7 +195,7 @@ const EditSetMenuModal = ({
               type="text"
               placeholder="예) 20000"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={handlePriceChange}
               onInput={HandleNumberInput}
             />
           </S.ele>
@@ -207,12 +234,25 @@ const EditSetMenuModal = ({
               <S.inputImg
                 id="set-file-upload"
                 type="file"
-                accept="*.jpg,.png,.jpeg"
+                accept=".jpg,.png,.jpeg"
                 onChange={handleFileChange}
                 multiple={false}
+                ref={fileInputRef}
               />
               {uploadImg ? (
-                <img src={uploadImg} alt="첨부한 이미지" />
+                <S.ImgContainer>
+                  <img src={uploadImg} alt="첨부한 이미지" />
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onClick={handleRemoveImage}
+                  >
+                    <img src={IMAGE_CONSTANTS.CLOSE2} alt="" />
+                  </button>
+                </S.ImgContainer>
               ) : setMenu.set_image ? (
                 <img src={setMenu.set_image} alt="기존 이미지" />
               ) : null}
