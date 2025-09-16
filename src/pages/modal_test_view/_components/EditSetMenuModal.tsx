@@ -119,6 +119,8 @@ const EditSetMenuModal = ({
       fileInputRef.current.value = "";
     }
   };
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 업로드 이미지 크기 제한 10MB
+  const MIN_FILE_SIZE = 2.5 * 1024 * 1024;
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !price || setItems.length === 0) {
@@ -141,8 +143,12 @@ const EditSetMenuModal = ({
     );
 
     if (image) {
+      if (image.size > MAX_FILE_SIZE) {
+        alert("이미지 용량이 10mb 를 초과하였습니다!");
+        return;
+      }
       const fileToUpload =
-        image.size <= 2.5 * 1024 * 1024 ? image : await compressImage(image);
+        image.size <= MIN_FILE_SIZE ? image : await compressImage(image);
       formData.append("set_image", fileToUpload);
     }
 
@@ -241,7 +247,7 @@ const EditSetMenuModal = ({
               />
               {uploadImg ? (
                 <S.ImgContainer>
-                  <img src={uploadImg} alt="첨부한 이미지" />
+                  <S.Img src={uploadImg} alt="첨부한 이미지" />
                   <button
                     type="button"
                     onMouseDown={(e) => {
