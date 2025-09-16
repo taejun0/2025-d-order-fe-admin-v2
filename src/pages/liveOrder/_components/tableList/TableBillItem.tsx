@@ -1,16 +1,19 @@
-import styled from "styled-components";
-import OrderStateBtn from "../OrderStateBtn";
-import { OrderItem } from "../../api/LiveOrderService";
-import { IMAGE_CONSTANTS } from "@constants/imageConstants";
+import styled from 'styled-components';
+import OrderStateBtn from '../OrderStateBtn';
+//import { OrderItem } from "../../api/LiveOrderService";
+import { OrderItem } from '../../dummy/DummyLiveOrderService';
+import { IMAGE_CONSTANTS } from '@constants/imageConstants';
 
 interface TableBillItemProps {
   orderItems: OrderItem[];
   onOrderStatusChange?: (tableIndex: string, menuIndex: number) => void;
+  getFadingStatus?: (id: number) => boolean;
 }
 
 const TableBillItem = ({
   orderItems,
   onOrderStatusChange,
+  getFadingStatus,
 }: TableBillItemProps) => {
   // 주문 상태 업데이트 핸들러
   const handleServeClick = (item: OrderItem, index: number) => {
@@ -25,7 +28,10 @@ const TableBillItem = ({
   return (
     <>
       {orderItems.map((order, index) => (
-        <Wrapper key={order.id || index}>
+        <Wrapper
+          key={order.id || index}
+          $isFading={getFadingStatus?.(order.id)}
+        >
           <OrderInfo>
             <OrderImg>
               {order.imageUrl ? (
@@ -54,7 +60,7 @@ const TableBillItem = ({
 
 export default TableBillItem;
 
-const Wrapper = styled.div`
+const Wrapper = styled.div<{ $isFading?: boolean }>`
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -63,8 +69,12 @@ const Wrapper = styled.div`
 
   padding-bottom: 10px;
   box-sizing: border-box;
+  border-bottom: 1.5px dashed rgba(16, 16, 16, 0.3);
 
-  border-bottom: 1.5px dashed rgba(16, 16, 16, 0.3); /* CSS로 점선 만들기 */
+  opacity: ${({ $isFading }) => ($isFading ? 0 : 1)};
+  transform: ${({ $isFading }) =>
+    $isFading ? 'translateY(10px)' : 'translateY(0)'};
+  transition: opacity 1.8s ease, transform 1.8s ease;
 `;
 
 const OrderInfo = styled.div`

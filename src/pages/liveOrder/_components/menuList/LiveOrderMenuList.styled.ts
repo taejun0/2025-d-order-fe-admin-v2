@@ -18,12 +18,27 @@ export const LiveOrderMenuListHeader = styled.div`
   width: 100%;
   justify-content: space-between;
 `;
-export const HeaderTitle = styled.div`
+
+export const HeaderBtnWrapper = styled.div`
+  display: flex;
+  gap: 2px;
   color: ${({ theme }) => theme.colors.Black01};
-  ${({ theme }) => theme.fonts.ExtraBold20}
+  ${({ theme }) => theme.fonts.Bold20}
 `;
 
-export const LastUpdateTime = styled.div`
+interface OrderModeBtnProps {
+  $isActive: boolean;
+}
+
+export const OrderModeBtn = styled.div<OrderModeBtnProps>`
+  color: ${({ theme, $isActive }) =>
+    $isActive ? theme.colors.Black01 : theme.colors.Black02};
+  ${({ theme }) => theme.fonts.ExtraBold20}
+  cursor: pointer;
+  transition: color 0.2s ease;
+`;
+
+export const LastUpdateTime = styled.button`
   margin-top: 5px;
   color: ${({ theme }) => theme.colors.Focused};
   ${({ theme }) => theme.fonts.SemiBold12}

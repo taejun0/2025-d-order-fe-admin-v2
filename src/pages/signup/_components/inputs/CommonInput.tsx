@@ -17,6 +17,7 @@ type InputProps = {
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onClear?: () => void;
   isVisible?: boolean;
+  onResetValidation?: () => void;
   forceShowPasswordWhenSuccess?: boolean;
 };
 
@@ -33,6 +34,7 @@ const CommonInput = ({
   onKeyDown,
   onClear,
   isVisible = true,
+  onResetValidation,
   forceShowPasswordWhenSuccess = false,
 }: InputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -46,13 +48,18 @@ const CommonInput = ({
   const isPasswordType = type === 'password';
   const effectiveType = isPasswordType && showPassword ? 'text' : type;
 
+  const isValidated = hasError || hasSuccess;
+
   useEffect(() => {
     if (hasSuccess && forceShowPasswordWhenSuccess) {
       setShowPassword(true);
     }
   }, [hasSuccess, forceShowPasswordWhenSuccess]);
 
-  const handleFocus = useCallback(() => setFocused(true), []);
+  const handleFocus = useCallback(() => {
+    setFocused(true);
+    onResetValidation?.();
+  }, [onResetValidation]);
   const handleBlur = useCallback(() => setFocused(false), []);
   const togglePassword = useCallback(
     () => setShowPassword((prev) => !prev),
@@ -88,20 +95,20 @@ const CommonInput = ({
           onKeyDown={onKeyDown}
           enterKeyHint="next"
         />
-        {focused && hasValue && (
+        {!isValidated && focused && hasValue && (
           <S.Icon
             src={SIGNUP_CONSTANTS.INPUT_IMAGE.VECTOR}
             alt="Clear"
             onMouseDown={handleClearMouseDown}
           />
         )}
-        {!focused && hasError && (
+        {hasError && (
           <S.Icon src={SIGNUP_CONSTANTS.INPUT_IMAGE.ERROR} alt="Error" />
         )}
-        {!focused && hasSuccess && (
+        {hasSuccess && (
           <S.Icon src={SIGNUP_CONSTANTS.INPUT_IMAGE.CHECK} alt="Success" />
         )}
-        {!focused && isPasswordType && hasValue && !hasError && !hasSuccess && (
+        {!focused && !isValidated && isPasswordType && hasValue && (
           <S.Icon
             src={
               showPassword

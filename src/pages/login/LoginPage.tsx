@@ -1,40 +1,40 @@
-import * as S from "./LoginPage.styled";
+import * as S from './LoginPage.styled';
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import { LOGIN_CONSTANTS } from "./_constants/LoginConstants";
-import { ROUTE_PATHS } from "@constants/routeConstants";
+import { LOGIN_CONSTANTS } from './_constants/LoginConstants';
+import { ROUTE_PATHS } from '@constants/routeConstants';
 
-import CommonInput from "./_components/inputs/CommonInput";
-import NextButton from "./_components/buttons/NextButton";
-import LoginImages from "./LoginImages";
+import CommonInput from './_components/inputs/CommonInput';
+import NextButton from './_components/buttons/NextButton';
+import LoginImages from './LoginImages';
 
-import UserService from "@services/UserService";
+import UserService from '@services/UserService';
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: "",
-    password: "",
+    username: '',
+    password: '',
   });
 
   const handleLogin = async () => {
     try {
       const response = await UserService.login(formData);
 
-      const accessToken = response.data.access_token;
+      const accessToken = response.token?.access;
       const managerId = response.data.manager_id;
 
       if (!accessToken || !managerId) {
-        throw new Error("로그인 응답이 올바르지 않습니다.");
+        throw new Error('로그인 응답이 올바르지 않습니다.');
       }
 
-      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem('accessToken', accessToken);
 
       navigate(ROUTE_PATHS.HOME);
     } catch (err) {
-      alert("로그인 실패했습니다. 다시 시도해 주세요.");
+      alert('로그인 실패했습니다. 다시 시도해 주세요.');
     }
   };
 

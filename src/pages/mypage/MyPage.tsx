@@ -1,188 +1,180 @@
+// mypage/MyPage.tsx
 import * as S from "./MyPage.styled";
-import { useState, useEffect } from "react";
-import InfoRowComponent from "./components/InfoRow";
-import logout from "../../assets/icons/logout.svg";
-import qr from "../../assets/icons/qr.svg";
+import { useEffect, useState } from "react";
 import Modal from "./components/Modal";
 import { toast } from "react-toastify";
 import check from "../../assets/icons/toastcheck.svg";
-import drop from "../../assets/icons/drop.svg";
-import CommonDropdown from "../signup/_components/inputs/dropdown/CommonDropdown";
-import MyPageService, { My } from "./api/MyPageService";
+
+import { useManagers } from "./hooks/useManagers";
+import { useManagerPatch } from "./hooks/useManagerPatch";
+import type { ManagerInfo } from "./apis/getManagerPatch";
+import { downloadManagerQR } from "./apis/getQRDownload";
+import { requestLogout } from "./apis/logout";
 import { LoadingSpinner } from "../menu/api/LoadingSpinner";
-import styled from "styled-components";
 
-const StyledDropdown = styled(CommonDropdown)`
-  div,
-  input,
-  button {
-    border-radius: 5px !important;
-  }
+import StoreNameField from "./components/StoreNameField";
+import SeatFeeField from "./components/SeatFeeField";
+import TimeLimitField from "./components/TimeLimitField";
+import AccountField from "./components/AccountField";
+import ReadonlyField from "./components/ReadonlyField";
+import BottomActions from "./components/BottomActions";
 
-  select {
-    border-radius: 5px !important;
-  }
+const SeatTypeLabel: Record<ManagerInfo["seat_type"], string> = { PP: "인원 수", PT: "테이블", NO: "받지 않음" };
+const LabelToSeatType: Record<string, ManagerInfo["seat_type"]> = { "인원 수": "PP", "테이블": "PT", "받지 않음": "NO" };
 
-  option[value=""] {
-    color: ${({ theme }) => theme.colors.Black02};
-  }
-`;
+const minutesToLabel = (m?: number) => {
+  switch (m) { case 60: return "1시간"; case 90: return "1시간 30분"; case 120: return "2시간";
+    case 150: return "2시간 30분"; case 180: return "3시간"; default: return "2시간"; }
+};
+const labelToMinutes = (label: string) => {
+  switch (label) { case "1시간": return 60; case "1시간 30분": return 90; case "2시간": return 120;
+    case "2시간 30분": return 150; case "3시간": return 180; default: return 120; }
+};
+
+type PatchField = "storeName" | "account" | "seat" | "time";
 
 const MyPage = () => {
-  const [my, setMy] = useState<My | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const { data: my, loading, error, reload } = useManagers();
+  const { update, updating, error: updateError } = useManagerPatch({});
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // 편집 상태
   const [editingName, setEditingName] = useState(false);
   const [editingAccount, setEditingAccount] = useState(false);
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [editingSeat, setEditingSeat] = useState(false);
+  const [editingTime, setEditingTime] = useState(false);
 
+  // 드롭다운 상태
+  const [isBankDropdownOpen, setIsBankDropdownOpen] = useState(false);
+  const [isSeatDropdownOpen, setIsSeatDropdownOpen] = useState(false);
+  const [isTimeDropdownOpen, setIsTimeDropdownOpen] = useState(false);
+
+  // 입력 상태
   const [storeName, setStoreName] = useState("");
   const [selectedBank, setSelectedBank] = useState("");
   const [owner, setOwner] = useState("");
   const [account, setAccount] = useState("");
 
-  const fetchMyPage = async () => {
-    try {
-      setError(null);
-      const data = await MyPageService.getMyPage();
+  // 좌석 과금
+  const [seatTypeLocal, setSeatTypeLocal] = useState<ManagerInfo["seat_type"]>("NO");
+  const [seatTypeLabel, setSeatTypeLabel] = useState<string>("받지 않음");
+  const [seatAmountLocal, setSeatAmountLocal] = useState<string>("");
 
-      setMy(data);
-    } catch (error) {
-      setError("마이페이지를 불러오는데 실패했습니다.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // 이용 시간
+  const [timeLabelLocal, setTimeLabelLocal] = useState<string>("2시간");
 
+  // GET 동기화
   useEffect(() => {
-    fetchMyPage();
-  }, []);
+    if (!my) return;
+    if (!editingName) setStoreName(my.booth_name ?? "");
+    if (!editingAccount) {
+      setSelectedBank(my.bank ?? ""); setOwner(my.depositor ?? ""); setAccount(my.account ?? "");
+    }
+    if (!editingSeat) {
+      setSeatTypeLocal(my.seat_type);
+      setSeatTypeLabel(SeatTypeLabel[my.seat_type]);
+      const amt = my.seat_type === "PP" ? my.seat_tax_person ?? 0
+                : my.seat_type === "PT" ? my.seat_tax_table ?? 0 : 0;
+      setSeatAmountLocal(String(amt || ""));
+    }
+    if (!editingTime) setTimeLabelLocal(minutesToLabel(my.table_limit_hours));
+  }, [my, editingName, editingAccount, editingSeat, editingTime]);
 
-  const handleBankChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedBank(e.target.value);
-    setIsDropdownOpen(false);
+  // 라벨 ↔ 코드 연동
+  useEffect(() => { setSeatTypeLocal(LabelToSeatType[seatTypeLabel] ?? "NO"); }, [seatTypeLabel]);
+
+  const startEdit = (f: PatchField) => {
+    if (!my) return;
+    if (f === "storeName") setEditingName(true);
+    if (f === "account") setEditingAccount(true);
+    if (f === "seat") setEditingSeat(true);
+    if (f === "time") setEditingTime(true);
   };
 
-  const handleModifyClick = (field: string) => {
+  const cancelEdit = (f: PatchField) => {
     if (!my) return;
-    if (field === "storeName") {
-      setEditingName(true);
-      setStoreName(my.booth_name);
+    if (f === "storeName") { setEditingName(false); setStoreName(my.booth_name ?? ""); }
+    if (f === "account") { setEditingAccount(false); setSelectedBank(my.bank ?? ""); setOwner(my.depositor ?? ""); setAccount(my.account ?? ""); }
+    if (f === "seat") {
+      setEditingSeat(false); setSeatTypeLocal(my.seat_type); setSeatTypeLabel(SeatTypeLabel[my.seat_type]);
+      const amt = my.seat_type === "PP" ? my.seat_tax_person ?? 0 : my.seat_type === "PT" ? my.seat_tax_table ?? 0 : 0;
+      setSeatAmountLocal(String(amt || ""));
     }
-    if (field === "account") {
-      setEditingAccount(true);
-      setSelectedBank(my.bank);
-      setOwner(my.depositor);
-      setAccount(my.account);
-    }
+    if (f === "time") { setEditingTime(false); setTimeLabelLocal(minutesToLabel(my.table_limit_hours)); }
   };
 
-  const handleCancelClick = (field: string) => {
+  const confirmEdit = async (f: PatchField) => {
     if (!my) return;
-    if (field === "storeName") {
-      setEditingName(false);
-      setStoreName(my.booth_name || "");
+    const payload: Partial<ManagerInfo> = {};
+    if (f === "storeName") {
+      payload.booth_name = storeName.trim();
+    } else if (f === "account") {
+      payload.bank = selectedBank.trim();
+      payload.depositor = owner.trim();
+      payload.account = account.trim();
+    } else if (f === "seat") {
+      payload.seat_type = seatTypeLocal;
+      const amount = seatAmountLocal.trim() === "" ? 0 : Number(seatAmountLocal.trim());
+      if (seatTypeLocal === "PP") { payload.seat_tax_person = amount; payload.seat_tax_table = 0; }
+      else if (seatTypeLocal === "PT") { payload.seat_tax_table = amount; payload.seat_tax_person = 0; }
+      else { payload.seat_tax_person = 0; payload.seat_tax_table = 0; }
+    } else if (f === "time") {
+      payload.table_limit_hours = labelToMinutes(timeLabelLocal);
     }
-    if (field === "account") {
-      setEditingAccount(false);
-      setSelectedBank(my.bank || "");
-    }
-  };
 
-  const handleConfirmClick = async (field: string) => {
-    if (!my) return;
+    console.groupCollapsed(`[PATCH] /api/v2/manager/mypage/ - ${f}`);
+    console.log("▶ payload", payload);
 
     try {
-      const payload: Partial<My> = {};
-
-      if (field === "storeName") {
-        payload.booth_name = storeName;
+      const res = await update(payload);
+      if (!res) {
+        toast.error(updateError || "수정 중 오류가 발생했습니다.", { closeButton: false, style: toToastStyle() });
+        console.groupEnd(); return;
       }
-
-      if (field === "account") {
-        payload.bank = selectedBank;
-        payload.depositor = owner;
-        payload.account = account;
-      }
-
-      const updated = await MyPageService.updateMyPage(payload);
-      setMy(updated);
-
-      if (field === "storeName") setEditingName(false);
-      if (field === "account") setEditingAccount(false);
-    } catch (error) {}
+      toast.success("저장되었습니다.", { icon: <img src={check} alt="체크" />, closeButton: false, style: toToastStyle() });
+      await reload();
+      if (f === "storeName") setEditingName(false);
+      if (f === "account") setEditingAccount(false);
+      if (f === "seat") setEditingSeat(false);
+      if (f === "time") setEditingTime(false);
+    } catch (e: any) {
+      console.error("✖ patch error", e);
+      toast.error(e?.message || "수정 중 오류가 발생했습니다.", { closeButton: false, style: toToastStyle() });
+    } finally {
+      console.groupEnd();
+    }
   };
+
+  const toToastStyle = () => ({
+    backgroundColor: "#FF6E3F", color: "#FAFAFA", fontSize: "1rem", fontWeight: 800 as const,
+    borderRadius: "8px", padding: "0.75rem 0.875rem",
+  });
 
   const handleQrClick = async () => {
     if (!my) return;
-
     try {
-      await MyPageService.downloadQrCode(my.booth);
-      toast.success("QR코드 다운로드가 완료되었어요!", {
-        icon: <img src={check} alt="체크" />,
-        closeButton: false,
-        style: {
-          backgroundColor: "#FF6E3F",
-          color: "#FAFAFA",
-          fontSize: "1rem",
-          fontWeight: "800",
-          borderRadius: "8px",
-          padding: "0.75rem 0.875rem",
-        },
-      });
-    } catch (error) {
-      toast.error("QR코드 다운로드에 실패했습니다.", {
-        closeButton: false,
-        style: {
-          backgroundColor: "#FF6E3F",
-          color: "#FAFAFA",
-          fontSize: "1rem",
-          fontWeight: "800",
-          borderRadius: "8px",
-          padding: "0.75rem 0.875rem",
-        },
-      });
+      await downloadManagerQR(my.user);
+      toast.success("QR코드 다운로드가 완료되었어요!", { icon: <img src={check} alt="체크" />, closeButton: false, style: toToastStyle() });
+    } catch (err: any) {
+      toast.error(err?.message || "QR코드 다운로드에 실패했습니다.", { closeButton: false, style: toToastStyle() });
     }
   };
 
-  // 로그아웃 처리 함수
   const handleLogout = async () => {
     try {
-      await MyPageService.logout();
-      toast.success("로그아웃되었습니다.", {
-        closeButton: false,
-        style: {
-          backgroundColor: "#FF6E3F",
-          color: "#FAFAFA",
-          fontSize: "1rem",
-          fontWeight: "800",
-          borderRadius: "8px",
-          padding: "0.75rem 0.875rem",
-        },
-      });
-      // 로그인 페이지로 이동
+      await requestLogout();
+      localStorage.removeItem("accessToken"); localStorage.removeItem("access"); localStorage.removeItem("token");
+      toast.success("로그아웃되었습니다.", { closeButton: false, style: toToastStyle() });
       window.location.href = "/login";
-    } catch (error) {
-      toast.error("로그아웃에 실패했습니다.", {
-        closeButton: false,
-        style: {
-          backgroundColor: "#FF6E3F",
-          color: "#FAFAFA",
-          fontSize: "1rem",
-          fontWeight: "800",
-          borderRadius: "8px",
-          padding: "0.75rem 0.875rem",
-        },
-      });
-      // 에러가 발생해도 로그인 페이지로 이동
+    } catch (err: any) {
+      toast.error(err?.message || "로그아웃에 실패했습니다.", { closeButton: false, style: toToastStyle() });
       window.location.href = "/login";
     } finally {
       setShowLogoutModal(false);
     }
   };
 
-  if (loading) return <LoadingSpinner />;
+  if (loading || updating) return <LoadingSpinner />;
   if (error) return <div>{error}</div>;
   if (!my) return <div>주점 정보를 불러올 수 없습니다.</div>;
 
@@ -191,171 +183,75 @@ const MyPage = () => {
       <S.Title>주점 정보</S.Title>
       <S.Container>
         <S.Row>
-          <InfoRowComponent label="주점명">
-            {editingName ? (
-              <>
-                <S.NameInput
-                  type="text"
-                  value={storeName}
-                  onChange={(e) => setStoreName(e.target.value)}
-                />
-              </>
-            ) : (
-              <S.Value>{my.booth_name}</S.Value>
-            )}
-            <S.ButtonGroup>
-              {editingName ? (
-                <>
-                  <S.ConfirmButton
-                    onClick={() => handleConfirmClick("storeName")}
-                  >
-                    <span>확인</span>
-                  </S.ConfirmButton>
-                  <S.CancelButton
-                    onClick={() => handleCancelClick("storeName")}
-                  >
-                    <span>취소</span>
-                  </S.CancelButton>
-                </>
-              ) : (
-                <S.ModifyButton onClick={() => handleModifyClick("storeName")}>
-                  <span>수정</span>
-                </S.ModifyButton>
-              )}
-            </S.ButtonGroup>
-          </InfoRowComponent>
+          <StoreNameField
+            value={my.booth_name}
+            editing={editingName}
+            input={storeName}
+            setInput={setStoreName}
+            onEdit={() => startEdit("storeName")}
+            onConfirm={() => confirmEdit("storeName")}
+            onCancel={() => cancelEdit("storeName")}
+          />
 
-          <InfoRowComponent label="테이블 수">
-            <S.Value>{my.table_num}</S.Value>
-          </InfoRowComponent>
+          <ReadonlyField label="테이블 수" value={my.table_num} />
 
-          <InfoRowComponent label="테이블 이용료">
-            {my.seat_type === "PP" && (
-              <>
-                <S.FeeTag>인원 수</S.FeeTag>
-                <S.Value>
-                  {my.seat_tax_person
-                    ? `${my.seat_tax_person.toLocaleString()}원`
-                    : "-"}
-                </S.Value>
-              </>
-            )}
+          <SeatFeeField
+            editing={editingSeat}
+            seatTypeLabel={seatTypeLabel}
+            setSeatTypeLabel={setSeatTypeLabel}
+            amount={seatAmountLocal}
+            setAmount={setSeatAmountLocal}
+            readonlyType={my.seat_type}
+            readonlyPP={my.seat_tax_person}
+            readonlyPT={my.seat_tax_table}
+            isDropdownOpen={isSeatDropdownOpen}
+            setDropdownOpen={setIsSeatDropdownOpen}
+            onEdit={() => startEdit("seat")}
+            onConfirm={() => confirmEdit("seat")}
+            onCancel={() => cancelEdit("seat")}
+          />
 
-            {my.seat_type === "PT" && (
-              <>
-                <S.FeeTag>테이블</S.FeeTag>
-                <S.Value>
-                  {my.seat_tax_table
-                    ? `${my.seat_tax_table.toLocaleString()}원`
-                    : "-"}
-                </S.Value>
-              </>
-            )}
+          <TimeLimitField
+            editing={editingTime}
+            valueLabel={timeLabelLocal}
+            setValueLabel={setTimeLabelLocal}
+            isDropdownOpen={isTimeDropdownOpen}
+            setDropdownOpen={setIsTimeDropdownOpen}
+            readonlyValueLabel={minutesToLabel(my.table_limit_hours)}
+            onEdit={() => startEdit("time")}
+            onConfirm={() => confirmEdit("time")}
+            onCancel={() => cancelEdit("time")}
+          />
 
-            {my.seat_type === "NO" && (
-              <>
-                <S.FeeTag>-</S.FeeTag>
-                <S.Value>-</S.Value>
-              </>
-            )}
-          </InfoRowComponent>
+          <AccountField
+            editing={editingAccount}
+            bank={selectedBank}
+            setBank={setSelectedBank}
+            owner={owner}
+            setOwner={setOwner}
+            account={account}
+            setAccount={setAccount}
+            isDropdownOpen={isBankDropdownOpen}
+            setDropdownOpen={setIsBankDropdownOpen}
+            readonlyBank={my.bank}
+            readonlyOwner={my.depositor}
+            readonlyAccount={my.account}
+            onEdit={() => startEdit("account")}
+            onConfirm={() => confirmEdit("account")}
+            onCancel={() => cancelEdit("account")}
+          />
 
-          <InfoRowComponent label="결제 계좌">
-            {editingAccount ? (
-              <>
-                <S.BanckContainer>
-                  <S.BankTag>{selectedBank}</S.BankTag>
-                  <S.DropButton
-                    onClick={() => setIsDropdownOpen((prev) => !prev)}
-                  >
-                    <img src={drop} alt="dropdown" />
-                  </S.DropButton>
-                  {isDropdownOpen && (
-                    <S.DropdownWrapper>
-                      <StyledDropdown
-                        label=""
-                        placeholder="은행 선택"
-                        value="은행 선택"
-                        onChange={handleBankChange}
-                        options={[
-                          "KB 국민은행",
-                          "신한은행",
-                          "우리은행",
-                          "하나은행",
-                          "NH 농협은행",
-                          "IBK 기업은행",
-                          "SC 제일은행",
-                          "카카오뱅크",
-                          "토스뱅크",
-                          "케이뱅크",
-                        ]}
-                        radius="5px"
-                        isOpen={isDropdownOpen}
-                        setIsOpen={setIsDropdownOpen}
-                      />
-                    </S.DropdownWrapper>
-                  )}
-                </S.BanckContainer>
-                <S.Input
-                  type="text"
-                  placeholder="예금주"
-                  value={owner}
-                  onChange={(e) => setOwner(e.target.value)}
-                />
-                <S.AccountInput
-                  type="text"
-                  placeholder="계좌번호"
-                  value={account}
-                  onChange={(e) => setAccount(e.target.value)}
-                />
-              </>
-            ) : (
-              <>
-                <S.BankTag>{my.bank}</S.BankTag>
-                <S.OwnerTag>{my.depositor}</S.OwnerTag>
-                <S.Value>{my.account}</S.Value>
-              </>
-            )}
-            <S.ButtonGroup>
-              {editingAccount ? (
-                <>
-                  <S.ConfirmButton
-                    onClick={() => handleConfirmClick("account")}
-                  >
-                    <span>확인</span>
-                  </S.ConfirmButton>
-                  <S.CancelButton onClick={() => handleCancelClick("account")}>
-                    <span>취소</span>
-                  </S.CancelButton>
-                </>
-              ) : (
-                <S.ModifyButton onClick={() => handleModifyClick("account")}>
-                  <span>수정</span>
-                </S.ModifyButton>
-              )}
-            </S.ButtonGroup>
-          </InfoRowComponent>
-
-          <InfoRowComponent label="주문 확인 비밀번호">
-            <S.Value>{my.order_check_password || "-"}</S.Value>
-          </InfoRowComponent>
+          <ReadonlyField label="주문 확인 비밀번호" value={my.order_check_password || "-"} />
         </S.Row>
       </S.Container>
-      <S.BottomContainer>
-        <S.QrContainer onClick={handleQrClick}>
-          <S.QrImg src={qr} />
-          <span>QR 코드 다운로드</span>
-        </S.QrContainer>
-        <S.LogoutContainer onClick={() => setShowLogoutModal(true)}>
-          <S.LogoutImg src={logout} />
-          <span>로그아웃</span>
-        </S.LogoutContainer>
-      </S.BottomContainer>
+
+      <BottomActions
+        onClickQR={handleQrClick}
+        onClickLogout={() => setShowLogoutModal(true)}
+      />
+
       {showLogoutModal && (
-        <Modal
-          onCancel={() => setShowLogoutModal(false)}
-          onLogout={handleLogout}
-        />
+        <Modal onCancel={() => setShowLogoutModal(false)} onLogout={handleLogout} />
       )}
     </S.Wrapper>
   );

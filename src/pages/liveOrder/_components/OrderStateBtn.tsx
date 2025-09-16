@@ -14,6 +14,7 @@ const OrderStateBtn = ({ isBill, isChecked, onClick }: OrderStateBtnProps) => {
         src={isChecked ? IMAGE_CONSTANTS.BTNCHECK : IMAGE_CONSTANTS.BTNPLUS}
         alt="icon"
       />
+
       <BtnText>{isChecked ? "서빙완료" : "준비중"}</BtnText>
     </Btn>
   );
@@ -55,4 +56,5 @@ const Btn = styled.button<BtnProps>`
 
 const BtnText = styled.div`
   white-space: nowrap;
+  line-height: 12px; /* 아이콘 height와 맞춤 */
 `;

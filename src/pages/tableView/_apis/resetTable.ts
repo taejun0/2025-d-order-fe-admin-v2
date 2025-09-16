@@ -1,27 +1,33 @@
+// tableView/_apis/resetTable.ts
 import { instance } from "@services/instance";
 
-export const resetTable = async (tableNum: number) => {
-  const token = localStorage.getItem("accessToken");
+/** 응답 타입 */
+export type ResetTableResponse = {
+  status: "success" | "fail" | "error" | string;
+  message: string;
+  code: number;
+  data: {
+    table_num: number;
+    table_status: "out" | "activate" | string;
+  } | null;
+};
 
-  if (!token) {
-    throw new Error("인증 토큰이 없습니다.");
-  }
-
-  const url = `/api/manager/tables/${tableNum}/reset/`;
-
+/**
+ * POST /api/v2/booth/tables/{table_num}/reset/
+ * 바디는 비어 있음
+ */
+export const resetTable = async (tableNum: number): Promise<ResetTableResponse> => {
   try {
-    const response = await instance.post(
-      url,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
+    const res = await instance.post<ResetTableResponse>(
+      `/api/v2/booth/tables/${tableNum}/reset/`,
+      {}
     );
-
-    return response.data;
-  } catch (error: any) {
-    throw error;
+    return res.data;
+  } catch (e: any) {
+    const msg =
+      e?.response?.data?.message ||
+      e?.message ||
+      "테이블 리셋에 실패했습니다.";
+    throw new Error(msg);
   }
 };

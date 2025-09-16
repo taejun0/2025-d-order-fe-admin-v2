@@ -1,17 +1,19 @@
 import * as S from "./LiveOrderMenuList.styled";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
-import { OrderItem } from "../../api/LiveOrderService";
-import { useState, useEffect, useRef } from "react";
+//import { OrderItem } from "../../api/LiveOrderService";
+import { OrderItem } from "../../dummy/DummyLiveOrderService";
+import { useState } from "react";
 import styled from "styled-components";
 
 import MenuListItem from "./MenuListItem";
 
 interface LiveOrderMenuListProps {
   orders: OrderItem[];
-  onOrderStatusChange: (index: number) => void;
+  onOrderStatusChange: (orderId: number) => void; // orderId를 받도록 변경
   isLoading?: boolean;
   onRefresh?: () => void;
   lastUpdateTime?: string;
+  getFadingStatus: (orderId: number) => boolean; // 추가된 prop: 특정 주문의 페이드 상태
 }
 
 // 페이드아웃 애니메이션을 위한 스타일드 컴포넌트
@@ -40,87 +42,18 @@ const LiveOrderMenuList = ({
   onOrderStatusChange,
   isLoading = false,
   onRefresh,
-  lastUpdateTime,
+  getFadingStatus,
 }: LiveOrderMenuListProps) => {
-  // 사라지는 항목을 추적하는 상태
-  const [hidingItems, setHidingItems] = useState<Record<string, boolean>>({});
-  // 페이드아웃 효과를 위한 상태
-  const [fadingItems, setFadingItems] = useState<Record<string, boolean>>({});
-  // 이전 orders 참조를 저장
-  const prevOrdersRef = useRef<OrderItem[]>([]);
   // 버튼 애니메이션 상태
   const [isAnimating, setIsAnimating] = useState(false);
+  const [activeMode, setActiveMode] = useState("주방"); // 초기값 설정
 
-  // 주문 상태 변경 처리 함수
-  const handleOrderStatusChange = (index: number) => {
-    const order = orders[index];
-    if (!order || !order.id) {
-      return;
+  // 주문 상태 변경 처리 함수 (orderId를 직접 전달)
+  const handleOrderStatusChangeForMenu = (orderId?: number) => {
+    if (orderId !== undefined) {
+      onOrderStatusChange(orderId);
     }
-
-    // 기존 onOrderStatusChange 호출하여 전역 상태 업데이트
-    onOrderStatusChange(index);
-
-    // 현재 주문을 위한 페이드아웃 및 숨김 처리 (ID 기반으로 변경)
-    const orderId = String(order.id);
-    setHidingItems((prev) => ({ ...prev, [orderId]: true }));
-
-    // 페이드아웃 효과 시작 (즉시)
-    setFadingItems((prev) => ({ ...prev, [orderId]: true }));
-
-    // 애니메이션 완료 후 항목 제거 (2초 후)
-    setTimeout(() => {
-      setHidingItems((prev) => {
-        const updated = { ...prev };
-        delete updated[orderId]; // 타이머 완료 후 추적 상태에서 제거
-        return updated;
-      });
-      setFadingItems((prev) => {
-        const updated = { ...prev };
-        delete updated[orderId];
-        return updated;
-      });
-    }, 2000);
   };
-
-  // orders가 변경될 때마다 새로 서빙완료된 항목과 이전 상태 비교
-  useEffect(() => {
-    const prevOrders = prevOrdersRef.current;
-
-    // 새로 서빙완료된 항목 찾기 (이전에는 서빙완료가 아니었지만 지금은 서빙완료인 항목)
-    orders.forEach((order) => {
-      if (!order.id) return; // ID가 없는 주문은 처리하지 않음
-
-      const orderId = String(order.id);
-      // 이전 주문 찾기
-      const prevOrder = prevOrders.find((prev) => prev.id === order.id);
-
-      if (order.isServed && prevOrder && !prevOrder.isServed) {
-        // 새로 서빙완료된 항목을 hidingItems에 추가
-        setHidingItems((prev) => ({ ...prev, [orderId]: true }));
-
-        // 페이드아웃 효과 시작
-        setFadingItems((prev) => ({ ...prev, [orderId]: true }));
-
-        // 2초 후에 제거
-        setTimeout(() => {
-          setHidingItems((prev) => {
-            const updated = { ...prev };
-            delete updated[orderId];
-            return updated;
-          });
-          setFadingItems((prev) => {
-            const updated = { ...prev };
-            delete updated[orderId];
-            return updated;
-          });
-        }, 2000);
-      }
-    });
-
-    // 현재 orders를 ref에 저장하여 다음 업데이트 시 비교 가능하도록 함
-    prevOrdersRef.current = [...orders];
-  }, [orders]);
 
   // 수동 새로고침 처리 함수 - 애니메이션 추가
   const handleRefresh = () => {
@@ -151,12 +84,21 @@ const LiveOrderMenuList = ({
   return (
     <S.LiveOrderMenuList>
       <S.LiveOrderMenuListHeader>
-        <div>
-          <S.HeaderTitle>실시간 주문</S.HeaderTitle>
-          {lastUpdateTime && (
-            <S.LastUpdateTime>마지막 갱신: {lastUpdateTime}</S.LastUpdateTime>
-          )}
-        </div>
+        <S.HeaderBtnWrapper>
+          <S.OrderModeBtn
+            $isActive={activeMode === "주방"}
+            onClick={() => setActiveMode("주방")}
+          >
+            주방
+          </S.OrderModeBtn>
+          |
+          <S.OrderModeBtn
+            $isActive={activeMode === "서빙"}
+            onClick={() => setActiveMode("서빙")}
+          >
+            서빙
+          </S.OrderModeBtn>
+        </S.HeaderBtnWrapper>
         <AnimatedButton onClick={handleRefresh} $isAnimating={isAnimating}>
           <img src={IMAGE_CONSTANTS.RELOADWHITE} alt="reloadWhite" />
           최신 주문 확인
@@ -177,26 +119,26 @@ const LiveOrderMenuList = ({
         ) : orders.length === 0 ? (
           <S.NonOrderText>주문 내역이 없습니다.</S.NonOrderText>
         ) : (
-          orders.map((order, index) => {
+          orders.map((order) => {
             const orderId = order.id ? String(order.id) : "";
+            // prop으로 받은 페이드 상태 사용
+            const isFading = getFadingStatus(order.id!); // order.id는 항상 존재한다고 가정
 
             return (
-              (!order.isServed || hidingItems[orderId]) && (
-                <FadeoutItem
-                  key={orderId || index}
-                  $isFading={fadingItems[orderId] || false}
-                >
-                  <MenuListItem
-                    time={order.time}
-                    table={order.table}
-                    menu={order.menu}
-                    quantity={order.quantity}
-                    isServed={order.isServed}
-                    imageUrl={order.imageUrl}
-                    onServe={() => handleOrderStatusChange(index)}
-                  />
-                </FadeoutItem>
-              )
+              <FadeoutItem
+                key={orderId}
+                $isFading={isFading} // 여기에서 $isFading prop 사용
+              >
+                <MenuListItem
+                  time={order.time}
+                  table={order.table}
+                  menu={order.menu}
+                  quantity={order.quantity}
+                  isServed={order.isServed}
+                  imageUrl={order.imageUrl}
+                  onServe={() => handleOrderStatusChangeForMenu(order.id)} // order.id 전달
+                />
+              </FadeoutItem>
             );
           })
         )}

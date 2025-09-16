@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
-import * as S from "./CommonDropdown.styled";
-import { SIGNUP_CONSTANTS } from "@pages/signup/_constants/signupConstants";
+import { useRef, useState } from 'react';
+import * as S from './CommonDropdown.styled';
+import { SIGNUP_CONSTANTS } from '@pages/signup/_constants/signupConstants';
 
 type Props = {
   label: string;
@@ -9,8 +9,9 @@ type Props = {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   options: string[];
   radius?: string;
-  isOpen?: boolean; // 추가
-  setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>; // 추가
+  isOpen?: boolean;
+  setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
+  optionLabelMap?: Record<string, string>;
 };
 
 const CommonDropdown = ({
@@ -22,6 +23,7 @@ const CommonDropdown = ({
   radius,
   isOpen: controlledIsOpen,
   setIsOpen: setControlledIsOpen,
+  optionLabelMap,
 }: Props) => {
   const isControlled =
     controlledIsOpen !== undefined && setControlledIsOpen !== undefined;
@@ -51,7 +53,7 @@ const CommonDropdown = ({
           type="text"
           ref={inputRef}
           readOnly
-          value={value}
+          value={optionLabelMap?.[value] ?? value}
           placeholder={placeholder}
           onBlur={() => setTimeout(() => setIsOpen(false), 100)}
         />
@@ -65,7 +67,7 @@ const CommonDropdown = ({
         <S.OptionList>
           {options.map((opt) => (
             <S.Option key={opt} onMouseDown={() => handleSelect(opt)}>
-              {opt}
+              {optionLabelMap?.[opt] ?? opt}
             </S.Option>
           ))}
         </S.OptionList>
