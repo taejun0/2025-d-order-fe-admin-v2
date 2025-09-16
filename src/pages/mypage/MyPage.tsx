@@ -113,12 +113,25 @@ const MyPage = () => {
       payload.depositor = owner.trim();
       payload.account = account.trim();
     } else if (f === "seat") {
+      // seatTypeLocal: "PP" | "PT" | "NO"
       payload.seat_type = seatTypeLocal;
-      const amount = seatAmountLocal.trim() === "" ? 0 : Number(seatAmountLocal.trim());
-      if (seatTypeLocal === "PP") { payload.seat_tax_person = amount; payload.seat_tax_table = 0; }
-      else if (seatTypeLocal === "PT") { payload.seat_tax_table = amount; payload.seat_tax_person = 0; }
-      else { payload.seat_tax_person = 0; payload.seat_tax_table = 0; }
-    } else if (f === "time") {
+
+      const raw = seatAmountLocal.trim();
+      const amount = raw === "" ? undefined : Number(raw);
+
+      if (seatTypeLocal === "PP") {
+        payload.seat_tax_person = typeof amount === "number" ? amount : 0;
+        payload.seat_tax_table = null;   // ← 명세
+      } else if (seatTypeLocal === "PT") {
+        payload.seat_tax_table = typeof amount === "number" ? amount : 0;
+        payload.seat_tax_person = null;  // ← 명세
+      } else {
+        // NO: 둘 다 null
+        payload.seat_tax_person = null;  // ← 명세
+        payload.seat_tax_table = null;   // ← 명세
+      }
+    }
+    else if (f === "time") {
       payload.table_limit_hours = labelToMinutes(timeLabelLocal);
     }
 
@@ -153,7 +166,7 @@ const MyPage = () => {
   const handleQrClick = async () => {
     if (!my) return;
     try {
-      await downloadManagerQR(my.user);
+      await downloadManagerQR(my.booth);
       toast.success("QR코드 다운로드가 완료되었어요!", { icon: <img src={check} alt="체크" />, closeButton: false, style: toToastStyle() });
     } catch (err: any) {
       toast.error(err?.message || "QR코드 다운로드에 실패했습니다.", { closeButton: false, style: toToastStyle() });

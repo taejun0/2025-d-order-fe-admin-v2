@@ -45,6 +45,20 @@ function authHeaders(token?: string) {
   return t ? { Authorization: `Bearer ${t}` } : {};
 }
 
+const NULL_RULE_HINT = "seat_type이 'no seat tax'일 경우";
+
+function includesNullRuleHint(err: unknown) {
+  if (!axios.isAxiosError(err)) return false;
+  const data = err.response?.data;
+  // 서버가 배열/문자열로 줄 수 있어 양쪽 케이스 케어
+  const msgs: string[] = Array.isArray(data?.message)
+    ? data.message
+    : data?.message
+    ? [String(data.message)]
+    : [];
+  return msgs.some((m) => m.includes(NULL_RULE_HINT));
+}
+
 function normalizeAndThrow(error: unknown): never {
   if (axios.isAxiosError(error)) {
     const err = error as AxiosError<any>;
@@ -74,17 +88,12 @@ export function normalizeSeatFields(patch: Partial<ManagerInfo>) {
   const next: Partial<ManagerInfo> = { ...patch };
 
   if (patch.seat_type === "PP") {
-    // 인당 과금: person 값, table은 0
-    if (next.seat_tax_person == null) next.seat_tax_person = 0;
-    next.seat_tax_table = 0;
+    next.seat_tax_table = null;
   } else if (patch.seat_type === "PT") {
-    // 테이블 과금: table 값, person은 0
-    if (next.seat_tax_table == null) next.seat_tax_table = 0;
-    next.seat_tax_person = 0;
+    next.seat_tax_person = null;
   } else if (patch.seat_type === "NO") {
-    // 과금 없음: 둘 다 0
-    next.seat_tax_person = 0;
-    next.seat_tax_table = 0;
+    next.seat_tax_person = null;
+    next.seat_tax_table = null;
   }
   return next;
 }
@@ -94,20 +103,50 @@ export async function patchManagerInfo(
   payload: Partial<ManagerInfo>,
   options?: { token?: string }
 ): Promise<ApiEnvelope<ManagerInfo>> {
+  // 1) NULL 규칙 보정
+  const body: any = normalizeSeatFields(payload);
+
+  // 2) 숫자만 캐스팅 (null은 건드리지 않음)
+  if (body.seat_tax_person != null) body.seat_tax_person = Number(body.seat_tax_person);
+  if (body.seat_tax_table != null) body.seat_tax_table = Number(body.seat_tax_table);
+  if (body.table_limit_hours != null) body.table_limit_hours = Number(body.table_limit_hours);
+
   try {
-    // 위에서 zero 모드로 보정
-    const body = normalizeSeatFields(payload);
-
-    // 숫자 보장
-    if (body.seat_tax_person != null) (body as any).seat_tax_person = Number(body.seat_tax_person);
-    if (body.seat_tax_table != null) (body as any).seat_tax_table = Number(body.seat_tax_table);
-    if (body.table_limit_hours != null) (body as any).table_limit_hours = Number(body.table_limit_hours);
-
     const res = await api.patch<ApiEnvelope<ManagerInfo>>("/api/v2/manager/mypage/", body, {
       headers: authHeaders(options?.token),
     });
     return res.data;
   } catch (e) {
-    normalizeAndThrow(e);
+    // ❗서버가 seat_type 코드명을 'no seat tax'로만 받는 경우 대응
+    const shouldRetryNoSeatTax =
+      includesNullRuleHint(e) &&
+      body?.seat_type === "NO" &&
+      body?.seat_tax_person === null &&
+      body?.seat_tax_table === null;
+
+    if (shouldRetryNoSeatTax) {
+      // 1차 재시도: 'no seat tax'
+      try {
+        const retry1 = { ...body, seat_type: "no seat tax" };
+        const res2 = await api.patch<ApiEnvelope<ManagerInfo>>("/api/v2/manager/mypage/", retry1, {
+          headers: authHeaders(options?.token),
+        });
+        return res2.data;
+      } catch (e2) {
+        // 2차 재시도: 'NO_SEAT_TAX' (혹시 enum이 스네이크 케이스일 수도 있으니)
+        try {
+          const retry2 = { ...body, seat_type: "NO_SEAT_TAX" };
+          const res3 = await api.patch<ApiEnvelope<ManagerInfo>>("/api/v2/manager/mypage/", retry2, {
+            headers: authHeaders(options?.token),
+          });
+          return res3.data;
+        } catch (e3) {
+          // 그래도 실패 시 원래 에러 포맷으로 던지기
+          return normalizeAndThrow(e3);
+        }
+      }
+    }
+
+    return normalizeAndThrow(e);
   }
 }
