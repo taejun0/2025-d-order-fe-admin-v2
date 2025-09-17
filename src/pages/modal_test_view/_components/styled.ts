@@ -117,11 +117,17 @@ export const inputImg = styled.input`
 export const ImgContainer = styled.div`
   position: relative;
   width: fit-content;
+  max-width: 250px;
+
   button {
     position: absolute;
     top: 0px;
     right: 4px;
   }
+`;
+
+export const Img = styled.img`
+  max-width: 200px;
 `;
 export const FormContentWrapper = styled.div`
   box-sizing: border-box;

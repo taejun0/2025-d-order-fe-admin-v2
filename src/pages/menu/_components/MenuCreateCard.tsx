@@ -51,8 +51,8 @@ const MenuCreateCardWrapper = styled.button`
   justify-content: center;
   align-items: center;
 
-  width: 190px;
-  height: 273px;
+  width: 200px;
+  height: 300px;
 
   border: 2px dashed ${({ theme }) => theme.colors.Black02};
   border-radius: 10px;

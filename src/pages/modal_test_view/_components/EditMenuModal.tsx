@@ -22,7 +22,7 @@ interface EditModalProps {
   };
 }
 
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 업로드 이미지 크기 제한 3MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 업로드 이미지 크기 제한 10MB
 const MIN_FILE_SIZE = 2.5 * 1024 * 1024;
 
 const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
@@ -130,7 +130,7 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
     // 이미지 처리 분기: File이면 업로드, string이면 기존 유지로 판단하여 업로드 스킵
     if (image instanceof File) {
       if (image.size > MAX_FILE_SIZE) {
-        alert("파일 크기가 너무 큽니다. 최대 3MB까지 업로드 가능합니다.");
+        alert("이미지 용량이 10mb 를 초과하였습니다!");
         return;
       }
 
@@ -247,7 +247,7 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
               />
               {UploadImg ? (
                 <S.ImgContainer>
-                  <img src={UploadImg} alt="첨부한 이미지" />
+                  <S.Img src={UploadImg} alt="첨부한 이미지" />
                   <button
                     type="button"
                     onMouseDown={(e) => {
