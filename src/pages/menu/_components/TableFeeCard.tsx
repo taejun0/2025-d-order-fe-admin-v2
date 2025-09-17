@@ -56,8 +56,8 @@ const TableFeeCardWrapper = styled.button`
   justify-content: center;
   position: relative;
 
-  width: 190px;
-  height: 273px;
+  width: 200px;
+  height: 300px;
 
   border: none;
   border-radius: 10px;

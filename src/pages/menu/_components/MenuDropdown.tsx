@@ -89,7 +89,14 @@ const MenuDropdown = ({
             type="button"
             onClick={() => onChangeAmount(Math.max(1, amount - 1))}
           >
-            <img src={IMAGE_CONSTANTS.Minus} alt="minus" />
+            <img
+              src={
+                amount >= 2
+                  ? IMAGE_CONSTANTS.minusActive
+                  : IMAGE_CONSTANTS.Minus
+              }
+              alt="minus"
+            />
           </button>
           {amount}
           <button type="button" onClick={() => onChangeAmount(amount + 1)}>

@@ -23,7 +23,7 @@ interface MenuModalProps {
   };
 }
 
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 업로드 이미지 크기 제한 3MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 업로드 이미지 크기 제한 10MB
 const MIN_FILE_SIZE = 2.5 * 1024 * 1024;
 
 type SetItem = {
@@ -159,7 +159,7 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
     }
 
     if (image && image.size > MAX_FILE_SIZE) {
-      alert("파일 크기가 너무 큽니다. 최대 3MB까지 업로드 가능합니다.");
+      alert("이미지 용량이 10mb 를 초과하였습니다!");
       return;
     }
 
@@ -212,7 +212,6 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
         await MenuServiceWithImg.createMenu(formData);
         handleCloseModal();
       } catch (e) {
-        alert("dddd");
         console.log(e);
       }
     } else {
@@ -366,7 +365,7 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
               />
               {UploadImg ? (
                 <S.ImgContainer>
-                  <img src={UploadImg} alt="첨부한 이미지" />
+                  <S.Img src={UploadImg} alt="첨부한 이미지" />
                   <button
                     type="button"
                     onMouseDown={(e) => {
