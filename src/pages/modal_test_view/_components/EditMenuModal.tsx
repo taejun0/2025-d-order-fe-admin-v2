@@ -82,7 +82,7 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
       return;
     }
     const num = Number(digitsOnly);
-    const clamped = Math.min(num, 999999);
+    const clamped = Math.min(num, 100000);
     setPrice(String(clamped));
   };
 
@@ -127,13 +127,13 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
     formData.append("menu_price", price);
     formData.append("menu_amount", stock);
 
-    // 이미지 처리 분기: File이면 업로드, string이면 기존 유지로 판단하여 업로드 스킵
     if (image instanceof File) {
       if (image.size > MAX_FILE_SIZE) {
         alert("이미지 용량이 10mb 를 초과하였습니다!");
         return;
       }
 
+      // 이미지 압축 로직직
       if (image.size <= MIN_FILE_SIZE) {
         formData.append("menu_image", image);
       } else {
@@ -142,37 +142,37 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
           formData.append("menu_image", correctedFile);
         } catch (e) {
           console.log(e);
+        } finally {
+          handleCloseModal();
         }
       }
-      if (category !== "세트") {
-        try {
-          await MenuServiceWithImg.updateMenu(defaultValues.menu_id, formData);
-
-          handleCloseModal();
-        } catch (e) {
-          alert("dddd");
-          console.log(e);
-        }
-      } else {
-        // 세트 메뉴일 경우 로직
+      try {
+        await MenuServiceWithImg.updateMenu(defaultValues.menu_id, formData);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        handleCloseModal();
+      }
+    }
+    // 기존에 이미지 있던거 이미지 지울 경우
+    else if (image === null && defaultValues.menu_image) {
+      try {
+        formData.append("menu_image", "");
+        await MenuServiceWithImg.updateMenu(defaultValues.menu_id, formData);
+        setButtonDisable(false);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        handleCloseModal();
       }
     }
     // 이미지 없을 경우
     else {
-      if (category !== "세트") {
-        try {
-          await MenuService.updateMenu(defaultValues.menu_id, formData);
-          handleCloseModal();
-        } catch (e) {
-          console.log(e);
-        }
-      } else {
-        try {
-          // 세트 메뉴 일 경우 로직 추가
-          handleCloseModal();
-        } catch (e) {
-          console.log(e);
-        }
+      try {
+        await MenuService.updateMenu(defaultValues.menu_id, formData);
+        handleCloseModal();
+      } catch (e) {
+        console.log(e);
       }
     }
   };

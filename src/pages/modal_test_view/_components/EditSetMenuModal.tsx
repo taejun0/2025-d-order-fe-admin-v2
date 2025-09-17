@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import * as S from "./styled";
+import preUploadImg from "@assets/images/preUploadImg.png";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { HandleNumberInput } from "../_utils/HandleNumberInput";
 import MenuDropdown from "@pages/menu/_components/MenuDropdown";
@@ -101,7 +102,7 @@ const EditSetMenuModal = ({
       return;
     }
     const num = Number(digitsOnly);
-    const clamped = Math.min(num, 999999);
+    const clamped = Math.min(num, 100000);
     setPrice(String(clamped));
   };
 
@@ -152,12 +153,26 @@ const EditSetMenuModal = ({
       formData.append("set_image", fileToUpload);
     }
 
-    try {
-      await MenuServiceWithImg.updateSetMenu(setMenu.set_menu_id, formData);
-      onSuccess();
-      handleCloseModal();
-    } catch (error) {
-      console.log(error);
+    if (image === null) {
+      try {
+        formData.append("set_image", "");
+        await MenuServiceWithImg.updateSetMenu(setMenu.set_menu_id, formData);
+        setButtonDisable(false);
+        onSuccess();
+      } catch (err) {
+        console.log(err);
+      } finally {
+        handleCloseModal();
+      }
+    } else {
+      try {
+        await MenuServiceWithImg.updateSetMenu(setMenu.set_menu_id, formData);
+        onSuccess();
+      } catch (error) {
+        console.log(error);
+      } finally {
+        handleCloseModal();
+      }
     }
   };
 
@@ -259,9 +274,9 @@ const EditSetMenuModal = ({
                     <img src={IMAGE_CONSTANTS.CLOSE2} alt="" />
                   </button>
                 </S.ImgContainer>
-              ) : setMenu.set_image ? (
-                <img src={setMenu.set_image} alt="기존 이미지" />
-              ) : null}
+              ) : (
+                <img src={preUploadImg} alt="기존 이미지" />
+              )}
             </label>
           </S.ele>
         </S.FormContentWrapper>
