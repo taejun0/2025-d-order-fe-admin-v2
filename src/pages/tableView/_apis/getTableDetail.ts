@@ -94,7 +94,12 @@ const normalize = (raw: RawTableDetail): TableDetailData => {
           undefined;
 
         return {
-          menu_image: o.menu_image ?? null,
+          menu_image:
+            typeof o?.menu_image === "string" &&
+            o.menu_image.trim() !== "" &&
+            o.menu_image.trim().toLowerCase() !== "null"
+              ? o.menu_image
+              : null,
           menu_name: o.menu_name ?? "(이름 없음)",
           price:
             typeof o.price === "number"

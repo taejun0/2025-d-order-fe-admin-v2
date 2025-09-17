@@ -24,12 +24,10 @@ const TableCard: React.FC<Props> = ({ data }) => {
         <p className="tableNumber">테이블 {data.tableNumber}</p>
         <p className="orderTime">{data.orderedAt}</p>
       </S.TableInfo>
-
       <S.DivideLine />
-
       <S.MenuList>
         {data.orders.slice(0, 3).map((order, idx) => (
-          <div key={idx}>
+          <S.ItemRow key={idx}>
             <S.MenuItem>
               <p className="menuName">{order.menu}</p>
               <p className="menuAmount">{order.quantity}</p>
@@ -38,7 +36,7 @@ const TableCard: React.FC<Props> = ({ data }) => {
               src={TABLEPAGE_CONSTANTS.TABLE.IMAGE.MENU_LINE}
               alt="구분선"
             />
-          </div>
+          </S.ItemRow>
         ))}
         <S.ToDetail>더보기</S.ToDetail>
       </S.MenuList>

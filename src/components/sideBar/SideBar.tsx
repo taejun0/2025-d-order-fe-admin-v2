@@ -1,8 +1,7 @@
 import * as S from "./SideBar.styled";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { ROUTE_PATHS } from "@constants/routeConstants";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 //경로설정하고 useNavigate 추가하기
 
@@ -12,6 +11,10 @@ const SideBar = () => {
   const location = useLocation(); // 현재 경로 가져오기
   const navigate = useNavigate(); // navigate 훅 사용
   const [activeNav, setActiveNav] = useState(location.pathname); // 활성화된 네비게이션 상태
+
+  useEffect(() => {
+    setActiveNav(location.pathname);
+  }, [location.pathname]);
 
   const handleNavClick = (path: string) => {
     setActiveNav(path); // 클릭한 경로로 활성화 상태 변경
