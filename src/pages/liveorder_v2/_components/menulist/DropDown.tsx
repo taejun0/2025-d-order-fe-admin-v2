@@ -75,10 +75,6 @@ const DropDown = ({ selectedOption, onOptionSelect }: DropDownProps) => {
 
       {isOpen && (
         <DropDownList>
-          {/* "전체" 옵션은 항상 첫 번째로 표시 */}
-          <DropDownItem onClick={() => handleOptionClick("전체")}>
-            <DropDownText>전체</DropDownText>
-          </DropDownItem>
           {/* API에서 가져온 메뉴 목록을 순회하여 옵션 렌더링 */}
           {menuList.map((menuName) => (
             <DropDownItem
