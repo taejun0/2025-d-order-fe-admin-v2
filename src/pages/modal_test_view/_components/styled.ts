@@ -121,8 +121,9 @@ export const ImgContainer = styled.div`
 
   button {
     position: absolute;
-    top: 0px;
+    top: 4px;
     right: 4px;
+    padding: 0;
   }
 `;
 
