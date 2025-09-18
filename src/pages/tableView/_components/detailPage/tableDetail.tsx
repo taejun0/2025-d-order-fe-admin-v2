@@ -82,12 +82,7 @@ const normalizeDetail = (api: APITableDetail): LegacyDetail => ({
         undefined,
         order_id: typeof o?.order_id === "number" ? o.order_id : undefined,
         menu_name: o?.menu_name ?? "(이름 없음)",
-        menu_price:
-        typeof o?.price === "number"
-            ? o.price
-            : typeof o?.menu_price === "number"
-            ? o.menu_price
-            : 0,
+        menu_price: typeof o?.price === "number" ? o.price : 0,
         menu_num:
         typeof o?.quantity === "number"
             ? o.quantity
