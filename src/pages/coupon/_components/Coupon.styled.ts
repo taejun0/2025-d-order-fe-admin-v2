@@ -308,9 +308,9 @@ export const MenuEditBtn = styled.button`
   border-radius: 10px;
   background-color: rgba(192, 192, 192, 0.3);
   white-space: nowrap;
-  padding: 0 6px; /* 내용과 테두리 사이 여백 지정 */
-  box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
-  min-width: 69px; /* 최소 너비 지정 */
+  padding: 0 6px;
+  box-sizing: border-box;
+  min-width: 69px;
   ${({ theme }) => theme.fonts.SemiBold10}
   color: ${({ theme }) => theme.colors.Focused};
   &img {
@@ -321,14 +321,30 @@ export const MenuEditBtn = styled.button`
 export const CardTextInner = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 8px;
 `;
 export const CardText = styled.div`
   ${({ theme }) => theme.fonts.SemiBold12};
   color: ${({ theme }) => theme.colors.Focused};
+
   &.bold {
     ${({ theme }) => theme.fonts.Bold14};
     color: ${({ theme }) => theme.colors.Black01};
+  }
+
+  &.name {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  &.wrap {
+    white-space: normal;
+  }
+
+  &.price {
+    flex: none;
+    white-space: nowrap;
   }
 `;
 

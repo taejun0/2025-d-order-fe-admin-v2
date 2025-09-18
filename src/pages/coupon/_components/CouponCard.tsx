@@ -42,8 +42,14 @@ export const CouponCard = ({ coupondata, onDetail }: SetCouponCardProps) => {
               쿠폰 상세
             </S.MenuEditBtn>
             <S.CardTextInner>
-              <S.CardText className="bold">{coupondata.coupon_name}</S.CardText>
-              <S.CardText>
+              <S.CardText
+                className={`bold name ${
+                  coupondata.coupon_name.length >= 8 ? "wrap" : ""
+                }`}
+              >
+                {coupondata.coupon_name}
+              </S.CardText>
+              <S.CardText className="price">
                 {coupondata.discount_value}
                 {coupondata.discount_type === "amount" ? (
                   <span>원</span>
