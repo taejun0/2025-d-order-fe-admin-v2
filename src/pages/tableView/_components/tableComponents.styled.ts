@@ -85,14 +85,35 @@ export const MenuList = styled.div`
   }
   
 `;
-
+export const ItemRow = styled.div`
+  display: flex;
+  flex-direction : column;
+  justify-content: space-between;
+  height: fit-content;
+  gap: 0.5rem;
+  min-height: 1.6rem;
+  margin-top: 0.8rem;
+  box-sizing: border-box;
+  @media (min-width: 1180px) {
+    gap: 0.7rem;
+    min-height: 1.6rem;
+    margin-top: 0.8rem;
+    box-sizing: border-box;
+  }
+  @media (min-width: 1366px) {
+    gap: 1rem;
+    min-height: 1.6rem;
+    margin-top: 1.3rem;
+    box-sizing: border-box;
+  }
+`;
 export const MenuItem = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin-top: 0.8rem;
-  margin-bottom: 0.5rem;
+  height: fit-content;
+
   .menuName {
     font-size: 0.75rem;
     ${({ theme }) => css(theme.fonts.Bold12)};
@@ -100,7 +121,7 @@ export const MenuItem = styled.div`
       font-size: 0.8rem;
     }
     @media (min-width: 1366px) {
-      font-size: 0.9rem;
+      font-size: 1rem;
     }
   }
   .menuAmount {
@@ -111,7 +132,7 @@ export const MenuItem = styled.div`
       font-size: 0.8rem;
     }
     @media (min-width: 1366px) {
-      font-size: 0.9rem;
+      font-size: 1rem;
     }
   }
 `;
@@ -124,7 +145,8 @@ export const ToDetail = styled.div`
   color: ${({ theme }) => theme.colors.Orange01};
   font-size: 0.6rem;
   font-weight: 600;
-  padding: 0.4rem 0 0 0;
+  margin-top: 6px;
+  box-sizing: border-box;
   ${({ theme }) => css(theme.fonts.SemiBold10)};
   @media (min-width: 1180px) {
       font-size: 0.7rem;
@@ -150,7 +172,7 @@ export const TotalPrice = styled.div`
       font-size: 0.8rem;
     }
     @media (min-width: 1366px) {
-      font-size: 0.9rem;
+      font-size: 1rem;
     }
   }
 `;
@@ -163,8 +185,7 @@ export const GridWrapper = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px 20px;
-  gap: 0.55rem;
+  padding: 10px 20px 0;
   box-sizing: border-box;
   user-select: none;
 `;

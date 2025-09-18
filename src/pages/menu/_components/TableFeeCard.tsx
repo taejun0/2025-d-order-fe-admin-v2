@@ -18,7 +18,7 @@ const TableFeeCard = ({ table }: TableFeeCardProps) => {
         </CardImg>
         <CardInfo>
           <CardTextInner>
-            <CardText className="bold">{table.seat_type}</CardText>
+            <CardText className="bold">테이블 이용료</CardText>
             {table.seat_type === "테이블 이용료 없음" ? (
               <CardText>0원</CardText>
             ) : (
@@ -56,8 +56,8 @@ const TableFeeCardWrapper = styled.button`
   justify-content: center;
   position: relative;
 
-  width: 190px;
-  height: 273px;
+  width: 200px;
+  height: 300px;
 
   border: none;
   border-radius: 10px;

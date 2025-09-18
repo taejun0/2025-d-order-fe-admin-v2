@@ -1,3 +1,5 @@
+// src/pages/liveorder_v2/_components/OrderStateBtn.tsx
+
 import styled from "styled-components";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { useLiveOrderStore, OrderViewMode } from "../LiveOrderStore";
@@ -5,15 +7,15 @@ import { OrderStatus } from "../types";
 
 // 1. 상태별 설정 객체 도입 (로직과 UI 분리)
 const STATUS_CONFIG = {
-  PREPARING: {
+  pending: {
     text: "준비중", // 사용자에게 보여줄 한글 텍스트
     icon: null,
   },
-  COOKED: {
+  cooked: {
     text: "조리완료",
     icon: IMAGE_CONSTANTS.BTNPLUS,
   },
-  SERVED: {
+  served: {
     text: "서빙완료",
     icon: IMAGE_CONSTANTS.BTNMINUS,
   },
@@ -37,20 +39,20 @@ const OrderStateBtn = ({
   ): OrderStatus | null => {
     if (mode === "kitchen") {
       switch (currentStatus) {
-        case "PREPARING":
-          return "COOKED";
-        case "COOKED":
-        case "SERVED":
+        case "pending":
+          return "cooked";
+        case "cooked":
+        case "served":
           return null;
       }
     } else if (mode === "serving") {
       switch (currentStatus) {
-        case "PREPARING":
+        case "pending":
           return null;
-        case "COOKED":
-          return "SERVED";
-        case "SERVED":
-          return "COOKED";
+        case "cooked":
+          return "served";
+        case "served":
+          return "cooked";
       }
     }
     return null;
@@ -104,11 +106,11 @@ const Btn = styled.button<BtnProps>`
 
   background: ${({ $orderStatus, theme }) => {
     switch ($orderStatus) {
-      case "PREPARING":
+      case "pending":
         return "rgba(255, 110, 63, 0.2)";
-      case "COOKED":
+      case "cooked":
         return "rgba(255, 210, 50, 0.5)";
-      case "SERVED":
+      case "served":
         return theme.colors.Orange01;
       default:
         return theme.colors.Orange02;
@@ -117,10 +119,10 @@ const Btn = styled.button<BtnProps>`
 
   color: ${({ $orderStatus, theme }) => {
     switch ($orderStatus) {
-      case "PREPARING":
-      case "COOKED":
+      case "pending":
+      case "cooked":
         return theme.colors.Orange01;
-      case "SERVED":
+      case "served":
         return theme.colors.Bg;
       default:
         return theme.colors.Orange01;

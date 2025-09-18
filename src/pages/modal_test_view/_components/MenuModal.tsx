@@ -1,9 +1,8 @@
 import preUploadImg from "@assets/images/preUploadImg.png";
 import * as S from "./styled";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import MenuService from "@services/MenuService";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
-// import CommonDropdown from "@pages/signup/_components/inputs/dropdown/CommonDropdown";
 import MenuDropdown from "@pages/menu/_components/MenuDropdown";
 import MenuServiceWithImg from "@services/MenuServiceWithImg";
 import { HandleNumberInput } from "../_utils/HandleNumberInput";
@@ -24,7 +23,7 @@ interface MenuModalProps {
   };
 }
 
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 업로드 이미지 크기 제한 3MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 업로드 이미지 크기 제한 10MB
 const MIN_FILE_SIZE = 2.5 * 1024 * 1024;
 
 type SetItem = {
@@ -44,6 +43,8 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
   const [price, setPrice] = useState<string>("");
   const [stock, setStock] = useState<string>("");
   const [image, setImage] = useState<File | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // 세트 구성 항목 상태
   const [setItems, setSetItems] = useState<SetItem[]>([]);
@@ -83,9 +84,52 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (UploadImg) {
+      URL.revokeObjectURL(UploadImg);
+    }
+
     const imgUrl = URL.createObjectURL(file);
     setUploadImg(imgUrl);
     setImage(file); // 선택한 파일 상태에 저장
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value || "";
+    const digitsOnly = raw.replace(/\D/g, "");
+    if (!digitsOnly) {
+      setPrice("");
+      return;
+    }
+    const num = Number(digitsOnly);
+    const clamped = Math.min(num, 100000);
+    setPrice(String(clamped));
+  };
+
+  const handleStockChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value || "";
+    const digitsOnly = raw.replace(/\D/g, "");
+    if (!digitsOnly) {
+      setStock("");
+      return;
+    }
+    const num = Number(digitsOnly);
+    const clamped = Math.min(num, 9999);
+    setStock(String(clamped));
+  };
+
+  const handleRemoveImage = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (UploadImg) {
+      URL.revokeObjectURL(UploadImg);
+    }
+    setUploadImg(null);
+    setImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
   useEffect(() => {
     if (
@@ -115,7 +159,7 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
     }
 
     if (image && image.size > MAX_FILE_SIZE) {
-      alert("파일 크기가 너무 큽니다. 최대 3MB까지 업로드 가능합니다.");
+      alert("이미지 용량이 10mb 를 초과하였습니다!");
       return;
     }
 
@@ -168,7 +212,6 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
         await MenuServiceWithImg.createMenu(formData);
         handleCloseModal();
       } catch (e) {
-        alert("dddd");
         console.log(e);
       }
     } else {
@@ -257,7 +300,7 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
               type="text"
               placeholder="예) 20000"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={handlePriceChange}
               onInput={HandleNumberInput}
             />
           </S.ele>
@@ -303,7 +346,7 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
                 type="number"
                 placeholder="예) 100"
                 value={stock}
-                onChange={(e) => setStock(e.target.value)}
+                onChange={handleStockChange}
                 onInput={HandleNumberInput}
               />
             </S.ele>
@@ -315,12 +358,25 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
               <S.inputImg
                 id="file-upload"
                 type="file"
-                accept="*.jpg,.png,.jpeg"
+                accept=".jpg,.png,.jpeg"
                 onChange={handleFileChange}
                 multiple={false}
+                ref={fileInputRef}
               />
               {UploadImg ? (
-                <img src={UploadImg} alt="첨부한 이미지" />
+                <S.ImgContainer>
+                  <S.Img src={UploadImg} alt="첨부한 이미지" />
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onClick={handleRemoveImage}
+                  >
+                    <img src={IMAGE_CONSTANTS.CLOSE2} alt="" />
+                  </button>
+                </S.ImgContainer>
               ) : (
                 <img src={preUploadImg} alt="기본 이미지" />
               )}

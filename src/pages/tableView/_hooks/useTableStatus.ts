@@ -29,7 +29,7 @@ export function useTableStatus(): UseTableStatusState {
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expiredMap, setExpiredMap] = useState<Record<number, boolean>>({});
-  const [statusMap, setStatusMap] = useState<Record<number, Omit<TableStatusItem, "tableNumber">>>({});
+  const [statusMap] = useState<Record<number, Omit<TableStatusItem, "tableNumber">>>({});
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
 
   const onOpen = useCallback(() => {

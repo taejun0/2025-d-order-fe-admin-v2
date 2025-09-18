@@ -1,4 +1,4 @@
-import { SetStateAction, useEffect, useState } from "react";
+import { SetStateAction, useEffect, useRef, useState } from "react";
 import preUploadImg from "@assets/images/preUploadImg.png";
 import * as S from "./styled";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
@@ -22,7 +22,7 @@ interface EditModalProps {
   };
 }
 
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 업로드 이미지 크기 제한 3MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 업로드 이미지 크기 제한 10MB
 const MIN_FILE_SIZE = 2.5 * 1024 * 1024;
 
 const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
@@ -35,6 +35,7 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
   const [price, setPrice] = useState<string>("");
   const [stock, setStock] = useState<string>("");
   const [image, setImage] = useState<File | string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -73,6 +74,44 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
     }
   }, [name, price, stock, category]);
 
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value || "";
+    const digitsOnly = raw.replace(/\D/g, "");
+    if (!digitsOnly) {
+      setPrice("");
+      return;
+    }
+    const num = Number(digitsOnly);
+    const clamped = Math.min(num, 100000);
+    setPrice(String(clamped));
+  };
+
+  const handleStockChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value || "";
+    const digitsOnly = raw.replace(/\D/g, "");
+    if (!digitsOnly) {
+      setStock("");
+      return;
+    }
+    const num = Number(digitsOnly);
+    const clamped = Math.min(num, 9999);
+    setStock(String(clamped));
+  };
+
+  const handleRemoveImage = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (UploadImg) {
+      URL.revokeObjectURL(UploadImg);
+    }
+    setUploadImg(null);
+    setImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -88,13 +127,13 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
     formData.append("menu_price", price);
     formData.append("menu_amount", stock);
 
-    // 이미지 처리 분기: File이면 업로드, string이면 기존 유지로 판단하여 업로드 스킵
     if (image instanceof File) {
       if (image.size > MAX_FILE_SIZE) {
-        alert("파일 크기가 너무 큽니다. 최대 3MB까지 업로드 가능합니다.");
+        alert("이미지 용량이 10mb 를 초과하였습니다!");
         return;
       }
 
+      // 이미지 압축 로직직
       if (image.size <= MIN_FILE_SIZE) {
         formData.append("menu_image", image);
       } else {
@@ -103,37 +142,37 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
           formData.append("menu_image", correctedFile);
         } catch (e) {
           console.log(e);
+        } finally {
+          handleCloseModal();
         }
       }
-      if (category !== "세트") {
-        try {
-          await MenuServiceWithImg.updateMenu(defaultValues.menu_id, formData);
-
-          handleCloseModal();
-        } catch (e) {
-          alert("dddd");
-          console.log(e);
-        }
-      } else {
-        // 세트 메뉴일 경우 로직
+      try {
+        await MenuServiceWithImg.updateMenu(defaultValues.menu_id, formData);
+      } catch (e) {
+        console.log(e);
+      } finally {
+        handleCloseModal();
+      }
+    }
+    // 기존에 이미지 있던거 이미지 지울 경우
+    else if (image === null && defaultValues.menu_image) {
+      try {
+        formData.append("menu_image", "");
+        await MenuServiceWithImg.updateMenu(defaultValues.menu_id, formData);
+        setButtonDisable(false);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        handleCloseModal();
       }
     }
     // 이미지 없을 경우
     else {
-      if (category !== "세트") {
-        try {
-          await MenuService.updateMenu(defaultValues.menu_id, formData);
-          handleCloseModal();
-        } catch (e) {
-          console.log(e);
-        }
-      } else {
-        try {
-          // 세트 메뉴 일 경우 로직 추가
-          handleCloseModal();
-        } catch (e) {
-          console.log(e);
-        }
+      try {
+        await MenuService.updateMenu(defaultValues.menu_id, formData);
+        handleCloseModal();
+      } catch (e) {
+        console.log(e);
       }
     }
   };
@@ -177,7 +216,7 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
               type="text"
               placeholder="예) 20000"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={handlePriceChange}
               onInput={HandleNumberInput}
             />
           </S.ele>
@@ -189,7 +228,7 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
               type="number"
               placeholder="예) 100"
               value={stock}
-              onChange={(e) => setStock(e.target.value)}
+              onChange={handleStockChange}
               onInput={HandleNumberInput}
             />
           </S.ele>
@@ -201,12 +240,25 @@ const EditMenuModal = ({ handleCloseModal, defaultValues }: EditModalProps) => {
               <S.inputImg
                 id="file-upload"
                 type="file"
-                accept="*.jpg,.png,.jpeg"
+                accept=".jpg,.png,.jpeg"
                 onChange={handleFileChange}
                 multiple={false}
+                ref={fileInputRef}
               />
               {UploadImg ? (
-                <img src={UploadImg} alt="첨부한 이미지" />
+                <S.ImgContainer>
+                  <S.Img src={UploadImg} alt="첨부한 이미지" />
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onClick={handleRemoveImage}
+                  >
+                    <img src={IMAGE_CONSTANTS.CLOSE2} alt="" />
+                  </button>
+                </S.ImgContainer>
               ) : (
                 <img src={preUploadImg} alt="기본 이미지" />
               )}

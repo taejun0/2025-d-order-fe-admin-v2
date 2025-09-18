@@ -5,7 +5,7 @@ export const TableListWrapper = styled.div`
   display: flex;
   justify-content: center;
   width: 31%;
-  height: calc(var(--vh, 1vh) * 90);
+  height: calc(var(--vh, 1vh) * 88);
   border-radius: 10px 0 0 10px;
   background-color: ${({ theme }) => theme.colors.Gray01};
 
