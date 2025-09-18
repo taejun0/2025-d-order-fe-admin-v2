@@ -10,11 +10,10 @@ export const CouponCard = ({ coupondata, onDetail }: SetCouponCardProps) => {
   const handleDeleteClick = () => {
     console.log("삭제");
   };
-
   return (
     <>
       <S.MenuCardWrapper>
-        {coupondata.is_used && (
+        {coupondata.remaining_count === 0 && (
           <S.SoldOutOverlay>
             <S.SoldOutText>SOLD OUT</S.SoldOutText>
           </S.SoldOutOverlay>
