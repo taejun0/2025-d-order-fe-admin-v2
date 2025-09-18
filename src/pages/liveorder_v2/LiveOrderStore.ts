@@ -27,6 +27,7 @@ interface LiveOrderState {
   fadingOutTables: Set<number>;
   webSocketService: LiveOrderWebSocketService | null;
   accessToken: string | null;
+  pendingOrderUpdates: Set<number>; // 충돌 방지를 위한 '잠금' 상태
 
   setOrders: (orders: OrderItem[]) => void;
   setMenuList: (menuNames: string[]) => void;
@@ -50,26 +51,37 @@ export const useLiveOrderStore = create<LiveOrderState>()(
     fadingOutTables: new Set(),
     webSocketService: null,
     accessToken: null,
+    pendingOrderUpdates: new Set(), // 잠금 Set 초기화
 
     setOrders: (orders) => set({ orders }),
     setMenuList: (menuNames) => set({ menuList: ["전체", ...menuNames] }),
     setViewMode: (mode) => set({ viewMode: mode }),
 
     updateOrderStatusWithAnimation: async (orderId, newStatus) => {
+      // 1. 중복 클릭 방지
+      if (get().pendingOrderUpdates.has(orderId)) {
+        console.log(`🟡 Order ${orderId} update is already in progress.`);
+        return;
+      }
+
       // ... 이 함수의 기존 로직은 변경되지 않았습니다 ...
       const targetOrder = get().orders.find((o) => o.id === orderId);
       if (!targetOrder) return;
       const currentStatus = targetOrder.status;
       try {
+        // 2. '잠금' 시작
+        set((state) => ({
+          pendingOrderUpdates: new Set(state.pendingOrderUpdates).add(orderId),
+        }));
+
         if (currentStatus === "pending" && newStatus === "cooked") {
           await updateOrderToCooked(orderId);
         } else if (currentStatus === "cooked" && newStatus === "served") {
           await updateOrderToServed(orderId);
         } else if (currentStatus === "served" && newStatus === "cooked") {
           await revertOrderStatus(orderId, "cooked");
-        } else if (currentStatus === "cooked" && newStatus === "pending") {
-          await revertOrderStatus(orderId, "pending");
         }
+
         if (newStatus === "served") {
           set((state) => ({
             orders: state.orders.map((order) =>
@@ -88,6 +100,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
               : order
           );
           set({ orders: ordersAfterItemServed });
+
           const tableNum = targetOrder.table_num;
           const tableOrders = get().orders.filter(
             (o) => o.table_num === tableNum
@@ -115,6 +128,13 @@ export const useLiveOrderStore = create<LiveOrderState>()(
         }
       } catch (error) {
         console.error(`🔴 주문 상태 변경 실패: ${error}`);
+      } finally {
+        // 🚨 [가장 중요한 수정] 작업이 성공하든 실패하든 반드시 잠금을 해제합니다.
+        set((state) => {
+          const newSet = new Set(state.pendingOrderUpdates);
+          newSet.delete(orderId);
+          return { pendingOrderUpdates: newSet };
+        });
       }
     },
 
@@ -152,8 +172,19 @@ export const useLiveOrderStore = create<LiveOrderState>()(
               state.orders.map((order) => [order.id, order])
             );
 
-            // 새로 들어온 주문으로 기존 데이터를 덮어쓰거나 추가
+            // // 새로 들어온 주문으로 기존 데이터를 덮어쓰거나 추가
+            // incomingOrders.forEach((order) => {
+            //   orderMap.set(order.id, { ...orderMap.get(order.id), ...order });
+            // });
+            const pendingUpdates = state.pendingOrderUpdates;
             incomingOrders.forEach((order) => {
+              // 👇 웹소켓 충돌 방지
+              if (pendingUpdates.has(order.id)) {
+                console.log(
+                  `🟡 Order ${order.id} is being updated locally, ignoring WebSocket update.`
+                );
+                return; // '잠금'된 주문은 웹소켓 업데이트 무시
+              }
               orderMap.set(order.id, { ...orderMap.get(order.id), ...order });
             });
 
