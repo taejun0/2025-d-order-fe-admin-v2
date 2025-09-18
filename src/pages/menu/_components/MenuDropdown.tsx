@@ -1,11 +1,10 @@
-import { useEffect } from "react";
 import * as S from "./MenuDropdown.styled";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { BoothMenuData } from "../Type/Menu_type";
 
 interface MenuDropDownProps {
   isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpen: () => void;
   boothMenuData: BoothMenuData | undefined;
   selectedId: number | null;
   selectedName: string;
@@ -33,12 +32,9 @@ const MenuDropdown = ({
     boothMenuData?.menus.filter((menu) => menu.menu_category === "음료") ?? [];
 
   const handleToggle = () => {
-    if (selectedId !== null) return; // 선택 후에는 다시 열지 않음
-    setIsOpen(!isOpen);
+    if (selectedId !== null) return;
+    setIsOpen();
   };
-  useEffect(() => {
-    // debug
-  }, [mainMenus, drinksMenus]);
   return (
     <S.Wrapper>
       {selectedId === null ? (
@@ -62,7 +58,7 @@ const MenuDropdown = ({
               key={menu.menu_id}
               onClick={() => {
                 onChangeSelected(menu.menu_id, menu.menu_name);
-                setIsOpen(false);
+                // setIsOpen(false); 제거 - 부모에서 관리하므로
               }}
             >
               {menu.menu_name}
@@ -74,7 +70,7 @@ const MenuDropdown = ({
               key={menu.menu_id}
               onClick={() => {
                 onChangeSelected(menu.menu_id, menu.menu_name);
-                setIsOpen(false);
+                // setIsOpen(false); 제거 - 부모에서 관리하므로
               }}
             >
               {menu.menu_name}
