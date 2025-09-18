@@ -83,18 +83,31 @@ export const useLiveOrderStore = create<LiveOrderState>()(
         }
 
         if (newStatus === "served") {
-          set((state) => ({
-            orders: state.orders.map((order) =>
-              order.id === orderId ? { ...order, isFadingOut: true } : order
-            ),
-          }));
-          await delay(ANIMATION_DURATION);
+          // set((state) => ({
+          //   orders: state.orders.map((order) =>
+          //     order.id === orderId ? { ...order, isFadingOut: true } : order
+          //   ),
+          // }));
+          // await delay(ANIMATION_DURATION);
+          // const ordersAfterItemServed = get().orders.map((order) =>
+          //   order.id === orderId
+          //     ? {
+          //         ...order,
+          //         status: "served" as OrderStatus,
+          //         isFadingOut: false,
+          //         servedAt: Date.now(),
+          //       }
+          //     : order
+          // );
+          // set({ orders: ordersAfterItemServed });
+          // 1. 복잡한 delay와 isFadingOut 로직을 모두 제거합니다.
+          // 2. 상태를 한 번에 직접 업데이트합니다.
           const ordersAfterItemServed = get().orders.map((order) =>
             order.id === orderId
               ? {
                   ...order,
                   status: "served" as OrderStatus,
-                  isFadingOut: false,
+                  isFadingOut: false, // isFadingOut을 항상 false로 유지
                   servedAt: Date.now(),
                 }
               : order
