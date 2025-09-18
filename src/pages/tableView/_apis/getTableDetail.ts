@@ -127,14 +127,14 @@ const normalize = (raw: RawTableDetail): TableDetailData => {
 
         // ✅ 단가: price → menu_price → set_price → fixed_price
         const price =
-          typeof o.price === "number"
+          typeof o.fixed_price === "number"
+            ? o.fixed_price
+            : typeof o.price === "number"
             ? o.price
             : typeof o.menu_price === "number"
             ? o.menu_price
             : typeof o.set_price === "number"
             ? o.set_price
-            : typeof o.fixed_price === "number"
-            ? o.fixed_price
             : 0;
 
         // ✅ 수량: quantity → menu_num
