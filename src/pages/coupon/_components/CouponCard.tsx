@@ -10,8 +10,6 @@ export const CouponCard = ({ coupondata, onDetail }: SetCouponCardProps) => {
   const handleDeleteClick = () => {
     console.log("삭제");
   };
-  const softBreakAt8 = (s: string) =>
-    s.length >= 8 ? s.slice(0, 8) + "\u200b" + s.slice(8) : s;
 
   return (
     <>
