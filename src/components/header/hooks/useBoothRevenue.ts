@@ -14,6 +14,7 @@ const useBoothRevenue = () => {
       console.log("🚀 [GET API] 부스 이름 조회를 시작합니다.");
       const response = await BoothService.getBoothRevenue();
       if (response.data) {
+        setError(null);
         setBoothName(response.data.booth_name);
         console.log(
           "✅ [BOOTH] 부스 이름을 성공적으로 가져왔습니다:",
