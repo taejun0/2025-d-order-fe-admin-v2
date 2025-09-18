@@ -60,8 +60,12 @@ export type OrderDetail = {
   price: number;            // 단가
   quantity: number;         // 수량
   order_id?: number;        // 주문 PK
-  order_item_id?: number;   // ✅ 주문항목 PK (= ordermenu_id ...)
+  order_item_id?: number;   // ✅ 단일 항목 PK (있을 수도, 없을 수도)
+  // ── 새 취소 API 보조 정보 (선택) ────────────────────────────────
+  type?: "menu" | "set" | string;   // 서버 원본 type
+  order_item_ids?: number[];        // 같은 라인에 묶인 개별 항목 PK 리스트 (예: order_menu_ids)
 };
+
 
 export type TableDetailData = {
   table_num: number;
@@ -94,67 +98,74 @@ const normalize = (raw: RawTableDetail): TableDetailData => {
   const table_status: TableDetailData["table_status"] =
     statusRaw === "activate" || statusRaw === "out" ? (statusRaw as any) : "unknown";
 
-  const orders: OrderDetail[] = Array.isArray(raw.orders)
-    ? raw.orders.map((o) => {
-        // ✅ 주문항목 PK(취소 요청용): 기존 후보 유지
-        const order_item_id =
-          typeof o.order_item_id === "number" ? o.order_item_id :
-          typeof o.ordermenu_id === "number" ? o.ordermenu_id :
-          typeof o.order_menu_id === "number" ? o.order_menu_id :
-          typeof o.ordersetmenu_id === "number" ? o.ordersetmenu_id :
-          typeof o.order_setmenu_id === "number" ? o.order_setmenu_id :
-          undefined; // ⚠ set_id/menu_id는 '상품' ID라 취소 PK로 쓰면 안됨
+const orders: OrderDetail[] = Array.isArray(raw.orders)
+  ? raw.orders.map((o) => {
+      // (기존 단일 ID 추론 로직 유지)
+      const order_item_id =
+        typeof o.order_item_id === "number" ? o.order_item_id :
+        typeof o.ordermenu_id === "number" ? o.ordermenu_id :
+        typeof o.order_menu_id === "number" ? o.order_menu_id :
+        typeof o.ordersetmenu_id === "number" ? o.ordersetmenu_id :
+        typeof o.order_setmenu_id === "number" ? o.order_setmenu_id :
+        undefined;
 
-        // ✅ 이름: menu_name → set_name 순서로 사용
-        const name =
-          typeof o.menu_name === "string" && o.menu_name.trim() !== ""
-            ? o.menu_name
-            : typeof o.set_name === "string" && o.set_name.trim() !== ""
-            ? o.set_name
-            : "(이름 없음)";
+      // ✅ 복수 ID (예: order_menu_ids)
+      const order_item_ids: number[] | undefined =
+        Array.isArray((o as any).order_menu_ids)
+          ? ((o as any).order_menu_ids as any[]).filter((x) => Number.isFinite(x)).map(Number)
+          : Array.isArray((o as any).order_setmenu_ids)
+          ? ((o as any).order_setmenu_ids as any[]).filter((x) => Number.isFinite(x)).map(Number)
+          : undefined;
 
-        // ✅ 이미지: menu_image → set_image 순서로 사용 + "null"/빈문자 처리
-        const rawImg =
-          (typeof o.menu_image === "string" ? o.menu_image : null) ??
-          (typeof o.set_image === "string" ? o.set_image : null);
+      const name =
+        typeof o.menu_name === "string" && o.menu_name.trim() !== ""
+          ? o.menu_name
+          : typeof o.set_name === "string" && o.set_name.trim() !== ""
+          ? o.set_name
+          : "(이름 없음)";
 
-        const menu_image =
-          typeof rawImg === "string" &&
-          rawImg.trim() !== "" &&
-          rawImg.trim().toLowerCase() !== "null"
-            ? rawImg
-            : null;
+      const rawImg =
+        (typeof o.menu_image === "string" ? o.menu_image : null) ??
+        (typeof o.set_image === "string" ? o.set_image : null);
 
-        // ✅ 단가: price → menu_price → set_price → fixed_price
-        const price =
-          typeof o.price === "number"
-            ? o.price
-            : typeof o.menu_price === "number"
-            ? o.menu_price
-            : typeof o.set_price === "number"
-            ? o.set_price
-            : typeof o.fixed_price === "number"
-            ? o.fixed_price
-            : 0;
+      const menu_image =
+        typeof rawImg === "string" &&
+        rawImg.trim() !== "" &&
+        rawImg.trim().toLowerCase() !== "null"
+          ? rawImg
+          : null;
 
-        // ✅ 수량: quantity → menu_num
-        const quantity =
-          typeof o.quantity === "number"
-            ? o.quantity
-            : typeof o.menu_num === "number"
-            ? o.menu_num
-            : 1;
+      const price =
+        typeof o.fixed_price === "number"
+          ? o.fixed_price
+          : typeof o.price === "number"
+          ? o.price
+          : typeof o.menu_price === "number"
+          ? o.menu_price
+          : typeof o.set_price === "number"
+          ? o.set_price
+          : 0;
 
-        return {
-          menu_image,
-          menu_name: name,
-          price,
-          quantity,
-          order_id: typeof o.order_id === "number" ? o.order_id : undefined,
-          order_item_id,
-        };
-      })
-    : [];
+      const quantity =
+        typeof o.quantity === "number"
+          ? o.quantity
+          : typeof o.menu_num === "number"
+          ? o.menu_num
+          : 1;
+
+      return {
+        menu_image,
+        menu_name: name,
+        price,
+        quantity,
+        order_id: typeof o.order_id === "number" ? o.order_id : undefined,
+        order_item_id,
+        // 새 API용 선택 필드
+        type: typeof o.type === "string" ? (o.type as any) : undefined,
+        order_item_ids,
+      };
+    })
+  : [];
 
   return {
     table_num,
