@@ -6,15 +6,16 @@ import CancelMenuModal from "../../_modal/CancelMenuModal";
 import CancelConfirmModal from "../../_modal/CancelConfirmModal";
 import ResetModal from "../../_modal/ResetModal";
 import EmptyOrder from "./emptyOrder";
+import { instance } from "@services/instance"; 
 
 import {
-  getTableDetail,
-  type TableDetailData as APITableDetail, // ✅ 실제 타입(정규화된 데이터)
+    getTableDetail,
+    type TableDetailData as APITableDetail, // ✅ 실제 타입(정규화된 데이터)
 } from "../../_apis/getTableDetail";
 import { resetTable as resetTableAPI } from "../../_apis/resetTable";
 import {
-  updateOrderQuantity, // ✅ (orderId, items[])
-  type CancelItem,
+    updateOrderQuantity, // ✅ (orderId, items[])
+    type CancelItem,
 } from "../../_apis/updateOrderQuantity";
 
 import { useMemo, useState, useCallback } from "react";
@@ -24,6 +25,26 @@ interface Props {
     data: APITableDetail; // ✅ 실제 타입 반영
     onBack?: () => void;
 }
+const API_ORIGIN = (() => {
+    const fromInstance = (instance as any)?.defaults?.baseURL as string | undefined;
+    const raw = fromInstance || import.meta.env.VITE_BASE_URL || "";
+    try {
+        return new URL(raw).origin; // e.g. https://api.test-d-order.store
+    } catch {
+        // raw가 이미 origin 이거나 잘못된 경우: 끝 슬래시 제거
+        return (raw || "").replace(/\/+$/, "");
+    }
+})();
+
+const toImageUrl = (p?: string | null): string | null => {
+    if (!p) return null;
+    const val = String(p).trim();
+    if (!val) return null;
+    if (/^https?:\/\//i.test(val)) return val;     // 이미 절대 URL
+    if (/^\/\//.test(val)) return `https:${val}`;  // //cdn...
+    if (val.startsWith("/")) return `${API_ORIGIN}${val}`; // /media/...
+    return `${API_ORIGIN}/${val}`;                 // media/...
+};
 
 /** 기존 화면 컴포넌트가 쓰던 형태(레거시)로 매핑 */
 type LegacyOrder = {
@@ -134,11 +155,11 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
                     <S.ContentContainer>
                         <S.ImageWrapper>
                         <img
-                            src={order.menu_image || ACCO}
+                            src={toImageUrl(order.menu_image) ?? ACCO}
                             alt={order.menu_name}
                             onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = ACCO;
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = ACCO;
                             }}
                         />
                         </S.ImageWrapper>

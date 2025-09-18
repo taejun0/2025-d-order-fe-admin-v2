@@ -1,7 +1,7 @@
-import { Outlet } from "react-router-dom";
-import styled from "styled-components";
-import useAuthRedirect from "@hooks/useAuthRedirect";
-import backIMAGES from "/images/background.webp";
+import { Outlet } from 'react-router-dom';
+import styled from 'styled-components';
+import useAuthRedirect from '@hooks/useAuthRedirect';
+import backIMAGES from '/images/background.webp';
 
 const UserLayout = () => {
   useAuthRedirect();
@@ -23,6 +23,7 @@ const Wrapper = styled.section`
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
+  min-width: 340px;
   width: 100%;
 `;
 

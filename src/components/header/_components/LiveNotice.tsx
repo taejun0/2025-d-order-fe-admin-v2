@@ -9,7 +9,7 @@ interface LiveNoticeProps {
 
 const LiveNotice = ({ message, show }: LiveNoticeProps) => {
   return (
-    <Wrapper show={show}>
+    <Wrapper $show={show}>
       {message}
       <img
         src={IMAGE_CONSTANTS.BELL}
@@ -22,7 +22,7 @@ const LiveNotice = ({ message, show }: LiveNoticeProps) => {
 
 export default LiveNotice;
 
-const Wrapper = styled.div<{ show: boolean }>`
+const Wrapper = styled.div<{ $show: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -42,6 +42,6 @@ const Wrapper = styled.div<{ show: boolean }>`
   gap: 4px;
 
   /* 애니메이션 효과 */
-  opacity: ${({ show }) => (show ? 1 : 0)};
+  opacity: ${({ $show }) => ($show ? 1 : 0)};
   transition: opacity 0.5s ease-in-out;
 `;

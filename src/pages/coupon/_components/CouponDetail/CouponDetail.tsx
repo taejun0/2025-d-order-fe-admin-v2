@@ -3,7 +3,7 @@ import { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { DetailData } from "./DetailData";
 import { CouponItem } from "./CouponItem";
-import qr from "@assets/icons/qr.svg";
+import Qr from "@assets/icons/qr.svg";
 import { DeleteModal } from "@components/DeleteModal/DeleteModal";
 import { useCouponDetail } from "@pages/coupon/hooks/useCouponDetail";
 import { useCouponCode } from "@pages/coupon/hooks/useCouponCode";
@@ -75,7 +75,7 @@ export const CouponDetail = ({ couponId, setSelectedCouponId }: Props) => {
             </S.DataContainer>
             <S.BottomContainer>
               <S.QrContainer>
-                <S.QrImg src={qr} />
+                <S.QrImg src={Qr} />
                 <span onClick={handleDownExcel}>
                   쿠폰 번호 엑셀 파일 다운로드
                 </span>

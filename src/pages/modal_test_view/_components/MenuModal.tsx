@@ -104,7 +104,7 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
       return;
     }
     const num = Number(digitsOnly);
-    const clamped = Math.min(num, 999999);
+    const clamped = Math.min(num, 100000);
     setPrice(String(clamped));
   };
 

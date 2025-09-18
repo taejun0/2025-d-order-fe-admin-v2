@@ -17,7 +17,7 @@ const ResetModal: React.FC<Props> = ({ resetTable, onCancel }) => {
                             <button onClick={onCancel}>취소</button>
                         </ButtonContainer1>
                         <ButtonContainer2>
-                            <button onClick={resetTable}>태이블 초기화</button>
+                            <button onClick={resetTable}>테이블 초기화</button>
                         </ButtonContainer2>
                     </ButtonRow>
         </Modal>

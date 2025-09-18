@@ -49,17 +49,14 @@ function normalizeAndThrow(error: unknown, ctx?: any): never {
         const body = err.response?.data;
         const params = (err.config as any)?.params;
         const serverMsg = body?.message;
-        // 에러 메세지 출력
+
         if (serverMsg) {
         console.error(`[QR][${status}] ${serverMsg}`);
         } else {
         console.error(`[QR][${status}] 요청 실패`);
         }
-
-        // 부가 디버깅 정보(원하면 주석 해제)
         console.error("[QR][DEBUG]", { status, params, body, ctx });
 
-        // 같은 메시지로 throw (없으면 상태코드에 맞는 기본 메시지)
         const fallback =
         status === 404
             ? "QR 코드가 아직 생성되지 않았습니다."
@@ -76,19 +73,17 @@ function normalizeAndThrow(error: unknown, ctx?: any): never {
     throw new Error("QR 코드 다운로드에 실패했습니다.");
 }
 
-/** 내부: 실제 호출 (manager_id 고정) */
-async function fetchQRByManagerId(managerId: number, token?: string) {
-    // 시작 로그(선택)
-    console.info("[QR] 요청 시작 (manager_id):", managerId);
+/** 내부: 실제 호출 (booth_id 사용) */
+async function fetchQRByBoothId(boothId: number, token?: string) {
+    console.info("[QR] 요청 시작 (booth_id):", boothId);
 
     const res = await api.get(`/api/v2/manager/qr-download/`, {
-        params: { manager_id: managerId },
+        params: { booth_id: boothId }, // ✅ 여기만 booth_id 로!
         headers: { ...authHeaders(token) },
         responseType: "blob",
     });
 
-    const contentType =
-        (res.headers["content-type"] as string) || "application/octet-stream";
+    const contentType = (res.headers["content-type"] as string) || "application/octet-stream";
     const blob = new Blob([res.data], { type: contentType });
     const filenameFromHeader = parseFilenameFromHeader(
         res.headers["content-disposition"] as string | undefined
@@ -96,21 +91,21 @@ async function fetchQRByManagerId(managerId: number, token?: string) {
     return { blob, contentType, filenameFromHeader };
 }
 
-/** ✅ QR 코드 다운로드 (manager_id 사용) */
-export async function downloadManagerQR(
-    managerId: number,
+/** ✅ QR 코드 다운로드 (booth_id 사용) */
+export async function downloadManagerQR( // 이름은 유지해도 되고, 혼동되면 downloadBoothQR로 바꿔도 OK
+    boothId: number,
     options?: { token?: string; filename?: string }
     ): Promise<void> {
     try {
-        const { blob, contentType, filenameFromHeader } = await fetchQRByManagerId(
-        managerId,
+        const { blob, contentType, filenameFromHeader } = await fetchQRByBoothId(
+        boothId,
         options?.token
         );
 
         const filename =
         options?.filename ||
         filenameFromHeader ||
-        `qr-manager-${managerId}${inferExtFromContentType(contentType)}`;
+        `qr-booth-${boothId}${inferExtFromContentType(contentType)}`;
 
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -123,19 +118,19 @@ export async function downloadManagerQR(
 
         console.info("[QR] 다운로드 완료:", filename);
     } catch (e) {
-        normalizeAndThrow(e, { tried: "manager_id", id: managerId });
+        normalizeAndThrow(e, { tried: "booth_id", id: boothId });
     }
 }
 
 /** Blob만 필요할 때 */
 export async function fetchManagerQRBlob(
-    managerId: number,
+    boothId: number,
     options?: { token?: string }
     ): Promise<Blob> {
     try {
-        const { blob } = await fetchQRByManagerId(managerId, options?.token);
+        const { blob } = await fetchQRByBoothId(boothId, options?.token);
         return blob;
     } catch (e) {
-        normalizeAndThrow(e, { tried: "manager_id", id: managerId });
+        normalizeAndThrow(e, { tried: "booth_id", id: boothId });
     }
 }
