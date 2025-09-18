@@ -1,21 +1,33 @@
 // tableView/_apis/getTableDetail.ts
 import { instance } from "@services/instance";
 
-/** ── 서버 원형 타입 (명세 + 과거 오타/변형 허용) ───────────────────── */
 type RawOrder = {
-  order_id?: number;
-  ordermenu_id?: number;     // ✅ 새 명세의 주문 항목 PK
-  order_menu_id?: number;    // 과거 변형
-  ordersetmenu_id?: number;  // 과거 변형
-  order_setmenu_id?: number; // 과거 변형
-  order_item_id?: number;    // 과거 변형
+  type?: "menu" | "setmenu" | string;
 
-  menu_image?: string | null;
+  // menu 계열
+  menu_id?: number;
   menu_name?: string;
-  price?: number;            // ✅ 새 명세의 단가
-  menu_price?: number;       // 과거 변형
-  quantity?: number;         // ✅ 새 명세의 수량
-  menu_num?: number;         // 과거 변형
+  menu_price?: number;
+  menu_image?: string | null;
+
+  // ✅ setmenu 계열 (추가)
+  set_id?: number;
+  set_name?: string;
+  set_price?: number;
+  set_image?: string | null;
+
+  // 공통/과거 변형
+  fixed_price?: number;
+  price?: number;
+  quantity?: number;
+  menu_num?: number;
+
+  order_id?: number;
+  ordermenu_id?: number;
+  order_menu_id?: number;
+  ordersetmenu_id?: number;
+  order_setmenu_id?: number;
+  order_item_id?: number;
 };
 
 type RawTableDetail = {
@@ -84,30 +96,60 @@ const normalize = (raw: RawTableDetail): TableDetailData => {
 
   const orders: OrderDetail[] = Array.isArray(raw.orders)
     ? raw.orders.map((o) => {
-        // ✅ 다양한 키로 올 수 있는 항목 PK를 하나로 통합 (새 명세: ordermenu_id)
+        // ✅ 주문항목 PK(취소 요청용): 기존 후보 유지
         const order_item_id =
           typeof o.order_item_id === "number" ? o.order_item_id :
           typeof o.ordermenu_id === "number" ? o.ordermenu_id :
           typeof o.order_menu_id === "number" ? o.order_menu_id :
           typeof o.ordersetmenu_id === "number" ? o.ordersetmenu_id :
           typeof o.order_setmenu_id === "number" ? o.order_setmenu_id :
-          undefined;
+          undefined; // ⚠ set_id/menu_id는 '상품' ID라 취소 PK로 쓰면 안됨
+
+        // ✅ 이름: menu_name → set_name 순서로 사용
+        const name =
+          typeof o.menu_name === "string" && o.menu_name.trim() !== ""
+            ? o.menu_name
+            : typeof o.set_name === "string" && o.set_name.trim() !== ""
+            ? o.set_name
+            : "(이름 없음)";
+
+        // ✅ 이미지: menu_image → set_image 순서로 사용 + "null"/빈문자 처리
+        const rawImg =
+          (typeof o.menu_image === "string" ? o.menu_image : null) ??
+          (typeof o.set_image === "string" ? o.set_image : null);
+
+        const menu_image =
+          typeof rawImg === "string" &&
+          rawImg.trim() !== "" &&
+          rawImg.trim().toLowerCase() !== "null"
+            ? rawImg
+            : null;
+
+        // ✅ 단가: price → menu_price → set_price → fixed_price
+        const price =
+          typeof o.price === "number"
+            ? o.price
+            : typeof o.menu_price === "number"
+            ? o.menu_price
+            : typeof o.set_price === "number"
+            ? o.set_price
+            : typeof o.fixed_price === "number"
+            ? o.fixed_price
+            : 0;
+
+        // ✅ 수량: quantity → menu_num
+        const quantity =
+          typeof o.quantity === "number"
+            ? o.quantity
+            : typeof o.menu_num === "number"
+            ? o.menu_num
+            : 1;
 
         return {
-          menu_image: o.menu_image ?? null,
-          menu_name: o.menu_name ?? "(이름 없음)",
-          price:
-            typeof o.price === "number"
-              ? o.price
-              : typeof o.menu_price === "number"
-              ? o.menu_price
-              : 0,
-          quantity:
-            typeof o.quantity === "number"
-              ? o.quantity
-              : typeof o.menu_num === "number"
-              ? o.menu_num
-              : 1,
+          menu_image,
+          menu_name: name,
+          price,
+          quantity,
           order_id: typeof o.order_id === "number" ? o.order_id : undefined,
           order_item_id,
         };
@@ -122,7 +164,6 @@ const normalize = (raw: RawTableDetail): TableDetailData => {
     orders,
   };
 };
-
 /** ── API 함수 ────────────────────────────────────────────────────── */
 export const getTableDetail = async (tableNum: number): Promise<TableDetailResponse> => {
   try {

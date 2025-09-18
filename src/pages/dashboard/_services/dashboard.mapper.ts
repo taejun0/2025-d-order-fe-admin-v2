@@ -24,6 +24,7 @@ export function mapDashboardResponse(res: DashboardResponse): DashboardData {
     lowStock: (d.low_stock ?? []).map((s: any) => ({
       name: s?.menu_name ?? '',
       image: s?.menu_image ?? '',
+      price: s?.menu_price ?? '',
       remaining: s?.remaining ?? 0,
     })),
     wait: {

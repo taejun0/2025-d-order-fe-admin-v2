@@ -34,6 +34,7 @@ export const MenuListItemContainer = styled.div`
   width: 100%;
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   max-height: 100%; /* 헤더와 카테고리 높이를 고려하여 조정 */
   min-height: 0;
   &::-webkit-scrollbar {

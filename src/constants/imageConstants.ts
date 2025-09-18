@@ -36,12 +36,14 @@ import MenuPlus from "../assets/icons/menuPlus.svg";
 import MenuEdit from "../assets/icons/grayEdit.svg";
 
 import close from "@assets/icons/close.svg";
+import close2 from "@assets/icons/close2.svg";
 import COUPON_RATE from "../assets/images/couponRate.png";
 import COUPON_PRICE from "../assets/images/couponPrice.png";
 
 import Down from "@assets/icons/down.svg";
 
 import minus from "@assets/icons/minus.svg";
+import minusActive from "@assets/icons/minusActive.png";
 import plus from "@assets/icons/add.svg";
 export const IMAGE_CONSTANTS = {
   LOGO: "/images/Logo.png",
@@ -97,10 +99,12 @@ export const IMAGE_CONSTANTS = {
   MENUEDIT: MenuEdit,
 
   CLOSE: close,
+  CLOSE2: close2,
   COUPON_RATE: COUPON_RATE,
   COUPON_PRICE: COUPON_PRICE,
   DOWN: Down,
 
   Minus: minus,
+  minusActive,
   Add: plus,
 };

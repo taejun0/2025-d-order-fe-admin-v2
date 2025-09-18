@@ -8,9 +8,8 @@ const useAuthRedirect = () => {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (token) {
-      navigate(ROUTE_PATHS.HOME);
     } else {
-      navigate(ROUTE_PATHS.LOGIN);
+      navigate(ROUTE_PATHS.INIT);
     }
   }, [navigate]);
 };

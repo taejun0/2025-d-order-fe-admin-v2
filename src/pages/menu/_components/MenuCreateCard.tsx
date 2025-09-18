@@ -2,7 +2,7 @@ import styled from "styled-components";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { SetStateAction, useState } from "react";
 import MenuModal from "../../modal_test_view/_components/MenuModal";
-import { BoothMenuData, Menu } from "../Type/Menu_type";
+import { BoothMenuData } from "../Type/Menu_type";
 
 interface MenuCreateCardProps {
   bootMenuData: BoothMenuData | undefined;
@@ -51,8 +51,8 @@ const MenuCreateCardWrapper = styled.button`
   justify-content: center;
   align-items: center;
 
-  width: 190px;
-  height: 273px;
+  width: 200px;
+  height: 300px;
 
   border: 2px dashed ${({ theme }) => theme.colors.Black02};
   border-radius: 10px;

@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as S from "./styled";
+import preUploadImg from "@assets/images/preUploadImg.png";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { HandleNumberInput } from "../_utils/HandleNumberInput";
 import MenuDropdown from "@pages/menu/_components/MenuDropdown";
@@ -34,6 +35,7 @@ const EditSetMenuModal = ({
   const [setItems, setSetItems] = useState<SetItem[]>([]);
   const [uploadImg, setUploadImg] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     setName(setMenu.set_name);
@@ -92,6 +94,34 @@ const EditSetMenuModal = ({
     setImage(file);
   };
 
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value || "";
+    const digitsOnly = raw.replace(/\D/g, "");
+    if (!digitsOnly) {
+      setPrice("");
+      return;
+    }
+    const num = Number(digitsOnly);
+    const clamped = Math.min(num, 100000);
+    setPrice(String(clamped));
+  };
+
+  const handleRemoveImage = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (uploadImg) {
+      URL.revokeObjectURL(uploadImg);
+    }
+    setUploadImg(null);
+    setImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 업로드 이미지 크기 제한 10MB
+  const MIN_FILE_SIZE = 2.5 * 1024 * 1024;
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !price || setItems.length === 0) {
@@ -114,17 +144,35 @@ const EditSetMenuModal = ({
     );
 
     if (image) {
+      if (image.size > MAX_FILE_SIZE) {
+        alert("이미지 용량이 10mb 를 초과하였습니다!");
+        return;
+      }
       const fileToUpload =
-        image.size <= 2.5 * 1024 * 1024 ? image : await compressImage(image);
+        image.size <= MIN_FILE_SIZE ? image : await compressImage(image);
       formData.append("set_image", fileToUpload);
     }
 
-    try {
-      await MenuServiceWithImg.updateSetMenu(setMenu.set_menu_id, formData);
-      onSuccess();
-      handleCloseModal();
-    } catch (error) {
-      console.log(error);
+    if (image === null) {
+      try {
+        formData.append("set_image", "");
+        await MenuServiceWithImg.updateSetMenu(setMenu.set_menu_id, formData);
+        setButtonDisable(false);
+        onSuccess();
+      } catch (err) {
+        console.log(err);
+      } finally {
+        handleCloseModal();
+      }
+    } else {
+      try {
+        await MenuServiceWithImg.updateSetMenu(setMenu.set_menu_id, formData);
+        onSuccess();
+      } catch (error) {
+        console.log(error);
+      } finally {
+        handleCloseModal();
+      }
     }
   };
 
@@ -168,7 +216,7 @@ const EditSetMenuModal = ({
               type="text"
               placeholder="예) 20000"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={handlePriceChange}
               onInput={HandleNumberInput}
             />
           </S.ele>
@@ -207,15 +255,28 @@ const EditSetMenuModal = ({
               <S.inputImg
                 id="set-file-upload"
                 type="file"
-                accept="*.jpg,.png,.jpeg"
+                accept=".jpg,.png,.jpeg"
                 onChange={handleFileChange}
                 multiple={false}
+                ref={fileInputRef}
               />
               {uploadImg ? (
-                <img src={uploadImg} alt="첨부한 이미지" />
-              ) : setMenu.set_image ? (
-                <img src={setMenu.set_image} alt="기존 이미지" />
-              ) : null}
+                <S.ImgContainer>
+                  <S.Img src={uploadImg} alt="첨부한 이미지" />
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onClick={handleRemoveImage}
+                  >
+                    <img src={IMAGE_CONSTANTS.CLOSE2} alt="" />
+                  </button>
+                </S.ImgContainer>
+              ) : (
+                <img src={preUploadImg} alt="기존 이미지" />
+              )}
             </label>
           </S.ele>
         </S.FormContentWrapper>
