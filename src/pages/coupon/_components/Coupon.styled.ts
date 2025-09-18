@@ -321,14 +321,30 @@ export const MenuEditBtn = styled.button`
 export const CardTextInner = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 8px;
 `;
 export const CardText = styled.div`
   ${({ theme }) => theme.fonts.SemiBold12};
   color: ${({ theme }) => theme.colors.Focused};
+
   &.bold {
     ${({ theme }) => theme.fonts.Bold14};
     color: ${({ theme }) => theme.colors.Black01};
+  }
+
+  &.name {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  &.wrap {
+    white-space: normal;
+  }
+
+  &.price {
+    flex: none;
+    white-space: nowrap;
   }
 `;
 
