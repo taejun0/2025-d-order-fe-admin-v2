@@ -52,7 +52,7 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
   const handleAddSetItem = () => {
     setSetItems((prev) => [
       ...prev,
-      { menuId: null, menuName: "", amount: 1, isOpen: true },
+      { menuId: null, menuName: "", amount: 1, isOpen: false },
     ]);
   };
 
@@ -70,9 +70,12 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
     );
   };
 
-  const handleToggleOpen = (idx: number, value: boolean) => {
+  const handleToggleOpen = (idx: number) => {
     setSetItems((prev) =>
-      prev.map((it, i) => (i === idx ? { ...it, isOpen: value } : it))
+      prev.map((it, i) => ({
+        ...it,
+        isOpen: i === idx ? !it.isOpen : false,
+      }))
     );
   };
 
@@ -318,12 +321,7 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
                 <MenuDropdown
                   key={idx}
                   isOpen={it.isOpen}
-                  setIsOpen={(v) =>
-                    handleToggleOpen(
-                      idx,
-                      typeof v === "boolean" ? v : !it.isOpen
-                    )
-                  }
+                  setIsOpen={() => handleToggleOpen(idx)}
                   boothMenuData={boothMenuData}
                   selectedId={it.menuId}
                   selectedName={it.menuName}

@@ -27,6 +27,7 @@ export const SelectBox = styled.div<{ $isOpen: boolean; $radius?: string }>`
     $isOpen
       ? `${$radius || "25px"} ${$radius || "25px"} 0 0`
       : $radius || "25px"};
+  z-index: 50;
 `;
 
 export const ArrowIcon = styled.img<{ $isOpen: boolean }>`
@@ -42,6 +43,7 @@ export const OptionBox = styled.ol`
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
   position: absolute;
   top: 100%;
+  z-index: 100;
 `;
 
 export const Option = styled.li`

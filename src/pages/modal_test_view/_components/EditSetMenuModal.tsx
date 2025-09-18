@@ -76,9 +76,12 @@ const EditSetMenuModal = ({
       prev.map((it, i) => (i === idx ? { ...it, amount: value } : it))
     );
   };
-  const handleToggleOpen = (idx: number, value: boolean) => {
+  const handleToggleOpen = (idx: number) => {
     setSetItems((prev) =>
-      prev.map((it, i) => (i === idx ? { ...it, isOpen: value } : it))
+      prev.map((it, i) => ({
+        ...it,
+        isOpen: i === idx ? !it.isOpen : false,
+      }))
     );
   };
   const handleRemoveItem = (idx: number) => {
@@ -218,9 +221,7 @@ const EditSetMenuModal = ({
               <MenuDropdown
                 key={idx}
                 isOpen={it.isOpen}
-                setIsOpen={(v) =>
-                  handleToggleOpen(idx, typeof v === "boolean" ? v : !it.isOpen)
-                }
+                setIsOpen={() => handleToggleOpen(idx)}
                 boothMenuData={boothMenuData}
                 selectedId={it.menuId}
                 selectedName={it.menuName}
