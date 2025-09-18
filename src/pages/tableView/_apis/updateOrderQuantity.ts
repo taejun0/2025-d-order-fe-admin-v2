@@ -1,18 +1,22 @@
 // tableView/_apis/updateOrderQuantity.ts
 import { instance } from "@services/instance";
 
-/** 요청 페이로드: 취소 항목 목록 */
-export type CancelItem = {
-  /** 명세: order_item_id 는 ordermenu_id 또는 ordersetmenu_id 중 하나 */
-  order_item_id: number;
-  /** 1 이상, 남은 수량 이하 */
-  quantity: number;
+/** ── 새 취소 API 스펙 ───────────────────────────────────────────────
+ * PATCH /api/v2/booth/orders/cancel/
+ * Headers: Authorization, Booth-ID, Content-Type: application/json
+ * Body: { cancel_items: [{ type: "menu" | "set", order_item_ids: number[], quantity: number }] }
+ */
+
+export type CancelBatchItem = {
+  type: "menu" | "set";
+  order_item_ids: number[]; // 동일한 라인 묶음의 개별 order_item_id들
+  quantity: number;         // 1 이상, 남은 수량 이하
 };
 
-export type CancelItemsPayload = {
-  cancel_items: CancelItem[];
+export type CancelBatchPayload = {
+  cancel_items: CancelBatchItem[];
 };
-/** 응답 타입 (서버 구현 차이를 흡수) */
+
 export type CancelOrderResponse = {
   status: "success" | "fail" | "error" | string;
   code: number;
@@ -23,32 +27,37 @@ export type CancelOrderResponse = {
     order_amount_after: number;
     booth_total_revenues?: number;
     updated_items: Array<{
-      // 백엔드 예시가 order_menu_id를 사용하므로 키를 포괄
       order_item_id?: number;
       order_menu_id?: number;
       ordersetmenu_id?: number;
+      order_setmenu_id?: number;
 
       menu_name?: string;
+      set_name?: string;
       rest_quantity?: number;
       restored_stock?: number;
       refund?: number;
+      table_num?: number;
     }>;
   };
 };
 
-/**
- * PATCH /api/v2/booth/orders/{order_id}/
- * 명세: { cancel_items: [{ order_item_id, quantity }, ...] }
- */
+/** 새 API 호출 함수 */
 export const updateOrderQuantity = async (
-  orderId: number,
-  items: CancelItem[]
+  batches: CancelBatchItem[]
 ): Promise<CancelOrderResponse> => {
-  if (!Number.isFinite(orderId)) throw new Error("유효하지 않은 주문 ID입니다.");
-  if (!Array.isArray(items) || items.length === 0) throw new Error("취소 항목이 비어 있습니다.");
-  for (const it of items) {
-    if (!Number.isFinite(it.order_item_id) || it.quantity <= 0) {
-      throw new Error("취소 항목의 ID/수량이 올바르지 않습니다.");
+  if (!Array.isArray(batches) || batches.length === 0) {
+    throw new Error("취소 항목이 비어 있습니다.");
+  }
+  for (const b of batches) {
+    if (b.type !== "menu" && b.type !== "set") {
+      throw new Error('type은 "menu" 또는 "set"만 허용됩니다.');
+    }
+    if (!Array.isArray(b.order_item_ids) || b.order_item_ids.length === 0) {
+      throw new Error("order_item_ids가 비어 있습니다.");
+    }
+    if (!Number.isFinite(b.quantity) || b.quantity <= 0) {
+      throw new Error("quantity는 1 이상이어야 합니다.");
     }
   }
 
@@ -62,13 +71,11 @@ export const updateOrderQuantity = async (
     throw new Error("부스 선택 정보가 없습니다. Booth-ID 헤더가 필요합니다.");
   }
 
-  const headers = { "Booth-ID": String(boothId) };
-
   try {
     const res = await instance.patch<CancelOrderResponse>(
-      `/api/v2/booth/orders/${orderId}/`,
-      { cancel_items: items },
-      { headers }
+      `/api/v2/booth/orders/cancel/`,
+      { cancel_items: batches },
+      { headers: { "Booth-ID": String(boothId) } }
     );
     return res.data;
   } catch (e: any) {
@@ -82,5 +89,5 @@ export const updateOrderQuantity = async (
   }
 };
 
-/** 별칭 */
+/** 호환 별칭 (기존 import 유지용) */
 export const cancelOrderItems = updateOrderQuantity;
