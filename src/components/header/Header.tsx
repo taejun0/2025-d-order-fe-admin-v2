@@ -43,13 +43,13 @@ const Header = () => {
 
   return (
     <S.HeaderWrapper>
-      <S.BoothName>{error ? boothName : "부스 이름"}</S.BoothName>
+      <S.BoothName>{!error ? boothName : "부스 이름"}</S.BoothName>
 
       {liveNotice && <LiveNotice message={liveNotice} show={showLiveNotice} />}
       <S.SalesInfoWrapper>
         <S.SalesInfoText>💰 총 매출</S.SalesInfoText>
         <S.TotalSales>
-          {error ? `${formatCurrency(animatedRevenues)}원` : "0원"}
+          {!error ? `${formatCurrency(animatedRevenues)}원` : "0원"}
         </S.TotalSales>
 
         {/* ✅ 3. 훅에서 받아온 상태들을 props로 전달 */}
