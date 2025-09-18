@@ -10,7 +10,6 @@ const CouponCreateCard = () => {
   const [selectedCouponId, setSelectedCouponId] = useState<number | null>(null);
 
   const { coupons, refetch } = useCouponList();
-  console.log(selectedCouponId);
 
   const handleCreateClick = () => {
     setRegisterModal(true);
