@@ -42,6 +42,22 @@ export const StyledInput = styled.input<{ $error: boolean; $success: boolean }>`
 
   border-radius: 25px;
 
+  &::-ms-reveal,
+  &::-ms-clear {
+    display: none;
+  }
+
+  &::-webkit-credentials-auto-fill-button,
+  &::-webkit-textfield-decoration-container,
+  &::-webkit-textfield-decoration-button {
+    display: none !important;
+    visibility: hidden !important;
+    -webkit-appearance: none !important;
+  }
+
+  -webkit-appearance: none;
+  appearance: none;
+
   &::placeholder {
     ${({ theme }) => theme.fonts.SemiBold16};
     color: ${({ theme }) => theme.colors.Black02};
