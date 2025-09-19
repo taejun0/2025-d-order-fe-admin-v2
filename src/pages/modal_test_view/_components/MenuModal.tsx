@@ -48,7 +48,11 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
 
   // 세트 구성 항목 상태
   const [setItems, setSetItems] = useState<SetItem[]>([]);
-
+  const getSelectedMenuIds = () => {
+    return setItems
+      .map((item) => item.menuId)
+      .filter((id): id is number => id !== null);
+  };
   const handleAddSetItem = () => {
     setSetItems((prev) => [
       ...prev,
@@ -331,6 +335,7 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
                   amount={it.amount}
                   onChangeAmount={(val) => handleChangeAmount(idx, val)}
                   onRemove={() => handleRemoveItem(idx)}
+                  selectedMenuIds={getSelectedMenuIds()}
                 />
               ))}
             </S.ele>
