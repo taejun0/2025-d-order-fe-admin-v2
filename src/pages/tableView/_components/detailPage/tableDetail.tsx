@@ -57,8 +57,8 @@ type LegacyOrder = {
     order_status?: string;
 
     // 새 API 대응
-    type?: "menu" | "set" | string;
-    ids?: number[];            // 같은 라인의 개별 항목 PK 리스트 (예: order_menu_ids)
+    type?: "menu" | "set" | "setmenu" | string; // 서버 원본 문자열을 보관(후에 'set'으로 정규화)
+    ids?: number[];            // 같은 라인의 개별 항목 PK 리스트
 };
 
 type LegacyDetail = {
@@ -74,30 +74,53 @@ const normalizeDetail = (api: APITableDetail): LegacyDetail => ({
     table_price: api.table_amount ?? 0,
     table_status: api.table_status ?? "unknown",
     created_at: api.created_at ?? null,
-    orders: (api.orders ?? []).map((o: any) => ({
+    orders: (api.orders ?? []).map((o: any) => {
+        // type 정규화 전 원본 보관 (소문자)
+        const typeRaw = typeof o?.type === "string" ? o.type.toLowerCase() : undefined;
+
+        // ids: getTableDetail에서 order_item_ids로 이미 매핑해줬다면 우선 사용
+        // 없으면 서버 원본 필드에서 보강
+        const idsFallback =
+        Array.isArray(o?.order_item_ids) ? o.order_item_ids :
+        Array.isArray(o?.order_menu_ids) ? o.order_menu_ids :
+        Array.isArray(o?.order_setmenu_ids) ? o.order_setmenu_ids :
+        undefined;
+
+        return {
         id:
-        typeof o?.order_item_id === "number" ? o.order_item_id :
-        typeof o?.ordermenu_id === "number" ? o.ordermenu_id :
-        typeof o?.order_menu_id === "number" ? o.order_menu_id :
-        typeof o?.ordersetmenu_id === "number" ? o.ordersetmenu_id :
-        typeof o?.order_setmenu_id === "number" ? o.order_setmenu_id :
-        undefined,
+            typeof o?.order_item_id === "number" ? o.order_item_id :
+            typeof o?.ordermenu_id === "number" ? o.ordermenu_id :
+            typeof o?.order_menu_id === "number" ? o.order_menu_id :
+            typeof o?.ordersetmenu_id === "number" ? o.ordersetmenu_id :
+            typeof o?.order_setmenu_id === "number" ? o.order_setmenu_id :
+            undefined,
         order_id: typeof o?.order_id === "number" ? o.order_id : undefined,
-        menu_name: o?.menu_name ?? "(이름 없음)",
-        menu_price: typeof o?.price === "number" ? o.price : 0,
+        menu_name:
+            typeof o?.menu_name === "string" && o.menu_name.trim() !== ""
+            ? o.menu_name
+            : typeof o?.set_name === "string" && o.set_name.trim() !== ""
+            ? o.set_name
+            : "(이름 없음)",
+        menu_price:
+            typeof o?.price === "number" ? o.price
+            : typeof o?.fixed_price === "number" ? o.fixed_price
+            : typeof o?.menu_price === "number" ? o.menu_price
+            : typeof o?.set_price === "number" ? o.set_price
+            : 0,
         menu_num:
-        typeof o?.quantity === "number"
+            typeof o?.quantity === "number"
             ? o.quantity
             : typeof o?.menu_num === "number"
             ? o.menu_num
             : 1,
-        menu_image: o?.menu_image ?? null,
-        order_status: o?.order_status,
+        menu_image: o?.menu_image ?? o?.set_image ?? null,
+        order_status: o?.order_status ?? o?.status,
 
         // 새 API 보조 정보
-        type: o?.type,
-        ids: Array.isArray(o?.order_item_ids) ? o.order_item_ids : undefined,
-    })),
+        type: typeRaw,          // 'menu' | 'setmenu' | 'set' 등 원본 그대로 저장
+        ids: Array.isArray(idsFallback) ? idsFallback : undefined,
+        } as LegacyOrder;
+    }),
 });
 
 const TableDetail: React.FC<Props> = ({ data, onBack }) => {
@@ -172,7 +195,7 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
                     <S.ButtonWrapper>
                         <S.CancleButton
                         onClick={() => {
-                            console.log("[UI] 취소 버튼 클릭 - 현재 라인 총 수량:", order.menu_num, "메뉴:", order.menu_name);
+                            console.log("[UI] 취소 버튼 클릭 - 현재 라인 총 수량:", order.menu_num, "메뉴:", order.menu_name, "type:", order.type);
                             setSelectedMenu({ name: order.menu_name, quantity: order.menu_num });
                         }}
                         >
@@ -219,12 +242,13 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
                     return;
                 }
 
-                // 새 API: type 결정 (기본 menu)
+                // 🔴 type 정규화: 'setmenu' → 'set', 그 외는 'menu'
+                const rawType = (order.type ?? "").toString().toLowerCase();
                 const kind: "menu" | "set" =
-                    order.type === "set" ? "set" : "menu";
+                    rawType === "set" || rawType === "setmenu" ? "set" : "menu";
 
                 const wanted = Math.min(confirmInfo.quantity, Math.max(1, order.menu_num));
-                console.log("[Confirm] 사용자가 최종 확인 - 취소 개수(wanted):", wanted, "/ 기존 라인 수량:", order.menu_num);
+                console.log("[Confirm] 사용자가 최종 확인 - 취소 개수(wanted):", wanted, "/ 기존 라인 수량:", order.menu_num, "/ 정규화 type:", kind, "(raw:", rawType, ")");
 
                 let batch: CancelBatchItem;
 
@@ -232,9 +256,9 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
                     // 복수 PK가 제공되는 라인: 선택 수량만큼 앞에서 잘라 보냄
                     const ids = order.ids.slice(0, wanted);
                     batch = {
-                    type: kind,
+                    type: kind,                 // ✅ setmenu → set으로 변환되어 전송
                     order_item_ids: ids,
-                    quantity: wanted, // ✅ 선택한 개수만큼 한 번에 취소
+                    quantity: wanted,           // ✅ 선택한 개수만큼 한 번에 취소
                     };
                     console.log("[Confirm] (복수ID) 보낼 IDs:", ids, "payload.quantity:", wanted);
                 } else if (order.id) {
