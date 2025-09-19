@@ -34,14 +34,6 @@ export const StyledInput = styled.input`
     display: none;
   }
 
-  &::-webkit-credentials-auto-fill-button,
-  &::-webkit-textfield-decoration-container,
-  &::-webkit-textfield-decoration-button {
-    display: none !important;
-    visibility: hidden !important;
-    -webkit-appearance: none !important;
-  }
-
   -webkit-appearance: none;
   appearance: none;
 
