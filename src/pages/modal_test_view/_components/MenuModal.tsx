@@ -251,13 +251,22 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
                 />
                 메뉴
               </label>
-              <label className="custom-label">
+              <label
+                className="custom-label"
+                style={{
+                  color: "#9CA3AF",
+                  cursor: "not-allowed",
+                  opacity: 0.7,
+                }}
+                onClick={(e) => e.preventDefault()}
+              >
                 <input
                   type="radio"
                   name="category"
                   value="음료"
-                  onChange={() => setCategory("음료")}
+                  // onChange={() => setCategory("음료")}
                   checked={category === "음료"}
+                  disabled
                 />
                 음료
               </label>
