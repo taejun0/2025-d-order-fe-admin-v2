@@ -2,49 +2,34 @@ import styled from "styled-components";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import TableBillItem from "./TableBillItem";
 import { OrderItem, OrderStatus } from "@pages/liveorder_v2/types";
-import { useMemo } from "react";
-import { ORDER_DELETE_TIME } from "@constants/timeConstant";
+// import { useMemo } from "react";
+// import { ORDER_DELETE_TIME } from "@constants/timeConstant";
 
 interface TableBillProps {
   orders: OrderItem[];
   onOrderStatusChange: (orderId: number, newStatus: OrderStatus) => void;
   isFadingOut?: boolean;
-  currentTime: number;
+  // currentTime: number;
 }
 
 const TableBill = ({
   orders,
   onOrderStatusChange,
   isFadingOut,
-  currentTime,
-}: TableBillProps) => {
-  // 1. useMemo를 사용해 보여줄 아이템 목록을 계산
-  // TableList에서 이미 필터링/정렬된 단일 아이템 배열을 받으므로
-  // 이 로직은 불필요하지만, 기존 코드의 호환성을 위해 유지
-  const visibleItems = useMemo(() => {
-    const timeFiltered = orders.filter((order) => {
-      if (order.status !== "served") return true;
-      if (order.servedAt && currentTime - order.servedAt < ORDER_DELETE_TIME) {
-        return true;
-      }
-      return false;
-    });
-    // const timeFiltered = orders;
-    return timeFiltered.sort(
-      (a, b) =>
-        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    );
-  }, [orders, currentTime]);
+}: // currentTime,
+TableBillProps) => {
+  // 모든 주문이 served면 컴포넌트 렌더링하지 않음
+  const isFullyServed = orders.every((order) => order.status === "served");
+  if (isFullyServed) return null;
 
-  if (visibleItems.length === 0) {
-    return null;
-  }
+  // 시간순 정렬
+  const sortedItems = [...orders].sort(
+    (a, b) =>
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
 
-  // 이제 visibleItems 배열에는 단일 아이템만 들어있으므로, 첫 번째 항목을 사용
-  const singleOrder = visibleItems[0];
+  const singleOrder = sortedItems[0];
   const tableNumber = `테이블 ${singleOrder.table_num}`;
-
-  // 가장 이른 주문 시간 계산 (단일 주문의 시간)
   const earliestOrderTime = new Date(singleOrder.created_at).toLocaleTimeString(
     "ko-KR",
     {
@@ -66,7 +51,7 @@ const TableBill = ({
 
         <TableBillItemWrapper>
           <TableBillItem
-            orderItems={visibleItems}
+            orderItems={sortedItems}
             onOrderStatusChange={onOrderStatusChange}
           />
         </TableBillItemWrapper>
