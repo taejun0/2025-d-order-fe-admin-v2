@@ -1,1 +1,1 @@
-export const ORDER_DELETE_TIME = 1 * 60 * 1000;
+export const ORDER_DELETE_TIME = 3 * 60 * 1000;
