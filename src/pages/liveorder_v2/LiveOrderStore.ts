@@ -194,7 +194,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
 
             // 🔥 크롬 대응: 모든 incomingOrders에 대해 잠금 해제 체크
             const newPendingUpdates = new Set(pendingUpdates);
-            let hasRevertSuccess = false;
 
             incomingOrders.forEach((order) => {
               // 되돌리기 성공 케이스 체크 (서빙완료→조리완료)
@@ -206,8 +205,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
               // 🔥 핵심: 되돌리기 성공이면 잠금 해제
               if (isRevertFromServed && pendingUpdates.has(order.id)) {
                 newPendingUpdates.delete(order.id);
-                hasRevertSuccess = true;
-                console.log(`�� 되돌리기 성공으로 잠금 해제: ${order.id}`);
               }
 
               // 일반적인 잠금 체크 (되돌리기가 아닌 경우만)
