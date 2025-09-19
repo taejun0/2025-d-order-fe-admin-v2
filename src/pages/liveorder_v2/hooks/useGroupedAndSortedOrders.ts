@@ -2,9 +2,11 @@
 
 import { useMemo } from "react";
 import { OrderItem } from "@pages/liveorder_v2/types";
-
+import { useLiveOrderStore } from "@pages/liveorder_v2/LiveOrderStore";
 // 주문 데이터를 order_id 기준으로 그룹핑하고, 시간순 정렬
 export const useGroupedAndSortedOrders = (orders: OrderItem[]) => {
+  const { fadingOutTables } = useLiveOrderStore();
+
   const sortedTableGroups = useMemo(() => {
     if (!orders || orders.length === 0) {
       return [];
@@ -19,10 +21,11 @@ export const useGroupedAndSortedOrders = (orders: OrderItem[]) => {
       acc[groupKey].push(order);
       return acc;
     }, {} as Record<string, OrderItem[]>);
-
-    // 2. 그룹 중 모든 주문이 서빙완료면 목록에서 제거
+    // 2. 모든 주문이 served인 그룹은 목록에서 제외 (단, fadingOutTables에 있으면 유지)
     const filteredGroups = Object.values(groupedOrders).filter(
-      (group) => !group.every((order) => order.status === "served")
+      (group) =>
+        !group.every((order) => order.status === "served") ||
+        fadingOutTables.has(group[0].order_id)
     );
 
     // 3. 그룹을 주문 생성 시간(created_at) 기준으로 정렬
@@ -33,7 +36,7 @@ export const useGroupedAndSortedOrders = (orders: OrderItem[]) => {
     });
 
     return sortedGroups;
-  }, [orders]);
+  }, [orders, fadingOutTables]);
 
   return sortedTableGroups;
 };

@@ -2,25 +2,23 @@ import styled from "styled-components";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import TableBillItem from "./TableBillItem";
 import { OrderItem, OrderStatus } from "@pages/liveorder_v2/types";
-// import { useMemo } from "react";
-// import { ORDER_DELETE_TIME } from "@constants/timeConstant";
 
 interface TableBillProps {
   orders: OrderItem[];
   onOrderStatusChange: (orderId: number, newStatus: OrderStatus) => void;
   isFadingOut?: boolean;
-  // currentTime: number;
 }
 
 const TableBill = ({
   orders,
   onOrderStatusChange,
   isFadingOut,
-}: // currentTime,
-TableBillProps) => {
+}: TableBillProps) => {
   // 모든 주문이 served면 컴포넌트 렌더링하지 않음
   const isFullyServed = orders.every((order) => order.status === "served");
-  if (isFullyServed) return null;
+
+  // [수정] 페이드아웃 중일 때는 null 반환하지 않음
+  if (isFullyServed && !isFadingOut) return null;
 
   // 시간순 정렬
   const sortedItems = [...orders].sort(
