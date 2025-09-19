@@ -67,7 +67,9 @@ const OrderStateBtn = ({
       onStatusChange(nextStatus);
     }
   };
-  const handleTouchStart = () => {
+  const handleTouchStart = (e: React.TouchEvent) => {
+    // 이 코드가 0.3초 뒤에 발생할 ghost click 이벤트를 원천 차단합니다.
+    e.preventDefault();
     if (nextStatus) {
       onStatusChange(nextStatus);
     }
