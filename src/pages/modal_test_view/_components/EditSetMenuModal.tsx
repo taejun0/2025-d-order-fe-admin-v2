@@ -59,6 +59,11 @@ const EditSetMenuModal = ({
     else setButtonDisable(true);
   }, [name, price, setItems]);
 
+  const getSelectedMenuIds = () => {
+    return setItems
+      .map((item) => item.menuId)
+      .filter((id): id is number => id !== null);
+  };
   const handleAddSetItem = () => {
     setSetItems((prev) => [
       ...prev,
@@ -246,6 +251,7 @@ const EditSetMenuModal = ({
                 amount={it.amount}
                 onChangeAmount={(val) => handleChangeAmount(idx, val)}
                 onRemove={() => handleRemoveItem(idx)}
+                selectedMenuIds={getSelectedMenuIds()}
               />
             ))}
           </S.ele>
