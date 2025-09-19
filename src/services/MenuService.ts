@@ -1,6 +1,7 @@
 import { AxiosResponse } from "axios";
 import { instance } from "./instance";
 import { BoothMenuData, Menu } from "../pages/menu/Type/Menu_type";
+import { MenuRegistResponse } from "./MenuServiceWithImg";
 
 // Define precise response shapes per endpoint
 interface GetMenuListResponse {
@@ -75,18 +76,22 @@ const MenuService = {
 
   // 세트메뉴 수정
   editSetMenu: async (
-    id: number,
-    payload: {
-      set_name: string;
-      set_description: string;
-      set_price: number | string;
-      menu_items: { menu_id: number; quantity: number }[];
-    }
-  ): Promise<void> => {
+    set_menu_id: number,
+    formData: FormData
+  ): Promise<MenuRegistResponse> => {
     try {
-      await instance.patch(`/api/v2/booth/setmenus/${id}/`, payload);
+      const response = await instance.patch<MenuRegistResponse>(
+        `/api/v2/booth/setmenus/${set_menu_id}/`,
+        formData
+      );
+      return response.data;
     } catch (error) {
-      throw error;
+      return {
+        status: "error",
+        message: "세트 메뉴 수정에 실패했습니다.",
+        code: 500,
+        data: null,
+      };
     }
   },
 
