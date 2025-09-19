@@ -101,21 +101,22 @@ export const useLiveOrderStore = create<LiveOrderState>()(
           );
           set({ orders: ordersAfterItemServed });
 
-          const tableNum = targetOrder.table_num;
-          const tableOrders = get().orders.filter(
-            (o) => o.table_num === tableNum
+          // --- [수정] order_id 기준으로 그룹의 모든 주문이 served면 페이드아웃 후 제거 ---
+          const orderGroupId = targetOrder.order_id;
+          const groupOrders = get().orders.filter(
+            (o) => o.order_id === orderGroupId
           );
-          const isTableFullyServed = tableOrders.every(
+          const isGroupFullyServed = groupOrders.every(
             (o) => o.status === "served"
           );
-          if (isTableFullyServed) {
+          if (isGroupFullyServed) {
             set((state) => ({
-              fadingOutTables: new Set(state.fadingOutTables).add(tableNum),
+              fadingOutTables: new Set(state.fadingOutTables).add(orderGroupId),
             }));
             await delay(ANIMATION_DURATION);
             set((state) => {
               const newSet = new Set(state.fadingOutTables);
-              newSet.delete(tableNum);
+              newSet.delete(orderGroupId);
               return { fadingOutTables: newSet };
             });
           }
