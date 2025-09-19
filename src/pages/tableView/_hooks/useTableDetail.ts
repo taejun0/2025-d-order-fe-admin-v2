@@ -1,4 +1,3 @@
-// tableView/_hooks/useTableDetail.ts
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   getTableDetail,
@@ -8,7 +7,7 @@ import {
 
 import {
   updateOrderQuantity as apiCancelItems,
-  type CancelItem,
+  type CancelBatchItem,        // ⬅️ 변경: CancelItem → CancelBatchItem
   type CancelOrderResponse,
 } from "../_apis/updateOrderQuantity";
 
@@ -39,9 +38,14 @@ export const useTableDetail = (tableNum: number) => {
     if (Number.isFinite(tableNum)) fetchDetail();
   }, [fetchDetail, tableNum]);
 
+  /**
+   * ⬇️ 변경 포인트
+   * - 기존: (orderId, items: CancelItem[]) → /orders/{order_id}/ PATCH
+   * - 신규: (batches: CancelBatchItem[]) → /orders/cancel/ PATCH
+   */
   const cancelItems = useCallback(
-    async (orderId: number, items: CancelItem[]): Promise<CancelOrderResponse> => {
-      const res = await apiCancelItems(orderId, items);
+    async (batches: CancelBatchItem[]): Promise<CancelOrderResponse> => {
+      const res = await apiCancelItems(batches);
 
       if (res?.status === "success" && res?.data) {
         const { order_amount_after, updated_items } = res.data;
@@ -51,10 +55,9 @@ export const useTableDetail = (tableNum: number) => {
 
           const nextOrders: OrderDetail[] = [...prev.orders];
 
-          // ...생략...
+          // 서버에서 내려준 updated_items 기준으로 수량/삭제 반영
           if (Array.isArray(updated_items)) {
             updated_items.forEach((u: any) => {
-              // ✅ 서버가 내려주는 항목 식별자 후보 (ordermenu_id 추가)
               const uItemId: number | undefined =
                 typeof u.order_item_id === "number" ? u.order_item_id :
                 typeof u.ordermenu_id === "number" ? u.ordermenu_id :
@@ -66,10 +69,12 @@ export const useTableDetail = (tableNum: number) => {
                 typeof u.order_id === "number" ? u.order_id : undefined;
 
               const uMenuName: string | undefined =
-                typeof u.menu_name === "string" ? u.menu_name : undefined;
+                typeof u.menu_name === "string" ? u.menu_name :
+                typeof u.set_name === "string" ? u.set_name :
+                undefined;
 
-              // 1순위: order_item_id(=ordermenu_id 등)로 매칭
               let idx = -1;
+              // 1순위: 개별 항목 PK 매칭
               if (uItemId != null) {
                 idx = nextOrders.findIndex((o) => o.order_item_id === uItemId);
               }
@@ -79,11 +84,11 @@ export const useTableDetail = (tableNum: number) => {
                   (o) => o.order_id === uOrderId && o.menu_name === uMenuName
                 );
               }
-              // 3순위: order_id만
+              // 3순위: order_id
               if (idx < 0 && uOrderId != null) {
                 idx = nextOrders.findIndex((o) => o.order_id === uOrderId);
               }
-              // 4순위: menu_name만 (충돌 가능성 주의)
+              // 4순위: menu_name (충돌 가능성 주의)
               if (idx < 0 && uMenuName) {
                 idx = nextOrders.findIndex((o) => o.menu_name === uMenuName);
               }
@@ -105,7 +110,6 @@ export const useTableDetail = (tableNum: number) => {
               }
             });
           }
-
 
           return {
             ...prev,
@@ -131,7 +135,6 @@ export const useTableDetail = (tableNum: number) => {
     errorMsg,
     hasOrders,
     refetch: fetchDetail,
-    // resetTable,
-    cancelItems,
+    cancelItems, // ⬅️ 이제 (batches: CancelBatchItem[])를 받습니다.
   };
 };

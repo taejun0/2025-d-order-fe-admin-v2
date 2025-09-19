@@ -48,11 +48,15 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
 
   // 세트 구성 항목 상태
   const [setItems, setSetItems] = useState<SetItem[]>([]);
-
+  const getSelectedMenuIds = () => {
+    return setItems
+      .map((item) => item.menuId)
+      .filter((id): id is number => id !== null);
+  };
   const handleAddSetItem = () => {
     setSetItems((prev) => [
       ...prev,
-      { menuId: null, menuName: "", amount: 1, isOpen: true },
+      { menuId: null, menuName: "", amount: 1, isOpen: false },
     ]);
   };
 
@@ -70,9 +74,12 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
     );
   };
 
-  const handleToggleOpen = (idx: number, value: boolean) => {
+  const handleToggleOpen = (idx: number) => {
     setSetItems((prev) =>
-      prev.map((it, i) => (i === idx ? { ...it, isOpen: value } : it))
+      prev.map((it, i) => ({
+        ...it,
+        isOpen: i === idx ? !it.isOpen : false,
+      }))
     );
   };
 
@@ -318,12 +325,7 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
                 <MenuDropdown
                   key={idx}
                   isOpen={it.isOpen}
-                  setIsOpen={(v) =>
-                    handleToggleOpen(
-                      idx,
-                      typeof v === "boolean" ? v : !it.isOpen
-                    )
-                  }
+                  setIsOpen={() => handleToggleOpen(idx)}
                   boothMenuData={boothMenuData}
                   selectedId={it.menuId}
                   selectedName={it.menuName}
@@ -333,6 +335,7 @@ const MenuModal = ({ handleCloseModal, boothMenuData }: MenuModalProps) => {
                   amount={it.amount}
                   onChangeAmount={(val) => handleChangeAmount(idx, val)}
                   onRemove={() => handleRemoveItem(idx)}
+                  selectedMenuIds={getSelectedMenuIds()}
                 />
               ))}
             </S.ele>

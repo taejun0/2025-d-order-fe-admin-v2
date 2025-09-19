@@ -17,7 +17,6 @@ export const CouponDetail = ({ couponId, setSelectedCouponId }: Props) => {
   const [showDelete, setShowDelete] = useState(false);
   const { detail: detailData } = useCouponDetail(couponId);
   const { codes } = useCouponCode(couponId);
-
   const handleCancel = () => {
     setShowDelete(false);
   };
@@ -62,7 +61,9 @@ export const CouponDetail = ({ couponId, setSelectedCouponId }: Props) => {
               />
               <DetailData
                 DataTitle="할인 유형"
-                DataContent={detailData?.discount_type}
+                DataContent={
+                  detailData?.discount_type === "amount" ? "가격" : "할인율(%)"
+                }
               />
               <DetailData
                 DataTitle="할인율"
@@ -70,7 +71,7 @@ export const CouponDetail = ({ couponId, setSelectedCouponId }: Props) => {
               />
               <DetailData
                 DataTitle="수량"
-                DataContent={`${detailData?.unused_count}/${detailData?.quantity}`}
+                DataContent={`${detailData?.remaining_count}/${detailData?.total_count}`}
               />
             </S.DataContainer>
             <S.BottomContainer>
@@ -86,9 +87,10 @@ export const CouponDetail = ({ couponId, setSelectedCouponId }: Props) => {
         <S.DeleteBtn onClick={() => setShowDelete(true)}>쿠폰 삭제</S.DeleteBtn>
       </S.DetailContainer>
       <S.CouponList>
-        {codes.map((c) => (
-          <CouponItem key={c.code} code={c.code} isUsed={c.is_used} />
-        ))}
+        {codes.map((c) => {
+          console.log(c.is_used);
+          return <CouponItem key={c.code} code={c.code} isUsed={c.is_used} />;
+        })}
       </S.CouponList>
       {showDelete && (
         <DeleteModal

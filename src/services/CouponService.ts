@@ -20,6 +20,8 @@ export interface Coupon {
   discount_value: number;
   is_used: boolean;
   created_at: string;
+  total_count: number;
+  remaining_count: number;
 }
 
 export interface getCouponListResponse {
@@ -38,6 +40,8 @@ export interface CouponDetail {
   used_count: number;
   unused_count: number;
   created_at: string;
+  total_count: number;
+  remaining_count: number;
 }
 export interface getCouponDetailResponse {
   status: string;

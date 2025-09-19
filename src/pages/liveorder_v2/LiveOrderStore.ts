@@ -27,6 +27,7 @@ interface LiveOrderState {
   fadingOutTables: Set<number>;
   webSocketService: LiveOrderWebSocketService | null;
   accessToken: string | null;
+  pendingOrderUpdates: Set<number>; // 충돌 방지를 위한 '잠금' 상태
 
   setOrders: (orders: OrderItem[]) => void;
   setMenuList: (menuNames: string[]) => void;
@@ -50,26 +51,37 @@ export const useLiveOrderStore = create<LiveOrderState>()(
     fadingOutTables: new Set(),
     webSocketService: null,
     accessToken: null,
+    pendingOrderUpdates: new Set(), // 잠금 Set 초기화
 
     setOrders: (orders) => set({ orders }),
     setMenuList: (menuNames) => set({ menuList: ["전체", ...menuNames] }),
     setViewMode: (mode) => set({ viewMode: mode }),
 
     updateOrderStatusWithAnimation: async (orderId, newStatus) => {
+      // 1. 중복 클릭 방지
+      if (get().pendingOrderUpdates.has(orderId)) {
+        console.log(`🟡 Order ${orderId} update is already in progress.`);
+        return;
+      }
+
       // ... 이 함수의 기존 로직은 변경되지 않았습니다 ...
       const targetOrder = get().orders.find((o) => o.id === orderId);
       if (!targetOrder) return;
       const currentStatus = targetOrder.status;
       try {
+        // 2. '잠금' 시작
+        set((state) => ({
+          pendingOrderUpdates: new Set(state.pendingOrderUpdates).add(orderId),
+        }));
+
         if (currentStatus === "pending" && newStatus === "cooked") {
           await updateOrderToCooked(orderId);
         } else if (currentStatus === "cooked" && newStatus === "served") {
           await updateOrderToServed(orderId);
         } else if (currentStatus === "served" && newStatus === "cooked") {
           await revertOrderStatus(orderId, "cooked");
-        } else if (currentStatus === "cooked" && newStatus === "pending") {
-          await revertOrderStatus(orderId, "pending");
         }
+
         if (newStatus === "served") {
           set((state) => ({
             orders: state.orders.map((order) =>
@@ -88,21 +100,23 @@ export const useLiveOrderStore = create<LiveOrderState>()(
               : order
           );
           set({ orders: ordersAfterItemServed });
-          const tableNum = targetOrder.table_num;
-          const tableOrders = get().orders.filter(
-            (o) => o.table_num === tableNum
+
+          // --- [수정] order_id 기준으로 그룹의 모든 주문이 served면 페이드아웃 후 제거 ---
+          const orderGroupId = targetOrder.order_id;
+          const groupOrders = get().orders.filter(
+            (o) => o.order_id === orderGroupId
           );
-          const isTableFullyServed = tableOrders.every(
+          const isGroupFullyServed = groupOrders.every(
             (o) => o.status === "served"
           );
-          if (isTableFullyServed) {
+          if (isGroupFullyServed) {
             set((state) => ({
-              fadingOutTables: new Set(state.fadingOutTables).add(tableNum),
+              fadingOutTables: new Set(state.fadingOutTables).add(orderGroupId),
             }));
             await delay(ANIMATION_DURATION);
             set((state) => {
               const newSet = new Set(state.fadingOutTables);
-              newSet.delete(tableNum);
+              newSet.delete(orderGroupId);
               return { fadingOutTables: newSet };
             });
           }
@@ -115,6 +129,13 @@ export const useLiveOrderStore = create<LiveOrderState>()(
         }
       } catch (error) {
         console.error(`🔴 주문 상태 변경 실패: ${error}`);
+      } finally {
+        // 🚨 [가장 중요한 수정] 작업이 성공하든 실패하든 반드시 잠금을 해제합니다.
+        set((state) => {
+          const newSet = new Set(state.pendingOrderUpdates);
+          newSet.delete(orderId);
+          return { pendingOrderUpdates: newSet };
+        });
       }
     },
 
@@ -124,10 +145,28 @@ export const useLiveOrderStore = create<LiveOrderState>()(
 
       const updateStoreCallback = (message: LiveOrderWebSocketMessage) => {
         // message.data.orders가 없는 경우를 방어
-        if (!message.data?.orders) return;
+        // if (!message.data?.orders) return;
+        // ORDER_UPDATE 메시지에서 orders가 배열이 아닐 수도 있으므로 배열로 변환
+        let apiOrders: any[] = [];
+        if (message.type === "ORDER_UPDATE") {
+          const data = message.data as any;
+          // 새로운 주문 추가(여러 개): orders 배열로 오면 배열로 처리
+          if (Array.isArray(data.orders)) {
+            apiOrders = data.orders;
+          }
+          // 상태 변경(단일): 단일 객체로 오면 배열로 변환
+          else if (data.ordermenu_id) {
+            apiOrders = [data];
+          }
+        } else if (message.type === "ORDER_SNAPSHOT") {
+          apiOrders = message.data.orders;
+        }
+        if (!apiOrders || apiOrders.length === 0) return;
+
+        const incomingOrders = mapApiOrdersToOrderItems(apiOrders);
 
         // API 응답 데이터를 UI에서 사용하는 OrderItem[] 형태로 변환
-        const incomingOrders = mapApiOrdersToOrderItems(message.data.orders);
+        // const incomingOrders = mapApiOrdersToOrderItems(message.data.orders);
 
         if (message.type === "ORDER_SNAPSHOT") {
           // --- 📸 스냅샷: 모든 주문 데이터를 교체합니다. ---
@@ -147,16 +186,21 @@ export const useLiveOrderStore = create<LiveOrderState>()(
         } else if (message.type === "ORDER_UPDATE") {
           // --- 🔄 업데이트: 기존 주문 데이터에 변경사항을 병합합니다. ---
           console.log("🔄 ORDER_UPDATE 수신", incomingOrders);
+
           set((state) => {
             const orderMap = new Map(
               state.orders.map((order) => [order.id, order])
             );
-
-            // 새로 들어온 주문으로 기존 데이터를 덮어쓰거나 추가
+            const pendingUpdates = state.pendingOrderUpdates;
             incomingOrders.forEach((order) => {
-              orderMap.set(order.id, { ...orderMap.get(order.id), ...order });
+              if (pendingUpdates.has(order.id)) return;
+              // 기존 주문이면 병합, 없으면 추가
+              if (orderMap.has(order.id)) {
+                orderMap.set(order.id, { ...orderMap.get(order.id), ...order });
+              } else {
+                orderMap.set(order.id, order);
+              }
             });
-
             const mergedOrders = Array.from(orderMap.values());
             const sortedOrders = mergedOrders.sort(
               (a, b) =>

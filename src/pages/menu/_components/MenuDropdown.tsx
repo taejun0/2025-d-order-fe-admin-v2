@@ -1,11 +1,10 @@
-import { useEffect } from "react";
 import * as S from "./MenuDropdown.styled";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { BoothMenuData } from "../Type/Menu_type";
 
 interface MenuDropDownProps {
   isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsOpen: () => void;
   boothMenuData: BoothMenuData | undefined;
   selectedId: number | null;
   selectedName: string;
@@ -13,6 +12,7 @@ interface MenuDropDownProps {
   amount: number;
   onChangeAmount: (value: number) => void;
   onRemove: () => void;
+  selectedMenuIds: number[];
 }
 
 const MenuDropdown = ({
@@ -25,6 +25,7 @@ const MenuDropdown = ({
   amount,
   onChangeAmount,
   onRemove,
+  selectedMenuIds,
 }: MenuDropDownProps) => {
   const mainMenus =
     boothMenuData?.menus.filter((menu) => menu.menu_category === "메뉴") ?? [];
@@ -33,12 +34,19 @@ const MenuDropdown = ({
     boothMenuData?.menus.filter((menu) => menu.menu_category === "음료") ?? [];
 
   const handleToggle = () => {
-    if (selectedId !== null) return; // 선택 후에는 다시 열지 않음
-    setIsOpen(!isOpen);
+    if (selectedId !== null) return;
+    setIsOpen();
   };
-  useEffect(() => {
-    // debug
-  }, [mainMenus, drinksMenus]);
+
+  const isMenuDisabled = (menuId: number) => {
+    return selectedMenuIds.includes(menuId);
+  };
+
+  const handleMenuSelect = (menuId: number, menuName: string) => {
+    if (isMenuDisabled(menuId)) return;
+    onChangeSelected(menuId, menuName);
+  };
+
   return (
     <S.Wrapper>
       {selectedId === null ? (
@@ -60,9 +68,9 @@ const MenuDropdown = ({
           {mainMenus.map((menu) => (
             <S.Option
               key={menu.menu_id}
+              className={isMenuDisabled(menu.menu_id) ? "disabled" : ""}
               onClick={() => {
-                onChangeSelected(menu.menu_id, menu.menu_name);
-                setIsOpen(false);
+                handleMenuSelect(menu.menu_id, menu.menu_name);
               }}
             >
               {menu.menu_name}
@@ -72,9 +80,9 @@ const MenuDropdown = ({
           {drinksMenus.map((menu) => (
             <S.Option
               key={menu.menu_id}
+              className={isMenuDisabled(menu.menu_id) ? "disabled" : ""}
               onClick={() => {
-                onChangeSelected(menu.menu_id, menu.menu_name);
-                setIsOpen(false);
+                handleMenuSelect(menu.menu_id, menu.menu_name);
               }}
             >
               {menu.menu_name}

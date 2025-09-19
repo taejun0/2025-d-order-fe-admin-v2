@@ -5,7 +5,7 @@ export const MenuListWrapper = styled.div`
   display: flex;
   flex-direction: column;
   width: 65%;
-  height: calc(var(--vh, 1vh) * 88);
+  height: calc(var(--vh, 1vh) * 90);
   border-radius: 10px;
   background-color: ${({ theme }) => theme.colors.Gray01};
 
