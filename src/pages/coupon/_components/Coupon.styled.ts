@@ -249,29 +249,17 @@ export const CardImg = styled.div`
   height: 154px;
   border-radius: 10px;
   background-color: ${({ theme }) => theme.colors.Bg};
-  & img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 10px;
-  }
-`;
-export const DefaultCardImg = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  width: 154px;
-  height: 154px;
-
-  border-radius: 10px;
-  background-color: ${({ theme }) => theme.colors.Bg};
-
+  overflow: hidden;
   & img {
     width: 140px;
-    height: auto;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 10px;
+    transform: scale(1.3);
+    transform-origin: center center;
   }
 `;
+
 // 새로운 삭제 버튼 스타일 추가
 export const DeleteBtn = styled.button`
   z-index: 12;
