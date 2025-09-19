@@ -132,6 +132,24 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
     const [showResetModal, setShowResetModal] = useState(false);
     const [tableDetailData, setTableDetailData] = useState<LegacyDetail>(initial);
 
+    // ✅ 원가 합계 계산 (단가 * 수량)
+    const originalTotal = useMemo(() => {
+        try {
+        return (tableDetailData.orders ?? []).reduce((sum, o) => {
+            const unit = Number(o.menu_price) || 0;
+            const qty = Number(o.menu_num) || 0;
+            return sum + unit * qty;
+        }, 0);
+        } catch {
+        return 0;
+        }
+    }, [tableDetailData.orders]);
+
+    // ✅ 부동소수 오차 방지를 위해 반올림 비교
+    const hasDiscount = useMemo(() => {
+        return Math.round(originalTotal) !== Math.round(tableDetailData.table_price ?? 0);
+    }, [originalTotal, tableDetailData.table_price]);
+
     const refetchTableDetail = useCallback(async () => {
         try {
         const response = await getTableDetail(tableDetailData.table_num);
@@ -161,8 +179,16 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
 
             <S.DivideLine />
 
+            {/* ✅ 총액/할인 표시: 다를 때만 원가 + 안내문 + 총액 */}
             <S.TotalPrice>
             <p>💸총 주문금액</p>
+            {hasDiscount && (
+                <>
+                <p className="original">
+                    <del>{originalTotal.toLocaleString()}원</del>
+                </p>
+                </>
+            )}
             <p className="total">{tableDetailData.table_price.toLocaleString()}원</p>
             </S.TotalPrice>
 
@@ -242,7 +268,7 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
                     return;
                 }
 
-                // 🔴 type 정규화: 'setmenu' → 'set', 그 외는 'menu'
+                // type 정규화: 'setmenu' → 'set', 그 외는 'menu'
                 const rawType = (order.type ?? "").toString().toLowerCase();
                 const kind: "menu" | "set" =
                     rawType === "set" || rawType === "setmenu" ? "set" : "menu";
@@ -256,9 +282,9 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
                     // 복수 PK가 제공되는 라인: 선택 수량만큼 앞에서 잘라 보냄
                     const ids = order.ids.slice(0, wanted);
                     batch = {
-                    type: kind,                 // ✅ setmenu → set으로 변환되어 전송
+                    type: kind,                 // setmenu → set으로 변환되어 전송
                     order_item_ids: ids,
-                    quantity: wanted,           // ✅ 선택한 개수만큼 한 번에 취소
+                    quantity: wanted,           // 선택한 개수만큼 한 번에 취소
                     };
                     console.log("[Confirm] (복수ID) 보낼 IDs:", ids, "payload.quantity:", wanted);
                 } else if (order.id) {
@@ -278,6 +304,17 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
 
                 console.log("[Confirm] 최종 취소 payload:", { cancel_items: [batch] });
                 const res = await updateOrderQuantity([batch]);
+
+                // 상태별 처리 (서빙 완료 등)
+                if (res?.status === "error" && res?.code === 400) {
+                    if ((res as any)?.data?.reason === "not_enough_cancellable_due_to_served_or_status") {
+                    alert("서빙이 완료되어 주문을 취소할 수 없습니다.");
+                    } else {
+                    alert(res?.message ?? "주문 취소 중 오류가 발생했습니다.");
+                    }
+                    setConfirmInfo(null);
+                    return;
+                }
 
                 if (res?.status === "success") {
                     const updated = res?.data?.updated_items ?? [];

@@ -83,6 +83,11 @@ export const TotalPrice = styled.div`
     font-weight: 700;
     color: ${({theme}) => theme.colors.Black01};
     
+    .original{
+        color: ${({theme}) => theme.colors.Black02};
+        ${({ theme }) => css(theme.fonts.Medium16)};
+
+    }
     .total{
         color: ${({theme}) => theme.colors.Orange01};
     }
