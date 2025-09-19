@@ -192,13 +192,26 @@ export const useLiveOrderStore = create<LiveOrderState>()(
               state.orders.map((order) => [order.id, order])
             );
             const pendingUpdates = state.pendingOrderUpdates;
+
+            // 🔥 크롬 대응: 모든 incomingOrders에 대해 잠금 해제 체크
+            const newPendingUpdates = new Set(pendingUpdates);
+            let hasRevertSuccess = false;
+
             incomingOrders.forEach((order) => {
-              // �� 핵심 수정: "서빙완료→조리완료" 되돌리기 케이스는 잠금 무시
+              // 되돌리기 성공 케이스 체크 (서빙완료→조리완료)
               const isRevertFromServed =
                 orderMap.has(order.id) &&
                 orderMap.get(order.id)?.status === "served" &&
                 order.status === "cooked";
 
+              // 🔥 핵심: 되돌리기 성공이면 잠금 해제
+              if (isRevertFromServed && pendingUpdates.has(order.id)) {
+                newPendingUpdates.delete(order.id);
+                hasRevertSuccess = true;
+                console.log(`�� 되돌리기 성공으로 잠금 해제: ${order.id}`);
+              }
+
+              // 일반적인 잠금 체크 (되돌리기가 아닌 경우만)
               if (pendingUpdates.has(order.id) && !isRevertFromServed) return;
 
               // 기존 주문이면 병합, 없으면 추가
@@ -209,30 +222,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
               }
             });
 
-            // 🔥 추가: 되돌리기 성공 시 잠금 해제
-            if (
-              incomingOrders.some(
-                (order) =>
-                  orderMap.has(order.id) &&
-                  orderMap.get(order.id)?.status === "cooked" &&
-                  pendingUpdates.has(order.id)
-              )
-            ) {
-              const newPendingUpdates = new Set(pendingUpdates);
-              incomingOrders.forEach((order) => {
-                if (order.status === "cooked") {
-                  newPendingUpdates.delete(order.id);
-                }
-              });
-              return {
-                orders: Array.from(orderMap.values()).sort(
-                  (a, b) =>
-                    new Date(a.created_at).getTime() -
-                    new Date(b.created_at).getTime()
-                ),
-                pendingOrderUpdates: newPendingUpdates,
-              };
-            }
             const mergedOrders = Array.from(orderMap.values());
             const sortedOrders = mergedOrders.sort(
               (a, b) =>
