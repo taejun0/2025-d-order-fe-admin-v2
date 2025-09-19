@@ -224,7 +224,10 @@ export const useLiveOrderStore = create<LiveOrderState>()(
                 new Date(a.created_at).getTime() -
                 new Date(b.created_at).getTime()
             );
-            return { orders: sortedOrders };
+            return {
+              orders: sortedOrders,
+              pendingOrderUpdates: newPendingUpdates,
+            };
           });
         }
       };
