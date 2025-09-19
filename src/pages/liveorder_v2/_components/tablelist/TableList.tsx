@@ -19,10 +19,6 @@ const TableList = () => {
           const orderId = tableOrders[0].order_id;
           const earliestCreatedAt = tableOrders[0].created_at;
           const key = `${orderId}-${earliestCreatedAt}`;
-          // 그룹 내 첫 번째 주문의 ID와 테이블 번호를 사용
-          // const firstOrder = tableOrders[0];
-          // const tableNum = firstOrder.table_num;
-          // const key = `${tableNum}-${firstOrder.created_at}`;
 
           return (
             <TableBill
