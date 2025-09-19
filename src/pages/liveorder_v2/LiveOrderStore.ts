@@ -58,21 +58,29 @@ export const useLiveOrderStore = create<LiveOrderState>()(
     setViewMode: (mode) => set({ viewMode: mode }),
 
     updateOrderStatusWithAnimation: async (orderId, newStatus) => {
-      // 1. 중복 클릭 방지
-      if (get().pendingOrderUpdates.has(orderId)) {
+      const targetOrder = get().orders.find((o) => o.id === orderId);
+      if (!targetOrder) return;
+      const currentStatus = targetOrder.status;
+
+      // �� 핵심 수정: "서빙완료→조리완료" 되돌리기는 잠금 체크 제외
+      const isRevertFromServed =
+        currentStatus === "served" && newStatus === "cooked";
+
+      // 되돌리기가 아닌 경우만 중복 클릭 방지
+      if (!isRevertFromServed && get().pendingOrderUpdates.has(orderId)) {
         console.log(`🟡 Order ${orderId} update is already in progress.`);
         return;
       }
 
-      // ... 이 함수의 기존 로직은 변경되지 않았습니다 ...
-      const targetOrder = get().orders.find((o) => o.id === orderId);
-      if (!targetOrder) return;
-      const currentStatus = targetOrder.status;
       try {
-        // 2. '잠금' 시작
-        set((state) => ({
-          pendingOrderUpdates: new Set(state.pendingOrderUpdates).add(orderId),
-        }));
+        // 되돌리기가 아닌 경우만 잠금 설정
+        if (!isRevertFromServed) {
+          set((state) => ({
+            pendingOrderUpdates: new Set(state.pendingOrderUpdates).add(
+              orderId
+            ),
+          }));
+        }
 
         if (currentStatus === "pending" && newStatus === "cooked") {
           await updateOrderToCooked(orderId);
