@@ -24,7 +24,7 @@ export default function Top3Section({ items }: Props) {
               <S.MenuCard key={`${m.name || 'no-name'}-${idx}`}>
                 <S.RankingImage src={rankImg[rank]} />
                 <S.Image
-                  src={m.image || DefaultImage}
+                  src={m.imageUrl || DefaultImage}
                   onError={(e) => (e.currentTarget.src = DefaultImage)}
                   alt={m.name}
                 />

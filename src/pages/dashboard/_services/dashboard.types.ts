@@ -73,7 +73,7 @@ export type LowStockItem = {
 
 export type TopMenuItem = {
   name: string;
-  image: string;
+  imageUrl?: string;
   price: number;
   quantity: number;
 };

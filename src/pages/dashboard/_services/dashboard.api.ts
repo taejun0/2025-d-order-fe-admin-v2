@@ -21,6 +21,6 @@ export async function fetchDashboard(): Promise<DashboardResponse> {
     headers: { 'Booth-ID': boothId },
   });
 
-  console.log('[REST] GET', REST_ENDPOINT, res.status);
+  console.log('[REST] GET', REST_ENDPOINT, res);
   return res.data as DashboardResponse;
 }
