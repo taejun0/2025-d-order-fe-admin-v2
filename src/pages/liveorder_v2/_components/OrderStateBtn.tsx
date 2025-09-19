@@ -72,8 +72,7 @@ const OrderStateBtn = ({
 
   return (
     <Btn
-      onClick={handleClick}
-      onTouchEnd={handleClick}
+      onPointerDown={handleClick}
       $orderStatus={status}
       $isBill={isBill}
       $isDisabled={isDisabled}
