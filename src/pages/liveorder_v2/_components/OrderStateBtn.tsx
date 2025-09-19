@@ -67,12 +67,18 @@ const OrderStateBtn = ({
       onStatusChange(nextStatus);
     }
   };
+  const handleTouchStart = () => {
+    if (nextStatus) {
+      onStatusChange(nextStatus);
+    }
+  };
 
   const { text, icon } = STATUS_CONFIG[status];
 
   return (
     <Btn
       onClick={handleClick}
+      onTouchStart={handleTouchStart}
       $orderStatus={status}
       $isBill={isBill}
       $isDisabled={isDisabled}
@@ -103,7 +109,8 @@ const Btn = styled.button<BtnProps>`
 
   border-radius: 24.427px;
   border: none; // border 추가
-
+  touch-action: manipulation;
+  z-index: 10;
   background: ${({ $orderStatus, theme }) => {
     switch ($orderStatus) {
       case "pending":

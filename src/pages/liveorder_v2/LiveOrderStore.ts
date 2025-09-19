@@ -79,6 +79,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
         } else if (currentStatus === "cooked" && newStatus === "served") {
           await updateOrderToServed(orderId);
         } else if (currentStatus === "served" && newStatus === "cooked") {
+          console.log("서빙완료 → 조리완료 revertOrderStatus 호출");
           await revertOrderStatus(orderId, "cooked");
         }
 
@@ -136,6 +137,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
           newSet.delete(orderId);
           return { pendingOrderUpdates: newSet };
         });
+        console.log("pendingOrderUpdates 해제됨:", orderId);
       }
     },
 
@@ -144,8 +146,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
       get().webSocketService?.disconnect();
 
       const updateStoreCallback = (message: LiveOrderWebSocketMessage) => {
-        // message.data.orders가 없는 경우를 방어
-        // if (!message.data?.orders) return;
         // ORDER_UPDATE 메시지에서 orders가 배열이 아닐 수도 있으므로 배열로 변환
         let apiOrders: any[] = [];
         if (message.type === "ORDER_UPDATE") {
