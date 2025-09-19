@@ -166,7 +166,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
         const incomingOrders = mapApiOrdersToOrderItems(apiOrders);
 
         // API 응답 데이터를 UI에서 사용하는 OrderItem[] 형태로 변환
-        // const incomingOrders = mapApiOrdersToOrderItems(message.data.orders);
 
         if (message.type === "ORDER_SNAPSHOT") {
           // --- 📸 스냅샷: 모든 주문 데이터를 교체합니다. ---
