@@ -139,10 +139,12 @@ const Btn = styled.button<BtnProps>`
   & img {
     width: 12px;
     height: 12px;
+    pointer-events: none;
   }
 `;
 
 const BtnText = styled.div`
   white-space: nowrap;
   line-height: 12px;
+  pointer-events: none;
 `;
