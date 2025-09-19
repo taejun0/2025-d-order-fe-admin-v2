@@ -193,7 +193,14 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             );
             const pendingUpdates = state.pendingOrderUpdates;
             incomingOrders.forEach((order) => {
-              if (pendingUpdates.has(order.id)) return;
+              // �� 핵심 수정: "서빙완료→조리완료" 되돌리기 케이스는 잠금 무시
+              const isRevertFromServed =
+                orderMap.has(order.id) &&
+                orderMap.get(order.id)?.status === "served" &&
+                order.status === "cooked";
+
+              if (pendingUpdates.has(order.id) && !isRevertFromServed) return;
+
               // 기존 주문이면 병합, 없으면 추가
               if (orderMap.has(order.id)) {
                 orderMap.set(order.id, { ...orderMap.get(order.id), ...order });
@@ -201,6 +208,31 @@ export const useLiveOrderStore = create<LiveOrderState>()(
                 orderMap.set(order.id, order);
               }
             });
+
+            // 🔥 추가: 되돌리기 성공 시 잠금 해제
+            if (
+              incomingOrders.some(
+                (order) =>
+                  orderMap.has(order.id) &&
+                  orderMap.get(order.id)?.status === "cooked" &&
+                  pendingUpdates.has(order.id)
+              )
+            ) {
+              const newPendingUpdates = new Set(pendingUpdates);
+              incomingOrders.forEach((order) => {
+                if (order.status === "cooked") {
+                  newPendingUpdates.delete(order.id);
+                }
+              });
+              return {
+                orders: Array.from(orderMap.values()).sort(
+                  (a, b) =>
+                    new Date(a.created_at).getTime() -
+                    new Date(b.created_at).getTime()
+                ),
+                pendingOrderUpdates: newPendingUpdates,
+              };
+            }
             const mergedOrders = Array.from(orderMap.values());
             const sortedOrders = mergedOrders.sort(
               (a, b) =>
