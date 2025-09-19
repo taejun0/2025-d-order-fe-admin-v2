@@ -19,8 +19,10 @@ type Props = {
   setPubStage: React.Dispatch<React.SetStateAction<number>>;
 };
 
-const isValidPubName = (name: string) =>
-  /^[가-힣a-zA-Z0-9]{1,20}$/.test(name.trim());
+const isValidPubName = (name: string) => {
+  const trimmed = name.trim();
+  return /^[가-힣a-zA-Z0-9 ]{1,20}$/.test(trimmed);
+};
 const isValidTableCount = (value: string) => {
   const number = Number(value);
   return Number.isInteger(number) && number >= 1 && number <= 100;
