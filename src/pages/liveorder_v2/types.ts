@@ -3,7 +3,8 @@
 export type OrderStatus = "pending" | "cooked" | "served";
 
 export interface OrderItem {
-  id: number;
+  id: number; // ordermenu_id
+  order_id: number; // 주문 묶음 PK 추가
   menu_name: string;
   menu_num: number;
   table_num: number;
@@ -52,11 +53,18 @@ export interface OrderUpdateMessage {
     orders: ApiOrderItem[]; // 주문 배열을 포함
   };
 }
-
+export interface OrderCompletedMessage {
+  type: "ORDER_COMPLETED";
+  data: {
+    order_id: number;
+    table_num: number;
+  };
+}
 // 웹소켓 메시지 유니온 타입 (NewOrderMessage 삭제)
 export type LiveOrderWebSocketMessage =
   | OrderSnapshotMessage
-  | OrderUpdateMessage;
+  | OrderUpdateMessage
+  | OrderCompletedMessage;
 
 // 테이블리스트 타입
 export interface TableOrder {
@@ -71,6 +79,7 @@ export const mapApiOrdersToOrderItems = (
 ): OrderItem[] => {
   return apiOrders.map((apiOrder) => ({
     id: apiOrder.ordermenu_id, // 기존 id를 ordermenu_id로 매핑
+    order_id: apiOrder.order_id, // 추가
     menu_name: apiOrder.menu_name,
     menu_num: apiOrder.quantity, // 기존 menu_num을 quantity로 매핑
     table_num: apiOrder.table_num,
