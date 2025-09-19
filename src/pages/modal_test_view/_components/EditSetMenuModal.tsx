@@ -7,6 +7,7 @@ import MenuDropdown from "@pages/menu/_components/MenuDropdown";
 import { BoothMenuData, SetMenu } from "@pages/menu/Type/Menu_type";
 import MenuServiceWithImg from "@services/MenuServiceWithImg";
 import { compressImage } from "../_utils/ImageCompress";
+import MenuService from "@services/MenuService";
 
 interface EditSetMenuModalProps {
   handleCloseModal: () => void;
@@ -164,7 +165,7 @@ const EditSetMenuModal = ({
     if (image === null) {
       try {
         formData.append("set_image", "");
-        await MenuServiceWithImg.updateSetMenu(setMenu.set_menu_id, formData);
+        await MenuService.editSetMenu(setMenu.set_menu_id, formData);
         setButtonDisable(false);
         onSuccess();
       } catch (err) {
