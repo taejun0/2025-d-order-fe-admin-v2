@@ -93,7 +93,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
           console.log("서빙완료 → 조리완료 revertOrderStatus 호출");
           await revertOrderStatus(orderId, "cooked");
         }
-
         if (newStatus === "served") {
           set((state) => ({
             orders: state.orders.map((order) =>
@@ -132,6 +131,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             });
           }
         } else {
+          // 모든 경우에 대해 API 호출 성공 후 UI 업데이트
           set({
             orders: get().orders.map((o) =>
               o.id === orderId ? { ...o, status: newStatus } : o

@@ -83,7 +83,7 @@ const OrderStateBtn = ({
 
       // 상태 변경 후 확인
       setTimeout(() => {
-        setDebugInfo(`완료`);
+        setDebugInfo(`완료: ${status}→${nextStatus}`);
       }, 100);
     } catch (error) {
       setDebugInfo("에러발생");
