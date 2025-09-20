@@ -29,7 +29,7 @@ class LiveOrderWebSocketService {
     this.ws.onmessage = (event) => {
       try {
         const message: LiveOrderWebSocketMessage = JSON.parse(event.data);
-        console.log("📥 새로운 메시지 수신:", message);
+        console.log("📥 웹소켓 메시지 원본:", message);
         this.updateStore(message);
       } catch (error) {
         console.error("🔴 메시지 파싱 중 오류 발생:", error);

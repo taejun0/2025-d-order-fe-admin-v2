@@ -6,7 +6,7 @@ import {
   OrderItem,
   OrderStatus,
   LiveOrderWebSocketMessage,
-  mapApiOrdersToOrderItems, // API 응답을 변환하는 헬퍼 함수 임포트
+  mapApiOrdersToOrderItems,
 } from "./types";
 import {
   updateOrderToCooked,
@@ -27,7 +27,7 @@ interface LiveOrderState {
   fadingOutTables: Set<number>;
   webSocketService: LiveOrderWebSocketService | null;
   accessToken: string | null;
-  pendingOrderUpdates: Set<number>; // 충돌 방지를 위한 '잠금' 상태
+  pendingOrderUpdates: Set<number>;
 
   setOrders: (orders: OrderItem[]) => void;
   setMenuList: (menuNames: string[]) => void;
@@ -36,7 +36,6 @@ interface LiveOrderState {
     orderId: number,
     newStatus: OrderStatus
   ) => void;
-  // addNewOrders는 웹소켓 로직에 통합되어 삭제됨
 
   initializeWebSocket: (token: string) => void;
   disconnectWebSocket: () => void;
@@ -51,7 +50,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
     fadingOutTables: new Set(),
     webSocketService: null,
     accessToken: null,
-    pendingOrderUpdates: new Set(), // 잠금 Set 초기화
+    pendingOrderUpdates: new Set(),
 
     setOrders: (orders) => set({ orders }),
     setMenuList: (menuNames) => set({ menuList: ["전체", ...menuNames] }),
@@ -113,7 +112,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
           );
           set({ orders: ordersAfterItemServed });
 
-          // --- [수정] order_id 기준으로 그룹의 모든 주문이 served면 페이드아웃 후 제거 ---
           const orderGroupId = targetOrder.order_id;
           const groupOrders = get().orders.filter(
             (o) => o.order_id === orderGroupId
@@ -153,11 +151,12 @@ export const useLiveOrderStore = create<LiveOrderState>()(
       }
     },
 
-    // --- ✨ 웹소켓 액션 구현 (로직 수정) ---
     initializeWebSocket: (token: string) => {
       get().webSocketService?.disconnect();
 
       const updateStoreCallback = (message: LiveOrderWebSocketMessage) => {
+        // iOS 크롬 감지
+        const isIOSChrome = /CriOS/.test(navigator.userAgent);
         // ORDER_UPDATE 메시지에서 orders가 배열이 아닐 수도 있으므로 배열로 변환
         let apiOrders: any[] = [];
         if (message.type === "ORDER_UPDATE") {
@@ -177,10 +176,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
 
         const incomingOrders = mapApiOrdersToOrderItems(apiOrders);
 
-        // API 응답 데이터를 UI에서 사용하는 OrderItem[] 형태로 변환
-
         if (message.type === "ORDER_SNAPSHOT") {
-          // --- 📸 스냅샷: 모든 주문 데이터를 교체합니다. ---
           console.log("📸 ORDER_SNAPSHOT 수신", incomingOrders);
           const sortedOrders = incomingOrders.sort(
             (a, b) =>
@@ -219,8 +215,9 @@ export const useLiveOrderStore = create<LiveOrderState>()(
                 newPendingUpdates.delete(order.id);
               }
 
-              // 일반적인 잠금 체크 (되돌리기가 아닌 경우만)
-              if (pendingUpdates.has(order.id) && !isRevertFromServed) return;
+              // iOS 크롬이거나 되돌리기가 아닌 경우만 잠금 체크
+              const shouldCheckLock = !isIOSChrome && !isRevertFromServed;
+              if (shouldCheckLock && pendingUpdates.has(order.id)) return;
 
               // 기존 주문이면 병합, 없으면 추가
               if (orderMap.has(order.id)) {
