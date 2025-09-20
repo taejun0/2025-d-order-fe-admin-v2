@@ -57,7 +57,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
     setViewMode: (mode) => set({ viewMode: mode }),
 
     updateOrderStatusWithAnimation: async (orderId, newStatus) => {
-      const isIOSChrome = /CriOS/.test(navigator.userAgent);
       const targetOrder = get().orders.find((o) => o.id === orderId);
       if (!targetOrder) return;
       const currentStatus = targetOrder.status;
@@ -66,24 +65,20 @@ export const useLiveOrderStore = create<LiveOrderState>()(
       const isRevertFromServed =
         currentStatus === "served" && newStatus === "cooked";
 
-      //iOS 크롬이거나 되돌리기인 경우 잠금 체크 완전 스킵
-      const shouldCheckLock = !isIOSChrome && !isRevertFromServed;
-
-      if (shouldCheckLock && get().pendingOrderUpdates.has(orderId)) {
+      // 🔥 핵심 수정: 되돌리기가 아닌 경우는 모든 브라우저에서 잠금 체크
+      if (!isRevertFromServed && get().pendingOrderUpdates.has(orderId)) {
         console.log(`🟡 Order ${orderId} update is already in progress.`);
         return;
       }
 
       try {
-        // iOS 크롬이거나 되돌리기가 아닌 경우만 잠금 설정
-        if (!isIOSChrome && !isRevertFromServed) {
+        if (!isRevertFromServed) {
           set((state) => ({
             pendingOrderUpdates: new Set(state.pendingOrderUpdates).add(
               orderId
             ),
           }));
         }
-
         if (currentStatus === "pending" && newStatus === "cooked") {
           await updateOrderToCooked(orderId);
         } else if (currentStatus === "cooked" && newStatus === "served") {
@@ -140,7 +135,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
       } catch (error) {
         console.error(`🔴 주문 상태 변경 실패: ${error}`);
       } finally {
-        if (!isIOSChrome && !isRevertFromServed) {
+        if (!isRevertFromServed) {
           set((state) => {
             const newSet = new Set(state.pendingOrderUpdates);
             newSet.delete(orderId);
@@ -155,8 +150,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
       get().webSocketService?.disconnect();
 
       const updateStoreCallback = (message: LiveOrderWebSocketMessage) => {
-        // iOS 크롬 감지
-        const isIOSChrome = /CriOS/.test(navigator.userAgent);
         // ORDER_UPDATE 메시지에서 orders가 배열이 아닐 수도 있으므로 배열로 변환
         let apiOrders: any[] = [];
         if (message.type === "ORDER_UPDATE") {
@@ -215,9 +208,8 @@ export const useLiveOrderStore = create<LiveOrderState>()(
                 newPendingUpdates.delete(order.id);
               }
 
-              // iOS 크롬이거나 되돌리기가 아닌 경우만 잠금 체크
-              const shouldCheckLock = !isIOSChrome && !isRevertFromServed;
-              if (shouldCheckLock && pendingUpdates.has(order.id)) return;
+              // 🔥 핵심 수정: 되돌리기가 아닌 경우만 잠금 체크 (iOS 크롬 제외 로직 제거)
+              if (pendingUpdates.has(order.id) && !isRevertFromServed) return;
 
               // 기존 주문이면 병합, 없으면 추가
               if (orderMap.has(order.id)) {
