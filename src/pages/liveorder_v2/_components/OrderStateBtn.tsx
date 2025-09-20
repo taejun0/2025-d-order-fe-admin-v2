@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { useLiveOrderStore, OrderViewMode } from "../LiveOrderStore";
 import { OrderStatus } from "../types";
-
+import { useState } from "react";
 // 1. 상태별 설정 객체 도입 (로직과 UI 분리)
 const STATUS_CONFIG = {
   pending: {
@@ -32,6 +32,8 @@ const OrderStateBtn = ({
   onStatusChange,
 }: OrderStateBtnProps) => {
   const { viewMode } = useLiveOrderStore();
+  // iOS 크롬 대응: 터치 이벤트 최적화
+  const [isProcessing, setIsProcessing] = useState(false);
   // 2. 내부 로직을 영어 타입 기준으로 수정
   const getNextStatus = (
     currentStatus: OrderStatus,
@@ -61,11 +63,33 @@ const OrderStateBtn = ({
   const nextStatus = getNextStatus(status, viewMode);
   const isDisabled = nextStatus === null;
 
-  const handleClick = () => {
-    // 다음 상태가 있을 경우에만 부모에게 알림
-    if (nextStatus) {
+  const handleClick = async () => {
+    // iOS 크롬 대응: 중복 클릭 방지
+    if (isProcessing || !nextStatus) return;
+
+    setIsProcessing(true);
+
+    try {
+      // iOS 크롬 대응: 약간의 지연을 두어 터치 이벤트가 제대로 처리되도록 함
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       onStatusChange(nextStatus);
+    } catch (error) {
+      console.error("OrderStateBtn handleClick error:", error);
+    } finally {
+      // iOS 크롬 대응: 처리 완료 후 상태 리셋
+      setTimeout(() => setIsProcessing(false), 200);
     }
+  };
+
+  // iOS 크롬 대응: 터치 이벤트 핸들러 추가
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    handleClick();
   };
 
   const { text, icon } = STATUS_CONFIG[status];
@@ -73,6 +97,8 @@ const OrderStateBtn = ({
   return (
     <Btn
       onClick={handleClick}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       $orderStatus={status}
       $isBill={isBill}
       $isDisabled={isDisabled}
@@ -105,6 +131,13 @@ const Btn = styled.button<BtnProps>`
   border: none; // border 추가
   touch-action: manipulation;
   z-index: 10;
+
+  // iOS 크롬 대응: 터치 영역 확대
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+
   background: ${({ $orderStatus, theme }) => {
     switch ($orderStatus) {
       case "pending":
