@@ -97,16 +97,9 @@ const OrderStateBtn = ({
     }
   };
 
-  // iOS 크롬 대응: 터치 이벤트 핸들러 추가
-  const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault();
+  // iOS 크롬 대응: 터치 이벤트 핸들러 수정
+  const handleTouchStart = () => {
     setDebugInfo("터치시작");
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    e.preventDefault();
-    setDebugInfo("터치끝");
-    handleClick();
   };
 
   const { text, icon } = STATUS_CONFIG[status];
@@ -115,7 +108,6 @@ const OrderStateBtn = ({
     <Btn
       onClick={handleClick}
       onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
       $orderStatus={status}
       $isBill={isBill}
       $isDisabled={isDisabled}
