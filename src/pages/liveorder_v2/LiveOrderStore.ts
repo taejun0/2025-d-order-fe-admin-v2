@@ -65,7 +65,13 @@ export const useLiveOrderStore = create<LiveOrderState>()(
       const isRevertFromServed =
         currentStatus === "served" && newStatus === "cooked";
 
-      // 🔥 핵심 수정: 되돌리기가 아닌 경우는 모든 브라우저에서 잠금 체크
+      // iOS 크롬 대응: 되돌리기 케이스에서도 약간의 지연 추가
+      if (isRevertFromServed) {
+        console.log("iOS 크롬 대응: 되돌리기 처리 지연후 추가", orderId);
+        // iOS 크롬에서 터치 이벤트가 제대로 처리되도록 약간의 지연
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
       if (!isRevertFromServed && get().pendingOrderUpdates.has(orderId)) {
         console.log(`🟡 Order ${orderId} update is already in progress.`);
         return;
