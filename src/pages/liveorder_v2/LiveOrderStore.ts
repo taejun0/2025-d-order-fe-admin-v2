@@ -82,10 +82,10 @@ export const useLiveOrderStore = create<LiveOrderState>()(
       const isRevertFromServed =
         currentStatus === "served" && newStatus === "cooked";
 
-      // iOS 크롬 대응: 되돌리기 케이스에서도 약간의 지연 추가
+      // iOS 크롬 대응: 되돌리기 케이스에서도 지연 길게추가해서 확인하기
       if (isRevertFromServed) {
         get().addDebugMessage("⏳ iOS 지연 처리");
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 2000));
       }
 
       if (!isRevertFromServed && get().pendingOrderUpdates.has(orderId)) {
