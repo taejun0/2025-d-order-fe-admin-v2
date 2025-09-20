@@ -5,6 +5,7 @@ import { IMAGE_CONSTANTS } from "@constants/imageConstants";
 import { useLiveOrderStore, OrderViewMode } from "../LiveOrderStore";
 import { OrderStatus } from "../types";
 import { useState } from "react";
+
 // 1. 상태별 설정 객체 도입 (로직과 UI 분리)
 const STATUS_CONFIG = {
   pending: {
@@ -35,6 +36,7 @@ const OrderStateBtn = ({
   // iOS 크롬 대응: 터치 이벤트 최적화
   const [isProcessing, setIsProcessing] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>("");
+
   // 2. 내부 로직을 영어 타입 기준으로 수정
   const getNextStatus = (
     currentStatus: OrderStatus,
@@ -66,7 +68,6 @@ const OrderStateBtn = ({
 
   const handleClick = async () => {
     // iOS 크롬 대응: 중복 클릭 방지
-    // 시각적 디버깅: 클릭 감지
     setDebugInfo("클릭됨");
     if (isProcessing || !nextStatus) {
       setDebugInfo("클릭 무시됨");
@@ -97,9 +98,16 @@ const OrderStateBtn = ({
     }
   };
 
-  // iOS 크롬 대응: 터치 이벤트 핸들러 수정
-  const handleTouchStart = () => {
+  // iOS 크롬 대응: 터치 이벤트 핸들러 추가
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
     setDebugInfo("터치시작");
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setDebugInfo("터치끝");
+    handleClick();
   };
 
   const { text, icon } = STATUS_CONFIG[status];
@@ -108,6 +116,7 @@ const OrderStateBtn = ({
     <Btn
       onClick={handleClick}
       onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       $orderStatus={status}
       $isBill={isBill}
       $isDisabled={isDisabled}
