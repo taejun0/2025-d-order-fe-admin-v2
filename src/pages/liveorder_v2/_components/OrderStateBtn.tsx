@@ -32,10 +32,8 @@ const OrderStateBtn = ({
   status,
   onStatusChange,
 }: OrderStateBtnProps) => {
-  const { viewMode, debugMessages } = useLiveOrderStore();
-  // iOS 크롬 대응: 터치 이벤트 최적화
+  const { viewMode } = useLiveOrderStore();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<string>("");
 
   // 2. 내부 로직을 영어 타입 기준으로 수정
   const getNextStatus = (
@@ -67,47 +65,20 @@ const OrderStateBtn = ({
   const isDisabled = nextStatus === null;
 
   const handleClick = async () => {
-    // iOS 크롬 대응: 중복 클릭 방지
-    setDebugInfo("클릭됨");
     if (isProcessing || !nextStatus) {
-      setDebugInfo("클릭 무시됨");
       return;
     }
 
     setIsProcessing(true);
-    setDebugInfo("처리중...");
     try {
-      // iOS 크롬 대응: 약간의 지연을 두어 터치 이벤트가 제대로 처리되도록 함
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      setDebugInfo(`호출: ${status}→${nextStatus}`);
       onStatusChange(nextStatus);
-
-      // 상태 변경 후 확인
-      setTimeout(() => {
-        setDebugInfo(`완료: ${status}→${nextStatus}`);
-      }, 100);
     } catch (error) {
-      setDebugInfo("에러발생");
       console.error("OrderStateBtn handleClick error:", error);
     } finally {
-      // iOS 크롬 대응: 처리 완료 후 상태 리셋
       setTimeout(() => {
         setIsProcessing(false);
-        setDebugInfo("");
       }, 500);
     }
-  };
-
-  // iOS 크롬 대응: 터치 이벤트 핸들러 추가
-  const handleTouchStart = (e: React.TouchEvent) => {
-    e.preventDefault();
-    setDebugInfo("터치시작");
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    e.preventDefault();
-    setDebugInfo("터치끝");
-    handleClick();
   };
 
   const { text, icon } = STATUS_CONFIG[status];
@@ -115,25 +86,13 @@ const OrderStateBtn = ({
   return (
     <Btn
       onClick={handleClick}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
       $orderStatus={status}
       $isBill={isBill}
       $isDisabled={isDisabled}
       disabled={isDisabled}
     >
       {icon && <img src={icon} alt={`${text} 아이콘`} />}
-      <BtnText>
-        {text}{" "}
-        {debugInfo && <DebugText $isBill={isBill}>{debugInfo}</DebugText>}
-        {/* Store 디버깅 메시지 표시 */}
-        {debugMessages.length > 0 && (
-          <StoreDebugText $isBill={isBill}>
-            {debugMessages[debugMessages.length - 1]}
-          </StoreDebugText>
-        )}
-      </BtnText>{" "}
-      {/* 화면에는 한글 텍스트 표시 */}
+      <BtnText>{text}</BtnText>
     </Btn>
   );
 };
@@ -156,11 +115,10 @@ const Btn = styled.button<BtnProps>`
   box-sizing: border-box;
 
   border-radius: 24.427px;
-  border: none; // border 추가
+  border: none;
   touch-action: manipulation;
   z-index: 10;
 
-  // iOS 크롬 대응: 터치 영역 확대
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -209,28 +167,6 @@ const BtnText = styled.div`
   white-space: nowrap;
   line-height: 12px;
   pointer-events: none;
-`;
-
-const DebugText = styled.div<{ $isBill?: boolean }>`
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: ${({ $isBill }) => ($isBill ? "8px" : "10px")};
-  white-space: nowrap;
-  z-index: 1000;
-  pointer-events: none;
-`;
-const StoreDebugText = styled.div<{ $isBill?: boolean }>`
-  background: rgba(255, 0, 0, 0.8);
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: ${({ $isBill }) => ($isBill ? "8px" : "10px")};
-  white-space: nowrap;
-  z-index: 1000;
-  pointer-events: none;
-  margin-top: 2px;
 `;
 // // src/pages/liveorder_v2/_components/OrderStateBtn.tsx
 
