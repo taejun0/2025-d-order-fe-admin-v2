@@ -58,23 +58,26 @@ export const useLiveOrderStore = create<LiveOrderState>()(
     setViewMode: (mode) => set({ viewMode: mode }),
 
     updateOrderStatusWithAnimation: async (orderId, newStatus) => {
+      const isIOSChrome = /CriOS/.test(navigator.userAgent);
       const targetOrder = get().orders.find((o) => o.id === orderId);
       if (!targetOrder) return;
       const currentStatus = targetOrder.status;
 
-      // �� 핵심 수정: "서빙완료→조리완료" 되돌리기는 잠금 체크 제외
+      //"서빙완료→조리완료" 되돌리기는 잠금 체크 제외
       const isRevertFromServed =
         currentStatus === "served" && newStatus === "cooked";
 
-      // 되돌리기가 아닌 경우만 중복 클릭 방지
-      if (!isRevertFromServed && get().pendingOrderUpdates.has(orderId)) {
+      //iOS 크롬이거나 되돌리기인 경우 잠금 체크 완전 스킵
+      const shouldCheckLock = !isIOSChrome && !isRevertFromServed;
+
+      if (shouldCheckLock && get().pendingOrderUpdates.has(orderId)) {
         console.log(`🟡 Order ${orderId} update is already in progress.`);
         return;
       }
 
       try {
-        // 되돌리기가 아닌 경우만 잠금 설정
-        if (!isRevertFromServed) {
+        // iOS 크롬이거나 되돌리기가 아닌 경우만 잠금 설정
+        if (!isIOSChrome && !isRevertFromServed) {
           set((state) => ({
             pendingOrderUpdates: new Set(state.pendingOrderUpdates).add(
               orderId
@@ -139,13 +142,14 @@ export const useLiveOrderStore = create<LiveOrderState>()(
       } catch (error) {
         console.error(`🔴 주문 상태 변경 실패: ${error}`);
       } finally {
-        // 🚨 [가장 중요한 수정] 작업이 성공하든 실패하든 반드시 잠금을 해제합니다.
-        set((state) => {
-          const newSet = new Set(state.pendingOrderUpdates);
-          newSet.delete(orderId);
-          return { pendingOrderUpdates: newSet };
-        });
-        console.log("pendingOrderUpdates 해제됨:", orderId);
+        if (!isIOSChrome && !isRevertFromServed) {
+          set((state) => {
+            const newSet = new Set(state.pendingOrderUpdates);
+            newSet.delete(orderId);
+            return { pendingOrderUpdates: newSet };
+          });
+          console.log("pendingOrderUpdates 해제됨:", orderId);
+        }
       }
     },
 
