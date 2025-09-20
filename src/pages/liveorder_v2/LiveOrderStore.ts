@@ -28,6 +28,7 @@ interface LiveOrderState {
   webSocketService: LiveOrderWebSocketService | null;
   accessToken: string | null;
   pendingOrderUpdates: Set<number>;
+  debugMessages: string[]; // 디버깅 메시지 추가
 
   setOrders: (orders: OrderItem[]) => void;
   setMenuList: (menuNames: string[]) => void;
@@ -36,6 +37,7 @@ interface LiveOrderState {
     orderId: number,
     newStatus: OrderStatus
   ) => void;
+  addDebugMessage: (message: string) => void; // 디버깅 메시지 추가 함수
 
   initializeWebSocket: (token: string) => void;
   disconnectWebSocket: () => void;
@@ -51,15 +53,26 @@ export const useLiveOrderStore = create<LiveOrderState>()(
     webSocketService: null,
     accessToken: null,
     pendingOrderUpdates: new Set(),
+    debugMessages: [],
 
     setOrders: (orders) => set({ orders }),
     setMenuList: (menuNames) => set({ menuList: ["전체", ...menuNames] }),
     setViewMode: (mode) => set({ viewMode: mode }),
+    addDebugMessage: (message) => {
+      set((state) => ({
+        debugMessages: [...state.debugMessages.slice(-4), ` ${message}`],
+      }));
+    },
 
     updateOrderStatusWithAnimation: async (orderId, newStatus) => {
       const targetOrder = get().orders.find((o) => o.id === orderId);
-      if (!targetOrder) return;
+      if (!targetOrder) {
+        get().addDebugMessage(`❌ 주문 없음: ${orderId}`);
+        return;
+      }
       const currentStatus = targetOrder.status;
+
+      get().addDebugMessage(`�� 시작: ${currentStatus}→${newStatus}`);
 
       //"서빙완료→조리완료" 되돌리기는 잠금 체크 제외
       const isRevertFromServed =
@@ -67,13 +80,12 @@ export const useLiveOrderStore = create<LiveOrderState>()(
 
       // iOS 크롬 대응: 되돌리기 케이스에서도 약간의 지연 추가
       if (isRevertFromServed) {
-        console.log("iOS 크롬 대응: 되돌리기 처리 지연후 추가", orderId);
-        // iOS 크롬에서 터치 이벤트가 제대로 처리되도록 약간의 지연
+        get().addDebugMessage("⏳ iOS 지연 처리");
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
 
       if (!isRevertFromServed && get().pendingOrderUpdates.has(orderId)) {
-        console.log(`🟡 Order ${orderId} update is already in progress.`);
+        get().addDebugMessage("�� 이미 처리중");
         return;
       }
 
@@ -85,14 +97,27 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             ),
           }));
         }
+
+        get().addDebugMessage("�� API 호출 시작");
+
         if (currentStatus === "pending" && newStatus === "cooked") {
           await updateOrderToCooked(orderId);
+          get().addDebugMessage("✅ 조리완료 API 완료");
         } else if (currentStatus === "cooked" && newStatus === "served") {
           await updateOrderToServed(orderId);
+          get().addDebugMessage("✅ 서빙완료 API 완료");
         } else if (currentStatus === "served" && newStatus === "cooked") {
-          console.log("서빙완료 → 조리완료 revertOrderStatus 호출");
-          await revertOrderStatus(orderId, "cooked");
+          try {
+            await revertOrderStatus(orderId, "cooked");
+            get().addDebugMessage("✅ 되돌리기 API 완료");
+          } catch (revertError) {
+            get().addDebugMessage(`❌ 되돌리기 실패: ${revertError}`);
+            throw revertError;
+          }
         }
+
+        get().addDebugMessage("🎨 UI 업데이트 시작");
+
         if (newStatus === "served") {
           set((state) => ({
             orders: state.orders.map((order) =>
@@ -137,9 +162,10 @@ export const useLiveOrderStore = create<LiveOrderState>()(
               o.id === orderId ? { ...o, status: newStatus } : o
             ),
           });
+          get().addDebugMessage(`✅ UI 업데이트 완료: ${newStatus}`);
         }
       } catch (error) {
-        console.error(`🔴 주문 상태 변경 실패: ${error}`);
+        get().addDebugMessage(`❌ 에러: ${error}`);
       } finally {
         if (!isRevertFromServed) {
           set((state) => {
@@ -147,7 +173,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             newSet.delete(orderId);
             return { pendingOrderUpdates: newSet };
           });
-          console.log("pendingOrderUpdates 해제됨:", orderId);
+          get().addDebugMessage("🔓 잠금 해제");
         }
       }
     },
@@ -191,7 +217,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
           get().setMenuList(menuNames);
         } else if (message.type === "ORDER_UPDATE") {
           // --- 🔄 업데이트: 기존 주문 데이터에 변경사항을 병합합니다. ---
-          console.log("�� ORDER_UPDATE 수신", incomingOrders);
+          console.log(" ORDER_UPDATE 수신", incomingOrders);
 
           set((state) => {
             const orderMap = new Map(
@@ -214,7 +240,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
                 newPendingUpdates.delete(order.id);
               }
 
-              // �� 핵심 수정: 되돌리기가 아닌 경우만 잠금 체크 (iOS 크롬 제외 로직 제거)
+              //  핵심 수정: 되돌리기가 아닌 경우만 잠금 체크 (iOS 크롬 제외 로직 제거)
               if (pendingUpdates.has(order.id) && !isRevertFromServed) return;
 
               // 기존 주문이면 병합, 없으면 추가

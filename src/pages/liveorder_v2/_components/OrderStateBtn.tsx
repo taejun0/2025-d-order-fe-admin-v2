@@ -31,7 +31,7 @@ const OrderStateBtn = ({
   status,
   onStatusChange,
 }: OrderStateBtnProps) => {
-  const { viewMode } = useLiveOrderStore();
+  const { viewMode, debugMessages } = useLiveOrderStore();
   // iOS 크롬 대응: 터치 이벤트 최적화
   const [isProcessing, setIsProcessing] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>("");
@@ -117,6 +117,12 @@ const OrderStateBtn = ({
       <BtnText>
         {text}{" "}
         {debugInfo && <DebugText $isBill={isBill}>{debugInfo}</DebugText>}
+        {/* Store 디버깅 메시지 표시 */}
+        {debugMessages.length > 0 && (
+          <StoreDebugText $isBill={isBill}>
+            {debugMessages[debugMessages.length - 1]}
+          </StoreDebugText>
+        )}
       </BtnText>{" "}
       {/* 화면에는 한글 텍스트 표시 */}
     </Btn>
@@ -206,7 +212,17 @@ const DebugText = styled.div<{ $isBill?: boolean }>`
   z-index: 1000;
   pointer-events: none;
 `;
-
+const StoreDebugText = styled.div<{ $isBill?: boolean }>`
+  background: rgba(255, 0, 0, 0.8);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: ${({ $isBill }) => ($isBill ? "8px" : "10px")};
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+  margin-top: 2px;
+`;
 // // src/pages/liveorder_v2/_components/OrderStateBtn.tsx
 
 // import styled from "styled-components";
