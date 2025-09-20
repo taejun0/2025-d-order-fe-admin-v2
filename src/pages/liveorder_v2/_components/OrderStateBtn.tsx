@@ -34,6 +34,7 @@ const OrderStateBtn = ({
   const { viewMode } = useLiveOrderStore();
   // iOS 크롬 대응: 터치 이벤트 최적화
   const [isProcessing, setIsProcessing] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>("");
   // 2. 내부 로직을 영어 타입 기준으로 수정
   const getNextStatus = (
     currentStatus: OrderStatus,
@@ -65,30 +66,42 @@ const OrderStateBtn = ({
 
   const handleClick = async () => {
     // iOS 크롬 대응: 중복 클릭 방지
-    if (isProcessing || !nextStatus) return;
+    // 시각적 디버깅: 클릭 감지
+    setDebugInfo("클릭됨");
+    if (isProcessing || !nextStatus) {
+      setDebugInfo("클릭 무시됨");
+      return;
+    }
 
     setIsProcessing(true);
-
+    setDebugInfo("처리중...");
     try {
       // iOS 크롬 대응: 약간의 지연을 두어 터치 이벤트가 제대로 처리되도록 함
       await new Promise((resolve) => setTimeout(resolve, 50));
-
+      setDebugInfo("상태변경 호출");
       onStatusChange(nextStatus);
+      setDebugInfo("완료");
     } catch (error) {
+      setDebugInfo("에러발생");
       console.error("OrderStateBtn handleClick error:", error);
     } finally {
       // iOS 크롬 대응: 처리 완료 후 상태 리셋
-      setTimeout(() => setIsProcessing(false), 200);
+      setTimeout(() => {
+        setIsProcessing(false);
+        setDebugInfo("");
+      }, 200);
     }
   };
 
   // iOS 크롬 대응: 터치 이벤트 핸들러 추가
   const handleTouchStart = (e: React.TouchEvent) => {
     e.preventDefault();
+    setDebugInfo("터치시작");
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.preventDefault();
+    setDebugInfo("터치끝");
     handleClick();
   };
 
@@ -105,7 +118,11 @@ const OrderStateBtn = ({
       disabled={isDisabled}
     >
       {icon && <img src={icon} alt={`${text} 아이콘`} />}
-      <BtnText>{text}</BtnText> {/* 화면에는 한글 텍스트 표시 */}
+      <BtnText>
+        {text}{" "}
+        {debugInfo && <DebugText $isBill={isBill}>{debugInfo}</DebugText>}
+      </BtnText>{" "}
+      {/* 화면에는 한글 텍스트 표시 */}
     </Btn>
   );
 };
@@ -180,5 +197,16 @@ const Btn = styled.button<BtnProps>`
 const BtnText = styled.div`
   white-space: nowrap;
   line-height: 12px;
+  pointer-events: none;
+`;
+
+const DebugText = styled.div<{ $isBill?: boolean }>`
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: ${({ $isBill }) => ($isBill ? "8px" : "10px")};
+  white-space: nowrap;
+  z-index: 1000;
   pointer-events: none;
 `;
