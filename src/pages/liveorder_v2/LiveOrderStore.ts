@@ -63,31 +63,16 @@ export const useLiveOrderStore = create<LiveOrderState>()(
         debugMessages: [...state.debugMessages.slice(-4), ` ${message}`],
       }));
     },
+
     updateOrderStatusWithAnimation: async (orderId, newStatus) => {
       get().addDebugMessage(
         `🔍 받은 orderId: ${orderId} (타입: ${typeof orderId})`
       );
 
-      // iOS 크롬 대응: orderId가 order.order_id인 경우 order.id로 변환
-      let targetOrder = get().orders.find((o) => o.id === orderId);
-
+      const targetOrder = get().orders.find((o) => o.id === orderId);
       if (!targetOrder) {
-        // orderId가 order.order_id인 경우 찾기
-        targetOrder = get().orders.find((o) => o.order_id === orderId);
-        if (targetOrder) {
-          get().addDebugMessage(
-            `🔄 order_id로 찾음: ${orderId} → ${targetOrder.id}`
-          );
-          orderId = targetOrder.id; // orderId를 실제 id로 변경
-        } else {
-          get().addDebugMessage(`❌ 주문 없음: ${orderId}`);
-          // 모든 주문의 id와 order_id를 확인해보기
-          const allOrderInfo = get().orders.map(
-            (o) => `id:${o.id}, order_id:${o.order_id}`
-          );
-          get().addDebugMessage(`📋 모든 주문: ${allOrderInfo.join(", ")}`);
-          return;
-        }
+        get().addDebugMessage(`❌ 주문 없음: ${orderId}`);
+        return;
       }
 
       const currentStatus = targetOrder.status;
@@ -100,7 +85,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
       // iOS 크롬 대응: 되돌리기 케이스에서도 약간의 지연 추가
       if (isRevertFromServed) {
         get().addDebugMessage("⏳ iOS 지연 처리");
-        await new Promise((resolve) => setTimeout(resolve, 200)); // 지연 시간 증가
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
 
       if (!isRevertFromServed && get().pendingOrderUpdates.has(orderId)) {
@@ -209,7 +194,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
         }
       }
     },
-
     initializeWebSocket: (token: string) => {
       get().webSocketService?.disconnect();
 
