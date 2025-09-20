@@ -12,8 +12,8 @@ export interface OrderItem {
   created_at: string;
   menu_image: string | null;
   isFadingOut?: boolean;
-  servedAt?: number | null; // 추가: 서빙된 시간 (타임스탬프)
-
+  servedAt?: number | null; // 서빙된 시간
+  completedAt?: number | null; // 주문 완료 시간 (ORDER_COMPLETED에서 받은 served_at)
   // API 명세서의 세트 메뉴 관련 필드 추가
   from_set: boolean;
   set_id: number | null;
@@ -58,13 +58,27 @@ export interface OrderCompletedMessage {
   data: {
     order_id: number;
     table_num: number;
+    served_at: string;
+  };
+}
+export interface OrderCancelledMessage {
+  type: "ORDER_CANCELLED";
+  data: {
+    order_id: number;
+    table_num: number;
+    cancelled_items: {
+      order_menu_id: number;
+      menu_name: string;
+      quantity: number;
+    }[];
   };
 }
 // 웹소켓 메시지 유니온 타입 (NewOrderMessage 삭제)
 export type LiveOrderWebSocketMessage =
   | OrderSnapshotMessage
   | OrderUpdateMessage
-  | OrderCompletedMessage;
+  | OrderCompletedMessage
+  | OrderCancelledMessage;
 
 // 테이블리스트 타입
 export interface TableOrder {
@@ -72,6 +86,8 @@ export interface TableOrder {
   tableName: string;
   orders: OrderItem[];
   isCompleted: boolean;
+  completedAt?: number | null; // 주문 완료 시간
+  isFadingOut?: boolean; // 페이드아웃 상태
 }
 // API 응답을 기존 OrderItem 타입으로 매핑하는 함수
 export const mapApiOrdersToOrderItems = (
