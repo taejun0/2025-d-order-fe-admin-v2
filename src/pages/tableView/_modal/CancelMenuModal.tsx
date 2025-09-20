@@ -15,7 +15,7 @@ const CancelMenuModal: React.FC<Props> = ({
     onClose,
     onConfirmRequest,
     }) => {
-    const [quantity, setQuantity] = useState(initialQuantity);
+    const [quantity, setQuantity] = useState(0)
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
     return (

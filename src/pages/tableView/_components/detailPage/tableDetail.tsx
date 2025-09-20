@@ -48,22 +48,22 @@ const toImageUrl = (p?: string | null): string | null => {
 
 // ── 레거시 화면 타입(필요한 보조 필드 추가) ───────────────────────────
 type LegacyOrder = {
-    id?: number;               // 단일 항목 PK (있을 수도, 없을 수도)
-    order_id?: number;         // 주문 PK (표시용/호환)
+    id?: number;
+    order_id?: number;
     menu_name: string;
-    menu_price: number;        // 단가
-    menu_num: number;          // 수량
+    menu_price: number;
+    menu_num: number;
     menu_image: string | null;
     order_status?: string;
 
     // 새 API 대응
-    type?: "menu" | "set" | "setmenu" | string; // 서버 원본 문자열을 보관(후에 'set'으로 정규화)
-    ids?: number[];            // 같은 라인의 개별 항목 PK 리스트
+    type?: "menu" | "set" | "setmenu" | string;
+    ids?: number[];
 };
 
 type LegacyDetail = {
     table_num: number;
-    table_price: number;       // = table_amount
+    table_price: number;
     table_status: string;
     created_at: string | null;
     orders: LegacyOrder[];
@@ -75,11 +75,8 @@ const normalizeDetail = (api: APITableDetail): LegacyDetail => ({
     table_status: api.table_status ?? "unknown",
     created_at: api.created_at ?? null,
     orders: (api.orders ?? []).map((o: any) => {
-        // type 정규화 전 원본 보관 (소문자)
         const typeRaw = typeof o?.type === "string" ? o.type.toLowerCase() : undefined;
 
-        // ids: getTableDetail에서 order_item_ids로 이미 매핑해줬다면 우선 사용
-        // 없으면 서버 원본 필드에서 보강
         const idsFallback =
         Array.isArray(o?.order_item_ids) ? o.order_item_ids :
         Array.isArray(o?.order_menu_ids) ? o.order_menu_ids :
@@ -117,7 +114,7 @@ const normalizeDetail = (api: APITableDetail): LegacyDetail => ({
         order_status: o?.order_status ?? o?.status,
 
         // 새 API 보조 정보
-        type: typeRaw,          // 'menu' | 'setmenu' | 'set' 등 원본 그대로 저장
+        type: typeRaw,
         ids: Array.isArray(idsFallback) ? idsFallback : undefined,
         } as LegacyOrder;
     }),
@@ -237,18 +234,24 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
             </S.MenuList>
         </S.DetailWrapper>
 
-        {/* 수량 선택 모달 */}
+        {/* 수량 선택 모달 — 시작값 0, 최대는 라인 수량 */}
         {selectedMenu && (
-            <CancelMenuModal
+        <CancelMenuModal
             menuName={selectedMenu.name}
-            initialQuantity={selectedMenu.quantity}
+            initialQuantity={selectedMenu.quantity}   // ✅ 상한만 전달(시작값은 모달 내부에서 0)
             onClose={() => setSelectedMenu(null)}
             onConfirmRequest={(q) => {
-                console.log("[CancelMenuModal] 사용자가 취소 수량 선택:", q, "(해당 라인 총수량:", selectedMenu.quantity, ")");
-                setSelectedMenu(null);
-                setConfirmInfo({ name: selectedMenu.name, quantity: q });
+            console.log(
+                "[CancelMenuModal] 사용자가 취소 수량 선택:",
+                q,
+                "(해당 라인 총수량:",
+                selectedMenu.quantity,
+                ")"
+            );
+            setSelectedMenu(null);
+            setConfirmInfo({ name: selectedMenu.name, quantity: q });
             }}
-            />
+        />
         )}
 
         {/* 확인 모달 - 새 API로 취소 */}
@@ -256,7 +259,6 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
             <CancelConfirmModal
             onConfirm={async () => {
                 try {
-                // 같은 이름의 메뉴가 여러 라인에 있을 수 있어 첫 매칭만 처리(현행 로직 유지)
                 const order = tableDetailData.orders.find(
                     (o) => o.menu_name === confirmInfo.name
                 );
@@ -279,21 +281,11 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
                 let batch: CancelBatchItem;
 
                 if (Array.isArray(order.ids) && order.ids.length > 0) {
-                    // 복수 PK가 제공되는 라인: 선택 수량만큼 앞에서 잘라 보냄
                     const ids = order.ids.slice(0, wanted);
-                    batch = {
-                    type: kind,                 // setmenu → set으로 변환되어 전송
-                    order_item_ids: ids,
-                    quantity: wanted,           // 선택한 개수만큼 한 번에 취소
-                    };
+                    batch = { type: kind, order_item_ids: ids, quantity: wanted };
                     console.log("[Confirm] (복수ID) 보낼 IDs:", ids, "payload.quantity:", wanted);
                 } else if (order.id) {
-                    // 단일 PK만 있는 라인: 같은 항목에서 수량 감소
-                    batch = {
-                    type: kind,
-                    order_item_ids: [order.id],
-                    quantity: wanted,
-                    };
+                    batch = { type: kind, order_item_ids: [order.id], quantity: wanted };
                     console.log("[Confirm] (단일ID) 보낼 IDs:", [order.id], "payload.quantity:", wanted);
                 } else {
                     console.log("[Confirm] 취소 불가 - 항목 ID 부재");
@@ -305,7 +297,6 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
                 console.log("[Confirm] 최종 취소 payload:", { cancel_items: [batch] });
                 const res = await updateOrderQuantity([batch]);
 
-                // 상태별 처리 (서빙 완료 등)
                 if (res?.status === "error" && res?.code === 400) {
                     if ((res as any)?.data?.reason === "not_enough_cancellable_due_to_served_or_status") {
                     alert("서빙이 완료되어 주문을 취소할 수 없습니다.");
@@ -320,7 +311,6 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
                     const updated = res?.data?.updated_items ?? [];
                     console.log("[Confirm] 취소 성공. 서버 updated_items:", updated);
 
-                    // 해당 라인(같은 메뉴/세트명) 관련 잔여 수량 로그
                     const nameForMatch = order.menu_name;
                     const restList = updated
                     .filter((u: any) => (u.menu_name ?? u.set_name) === nameForMatch)
