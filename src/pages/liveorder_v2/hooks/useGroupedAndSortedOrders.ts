@@ -1,42 +1,52 @@
 // // src/pages/liveorder_v2/hooks/useGroupedAndSortedOrders.ts
 
 import { useMemo } from "react";
-import { OrderItem } from "@pages/liveorder_v2/types";
+import { OrderItem, TableOrder } from "@pages/liveorder_v2/types";
 import { useLiveOrderStore } from "@pages/liveorder_v2/LiveOrderStore";
-// 주문 데이터를 order_id 기준으로 그룹핑하고, 시간순 정렬
-export const useGroupedAndSortedOrders = (orders: OrderItem[]) => {
-  const { fadingOutTables } = useLiveOrderStore();
 
-  const sortedTableGroups = useMemo(() => {
-    if (!orders || orders.length === 0) {
-      return [];
-    }
+export const useGroupedAndSortedOrders = () => {
+  const { orders, completedTables, fadingOutTables } = useLiveOrderStore();
 
-    // 1. order_id 기준으로 그룹핑
-    const groupedOrders = orders.reduce((acc, order) => {
-      const groupKey = order.order_id.toString();
-      if (!acc[groupKey]) {
-        acc[groupKey] = [];
+  const groupedOrders = useMemo(() => {
+    const groups = new Map<number, OrderItem[]>();
+
+    orders.forEach((order) => {
+      if (!groups.has(order.order_id)) {
+        groups.set(order.order_id, []);
       }
-      acc[groupKey].push(order);
-      return acc;
-    }, {} as Record<string, OrderItem[]>);
-    // 2. 모든 주문이 served인 그룹은 목록에서 제외 (단, fadingOutTables에 있으면 유지)
-    const filteredGroups = Object.values(groupedOrders).filter(
-      (group) =>
-        !group.every((order) => order.status === "served") ||
-        fadingOutTables.has(group[0].order_id)
-    );
-
-    // 3. 그룹을 주문 생성 시간(created_at) 기준으로 정렬
-    const sortedGroups = filteredGroups.sort((groupA, groupB) => {
-      const earliestTimeA = new Date(groupA[0].created_at).getTime();
-      const earliestTimeB = new Date(groupB[0].created_at).getTime();
-      return earliestTimeA - earliestTimeB;
+      groups.get(order.order_id)!.push(order);
     });
 
-    return sortedGroups;
-  }, [orders, fadingOutTables]);
+    const tableOrders: TableOrder[] = Array.from(groups.entries()).map(
+      ([orderId, orderItems]) => {
+        const isCompleted = completedTables.has(orderId);
+        const completedAt = orderItems[0]?.completedAt || null;
+        const isFadingOut = fadingOutTables.has(orderId);
 
-  return sortedTableGroups;
+        return {
+          tableId: orderId,
+          tableName: `테이블 ${orderItems[0]?.table_num || 0}`,
+          orders: orderItems,
+          isCompleted,
+          completedAt,
+          isFadingOut,
+        };
+      }
+    );
+
+    // 정렬 로직: 페이드아웃 중인 테이블은 현재 위치 유지, 완료된 테이블만 하단으로
+    return tableOrders.sort((a, b) => {
+      // 페이드아웃 중인 테이블은 정렬하지 않고 현재 위치 유지
+      if (a.isFadingOut || b.isFadingOut) {
+        return 0;
+      }
+
+      // 페이드아웃이 아닌 테이블들만 완료 상태에 따라 정렬
+      if (a.isCompleted && !b.isCompleted) return 1;
+      if (!a.isCompleted && b.isCompleted) return -1;
+
+      return 0;
+    });
+  }, [orders, completedTables, fadingOutTables]);
+  return groupedOrders;
 };
