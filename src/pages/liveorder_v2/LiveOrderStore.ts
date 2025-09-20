@@ -117,6 +117,11 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             get().addDebugMessage(`🔄 되돌리기 시도: ${orderId} → cooked`);
             await revertOrderStatus(orderId, "cooked");
             get().addDebugMessage("✅ 되돌리기 API 완료");
+
+            // 🔥 핵심 변경: 되돌리기는 웹소켓 메시지 기반으로 UI 업데이트
+            // 클라이언트에서 직접 UI를 업데이트하지 않음
+            get().addDebugMessage("⏳ 웹소켓 응답 대기 중...");
+            return; // UI 업데이트를 웹소켓에 맡김
           } catch (revertError) {
             get().addDebugMessage(`❌ 되돌리기 실패: ${revertError}`);
             throw revertError;
@@ -163,7 +168,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             });
           }
         } else {
-          // 모든 경우에 대해 API 호출 성공 후 UI 업데이트
+          // 조리완료, 서빙완료는 기존대로 클라이언트에서 UI 업데이트
           set({
             orders: get().orders.map((o) =>
               o.id === orderId ? { ...o, status: newStatus } : o
@@ -184,6 +189,7 @@ export const useLiveOrderStore = create<LiveOrderState>()(
         }
       }
     },
+
     initializeWebSocket: (token: string) => {
       get().webSocketService?.disconnect();
 
