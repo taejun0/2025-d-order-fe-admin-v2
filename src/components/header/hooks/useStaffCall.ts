@@ -1,11 +1,8 @@
-// src/components/Header/hooks/useStaffCall.ts (새 파일)
-
 import { useState, useEffect } from "react";
 import { AxiosError } from "axios";
 import { instance } from "@services/instance";
-import bellSound from "@assets/sounds/bellsound.mp3";
+import { BellPlayer } from "../BellPlayer";
 
-// 필요한 인터페이스를 훅 파일 내부 또는 별도 types 파일로 관리할 수 있습니다.
 interface Notification {
   id: number;
   message: string;
@@ -18,14 +15,14 @@ interface ApiCallStaff {
 }
 
 export const useStaffCall = () => {
-  // 1. 호출벨 관련 상태 관리
   const [liveNotice, setLiveNotice] = useState<string | null>(null);
   const [showLiveNotice, setShowLiveNotice] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [hasUnread, setHasUnread] = useState(false);
 
-  // 2. 초기 알림 목록을 가져오는 로직 (GET API)
   useEffect(() => {
+    BellPlayer.ensureUnlocked();
+
     const fetchInitialNotifications = async () => {
       try {
         const response = await instance.get<{
@@ -52,7 +49,6 @@ export const useStaffCall = () => {
     fetchInitialNotifications();
   }, []);
 
-  // 3. 실시간 호출 알림을 처리하는 로직 (WebSocket)
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
@@ -71,11 +67,11 @@ export const useStaffCall = () => {
         if (message.type === "CALL_STAFF") {
           const noticeMessage = message.message;
 
-          new Audio(bellSound).play();
+          BellPlayer.play();
 
           setLiveNotice(noticeMessage);
           setShowLiveNotice(true);
-          setTimeout(() => setShowLiveNotice(false), 2000);
+          setTimeout(() => setShowLiveNotice(false), 4000);
 
           const newNotification: Notification = {
             id: Date.now(),
@@ -99,17 +95,15 @@ export const useStaffCall = () => {
     };
   }, []);
 
-  // 4. 컴포넌트에서 호출할 '읽음' 처리 함수
   const markAsRead = () => {
     setHasUnread(false);
   };
 
-  // 5. 컴포넌트에서 사용할 상태와 함수들을 반환
   return {
     liveNotice,
     showLiveNotice,
     notifications,
     hasUnread,
-    markAsRead, // 함수도 함께 반환
+    markAsRead,
   };
 };
