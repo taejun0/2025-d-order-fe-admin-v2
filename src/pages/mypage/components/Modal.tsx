@@ -33,6 +33,7 @@ const Overlay = styled.section`
   display: flex;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
 `;
 
 const Container = styled.section`
@@ -43,6 +44,7 @@ const Container = styled.section`
   background-color: ${({ theme }) => theme.colors.Gray01};
   border-radius: 0.875rem;
   z-index: 1000;
+  pointer: cursor;
 `;
 
 const Title = styled.div`
@@ -58,6 +60,8 @@ const Bottom = styled.div`
   display: flex;
   height: 3.375rem;
   border-top: 0.5px solid ${({ theme }) => theme.colors.Black02};
+
+cursor: pointer;
 `;
 
 const Cancel = styled.div`
@@ -65,6 +69,7 @@ const Cancel = styled.div`
   width: 50%;
   justify-content: center;
   align-items: center;
+  cursor: pointer;
   color: ${({ theme }) => theme.colors.Orange01};
   ${({ theme }) => theme.fonts.Medium16};
   border-right: 0.5px solid ${({ theme }) => theme.colors.Black02};
@@ -76,6 +81,7 @@ const Logout = styled.div`
   justify-content: center;
   align-items: center;
   text-align: center;
+  cursor: pointer;
   color: ${({ theme }) => theme.colors.Orange01};
   ${({ theme }) => theme.fonts.Medium16};
 `;
