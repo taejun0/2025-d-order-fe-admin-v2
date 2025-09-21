@@ -27,6 +27,7 @@ export const DetailHeader = styled.div`
     justify-content: space-between;
     align-items: center;
     min-height: 1.8rem;
+    cursor: pointer;
 `;
 
 export const BackButton = styled.div`
