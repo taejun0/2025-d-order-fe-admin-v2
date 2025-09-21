@@ -6,6 +6,7 @@ import CancelMenuModal from "../../_modal/CancelMenuModal";
 import CancelConfirmModal from "../../_modal/CancelConfirmModal";
 import ResetModal from "../../_modal/ResetModal";
 import EmptyOrder from "./emptyOrder";
+import CancelErrorModal from "../../_modal/CancelErrorModal";
 import { instance } from "@services/instance";
 
 import {
@@ -128,7 +129,7 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
     const [confirmInfo, setConfirmInfo] = useState<{ name: string; quantity: number } | null>(null);
     const [showResetModal, setShowResetModal] = useState(false);
     const [tableDetailData, setTableDetailData] = useState<LegacyDetail>(initial);
-
+    const [showErrorModal, setShowErrorModal] = useState(false);
     // ✅ 원가 합계 계산 (단가 * 수량)
     const originalTotal = useMemo(() => {
         try {
@@ -298,11 +299,8 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
                 const res = await updateOrderQuantity([batch]);
 
                 if (res?.status === "error" && res?.code === 400) {
-                    if ((res as any)?.data?.reason === "not_enough_cancellable_due_to_served_or_status") {
-                    alert("서빙이 완료되어 주문을 취소할 수 없습니다.");
-                    } else {
-                    alert(res?.message ?? "주문 취소 중 오류가 발생했습니다.");
-                    }
+                    // not_enough_cancellable_due_to_served_or_status 등 에러를 모달로 안내
+                    setShowErrorModal(true);
                     setConfirmInfo(null);
                     return;
                 }
@@ -336,8 +334,15 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
 
                 setConfirmInfo(null);
                 await refetchTableDetail();
-                } catch (e) {
+                } catch (e: any) {
                 console.log("[Confirm] 취소 요청 중 오류:", e);
+                // axios 에러면 서버 응답 메시지도 콘솔에 남겨서 디버깅에 도움
+                const serverMessage =
+                e?.response?.data?.message || e?.message || "주문 취소 중 오류가 발생했습니다.";
+                console.log("[Confirm] 서버 메시지:", serverMessage);
+
+                // ❗️여기서 에러 모달 노출
+                setShowErrorModal(true);
                 setConfirmInfo(null);
                 }
             }}
@@ -362,6 +367,13 @@ const TableDetail: React.FC<Props> = ({ data, onBack }) => {
             }}
             onCancel={() => setShowResetModal(false)}
             />
+        )}
+        {showErrorModal && (
+        <CancelErrorModal
+            onClose={() => setShowErrorModal(false)}
+            // 필요 시 서버 메시지를 보조 텍스트로 붙이고 싶다면 아래 주석 해제:
+            // message="요청 수량 중 일부가 이미 서빙되어 취소할 수 없습니다."
+        />
         )}
         </>
     );
