@@ -1,10 +1,10 @@
 // src/pages/liveOrder_v2/types.ts
-// API 명세서에 따른 OrderStatus 타입
+
 export type OrderStatus = "pending" | "cooked" | "served";
 
 export interface OrderItem {
   id: number; // ordermenu_id
-  order_id: number; // 주문 묶음 PK 추가
+  order_id: number;
   menu_name: string;
   menu_num: number;
   table_num: number;
@@ -14,7 +14,7 @@ export interface OrderItem {
   isFadingOut?: boolean;
   servedAt?: number | null; // 서빙된 시간
   completedAt?: number | null; // 주문 완료 시간 (ORDER_COMPLETED에서 받은 served_at)
-  // API 명세서의 세트 메뉴 관련 필드 추가
+
   from_set: boolean;
   set_id: number | null;
   set_name: string | null;
@@ -49,8 +49,8 @@ export interface OrderSnapshotMessage {
 export interface OrderUpdateMessage {
   type: "ORDER_UPDATE";
   data: {
-    total_revenue?: number; // 선택적 속성으로 변경, 단일 업데이트에는 없을 수 있음
-    orders: ApiOrderItem[]; // 주문 배열을 포함
+    total_revenue?: number;
+    orders: ApiOrderItem[];
   };
 }
 export interface OrderCompletedMessage {
@@ -73,14 +73,13 @@ export interface OrderCancelledMessage {
     }[];
   };
 }
-// 웹소켓 메시지 유니온 타입 (NewOrderMessage 삭제)
+
 export type LiveOrderWebSocketMessage =
   | OrderSnapshotMessage
   | OrderUpdateMessage
   | OrderCompletedMessage
   | OrderCancelledMessage;
 
-// 테이블리스트 타입
 export interface TableOrder {
   tableId: number;
   tableName: string;
@@ -95,7 +94,7 @@ export const mapApiOrdersToOrderItems = (
 ): OrderItem[] => {
   return apiOrders.map((apiOrder) => ({
     id: apiOrder.ordermenu_id, // 기존 id를 ordermenu_id로 매핑
-    order_id: apiOrder.order_id, // 추가
+    order_id: apiOrder.order_id,
     menu_name: apiOrder.menu_name,
     menu_num: apiOrder.quantity, // 기존 menu_num을 quantity로 매핑
     table_num: apiOrder.table_num,
@@ -105,7 +104,6 @@ export const mapApiOrdersToOrderItems = (
     isFadingOut: false,
     servedAt: null,
 
-    // 추가된 필드들 매핑
     from_set: apiOrder.from_set,
     set_id: apiOrder.set_id,
     set_name: apiOrder.set_name,
