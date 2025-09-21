@@ -34,18 +34,16 @@ export const useGroupedAndSortedOrders = () => {
       }
     );
 
-    // 정렬 로직: 페이드아웃 중인 테이블은 현재 위치 유지, 완료된 테이블만 하단으로
+    const getEarliest = (t: TableOrder) =>
+      Math.min(...t.orders.map((o) => new Date(o.created_at).getTime()));
+
+    // 완료(그리고 페이드 중이 아님)만 하단으로, 나머지는 생성시간 기준으로 정렬
     return tableOrders.sort((a, b) => {
-      // 페이드아웃 중인 테이블은 정렬하지 않고 현재 위치 유지
-      if (a.isFadingOut || b.isFadingOut) {
-        return 0;
-      }
+      const aPriority = a.isCompleted && !a.isFadingOut ? 1 : 0;
+      const bPriority = b.isCompleted && !b.isFadingOut ? 1 : 0;
 
-      // 페이드아웃이 아닌 테이블들만 완료 상태에 따라 정렬
-      if (a.isCompleted && !b.isCompleted) return 1;
-      if (!a.isCompleted && b.isCompleted) return -1;
-
-      return 0;
+      if (aPriority !== bPriority) return aPriority - bPriority;
+      return getEarliest(a) - getEarliest(b);
     });
   }, [orders, completedTables, fadingOutTables]);
   return groupedOrders;
