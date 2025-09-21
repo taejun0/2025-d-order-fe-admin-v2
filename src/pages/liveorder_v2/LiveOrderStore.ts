@@ -261,19 +261,56 @@ export const useLiveOrderStore = create<LiveOrderState>()(
         } else if (message.type === "ORDER_COMPLETED") {
           console.log("✅ ORDER_COMPLETED 수신:", message.data);
           const { order_id, served_at } = message.data;
-          // 완료된 테이블로 표시하고 완료 시간 기록
+
+          // 1) 우선 orders에 completedAt만 반영
           set((state) => ({
-            completedTables: new Set(state.completedTables).add(order_id),
-            completedTableTimes: new Map(state.completedTableTimes).set(
-              order_id,
-              new Date(served_at).getTime()
-            ),
             orders: state.orders.map((order) =>
               order.order_id === order_id
                 ? { ...order, completedAt: new Date(served_at).getTime() }
                 : order
             ),
           }));
+
+          // 2) 이미 완료된 경우면 페이드/완료 시간만 정합성 유지
+          const { completedTables, fadingOutTables } = get();
+          if (completedTables.has(order_id)) {
+            set((state) => ({
+              completedTableTimes: new Map(state.completedTableTimes).set(
+                order_id,
+                new Date(served_at).getTime()
+              ),
+            }));
+            return;
+          }
+
+          // 3) 아직 완료되지 않았다면: 먼저 '페이드아웃' 시작
+          if (!fadingOutTables.has(order_id)) {
+            set((state) => ({
+              fadingOutTables: new Set(state.fadingOutTables).add(order_id),
+            }));
+          }
+
+          // 4) 페이드아웃 이후 하단으로 이동(완료 처리)
+          setTimeout(() => {
+            set((state) => {
+              const nextFading = new Set(state.fadingOutTables);
+              nextFading.delete(order_id);
+
+              const nextCompleted = new Set(state.completedTables).add(
+                order_id
+              );
+              const nextTimes = new Map(state.completedTableTimes).set(
+                order_id,
+                new Date(served_at).getTime()
+              );
+
+              return {
+                fadingOutTables: nextFading,
+                completedTables: nextCompleted,
+                completedTableTimes: nextTimes,
+              };
+            });
+          }, ANIMATION_DURATION);
         } else if (message.type === "ORDER_CANCELLED") {
           console.log("❌ ORDER_CANCELLED 수신:", message.data);
 
@@ -385,40 +422,3 @@ export const useLiveOrderStore = create<LiveOrderState>()(
     },
   }))
 );
-
-// // 3분마다 만료된 테이블 체크하는 타이머 설정
-// setInterval(() => {
-//   useLiveOrderStore.getState().checkAndRemoveExpiredTables();
-// }, 60000); // 1분마다 체크
-
-// // 3분마다 만료된 테이블 체크하는 타이머 설정
-// let checkInterval: NodeJS.Timeout | null = null;
-
-// // 타이머 시작 함수
-// const startExpiredTableChecker = () => {
-//   if (checkInterval) {
-//     clearInterval(checkInterval);
-//   }
-
-//   checkInterval = setInterval(() => {
-//     useLiveOrderStore.getState().checkAndRemoveExpiredTables();
-//   }, 60000); // 1분마다 체크
-// };
-
-// // 타이머 정리 함수
-// const stopExpiredTableChecker = () => {
-//   if (checkInterval) {
-//     clearInterval(checkInterval);
-//     checkInterval = null;
-//   }
-// };
-
-// // 웹소켓 연결 시 타이머 시작
-// export const initializeExpiredTableChecker = () => {
-//   startExpiredTableChecker();
-// };
-
-// // 웹소켓 연결 해제 시 타이머 정리
-// export const cleanupExpiredTableChecker = () => {
-//   stopExpiredTableChecker();
-// };
