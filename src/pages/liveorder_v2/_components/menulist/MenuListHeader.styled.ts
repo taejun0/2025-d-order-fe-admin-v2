@@ -44,4 +44,10 @@ export const HeaderReloadButton = styled.button`
   color: ${({ theme }) => theme.colors.Bg};
   ${({ theme }) => theme.fonts.Bold12};
   white-space: nowrap;
+
+  transition: transform 0.15s ease-in-out;
+
+  &:active {
+    transform: scale(0.95);
+  }
 `;
