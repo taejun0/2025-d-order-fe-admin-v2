@@ -16,7 +16,7 @@ import {
 import LiveOrderWebSocketService from "./services/LiveOrderWebSocketService";
 
 export type OrderViewMode = "kitchen" | "serving";
-const ANIMATION_DURATION = 1000; // 1초
+const ANIMATION_DURATION = 1000;
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
@@ -28,8 +28,8 @@ interface LiveOrderState {
   webSocketService: LiveOrderWebSocketService | null;
   accessToken: string | null;
   pendingOrderUpdates: Set<number>;
-  completedTables: Set<number>; // 완료된 테이블 ID들
-  completedTableTimes: Map<number, number>; // 완료된 테이블의 완료 시간
+  completedTables: Set<number>;
+  completedTableTimes: Map<number, number>;
 
   setOrders: (orders: OrderItem[]) => void;
   setMenuList: (menuNames: string[]) => void;
@@ -42,13 +42,11 @@ interface LiveOrderState {
   initializeWebSocket: (token: string) => void;
   disconnectWebSocket: () => void;
   reconnectWebSocket: () => void;
-  checkAndRemoveExpiredTables: () => void; // 만료된 테이블 체크 및 제거
+  checkAndRemoveExpiredTables: () => void;
 }
 
-// 타이머 관리 변수들
 let checkInterval: NodeJS.Timeout | null = null;
 
-// 타이머 시작 함수
 const startExpiredTableChecker = () => {
   if (checkInterval) {
     clearInterval(checkInterval);
@@ -56,10 +54,9 @@ const startExpiredTableChecker = () => {
 
   checkInterval = setInterval(() => {
     useLiveOrderStore.getState().checkAndRemoveExpiredTables();
-  }, 60000); // 1분마다 체크
+  }, 10000); // 10초마다 체크
 };
 
-// 타이머 정리 함수
 const stopExpiredTableChecker = () => {
   if (checkInterval) {
     clearInterval(checkInterval);
@@ -106,7 +103,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
         }
 
         if (newStatus === "served") {
-          // 1) UI를 즉시 served로 반영 + 좌측 메뉴는 페이드아웃
           set((state) => ({
             orders: state.orders.map((order) =>
               order.id === orderId
@@ -120,7 +116,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             ),
           }));
 
-          // 1-1) 좌측 메뉴 페이드 종료 후 isFadingOut 해제 (UI는 이미 served 상태)
           setTimeout(() => {
             set((state) => ({
               orders: state.orders.map((order) =>
@@ -129,7 +124,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             }));
           }, ANIMATION_DURATION);
 
-          // 2) 그룹 완료 체크 → 테이블 페이드아웃 → 하단 이동
           const orderGroupId = targetOrder.order_id;
           const groupOrdersNow = get().orders.filter(
             (o) => o.order_id === orderGroupId
@@ -157,17 +151,14 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             }));
           }
         } else {
-          // 주문 상태가 되돌려질 때 완료 상태 체크
           const orderGroupId = targetOrder.order_id;
 
-          // 먼저 주문 상태를 업데이트
           set({
             orders: get().orders.map((o) =>
               o.id === orderId ? { ...o, status: newStatus } : o
             ),
           });
 
-          // 업데이트된 상태로 완료 상태 체크
           const updatedOrders = get().orders.map((o) =>
             o.id === orderId ? { ...o, status: newStatus } : o
           );
@@ -178,7 +169,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             (o) => o.status === "served"
           );
 
-          // 그룹이 더 이상 완전히 서빙되지 않으면 완료 상태에서 제거
           if (!isGroupFullyServed) {
             set((state) => {
               const newCompletedTables = new Set(state.completedTables);
@@ -257,7 +247,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
                 new Date(b.created_at).getTime()
             );
 
-            // menu_num이 0인 주문들 제거
             const filteredOrders = sortedOrders.filter(
               (order) => order.menu_num > 0
             );
@@ -268,7 +257,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
           console.log("✅ ORDER_COMPLETED 수신:", message.data);
           const { order_id, served_at } = message.data;
 
-          // 1) 우선 orders에 completedAt만 반영
           set((state) => ({
             orders: state.orders.map((order) =>
               order.order_id === order_id
@@ -277,7 +265,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             ),
           }));
 
-          // 2) 이미 완료된 경우면 페이드/완료 시간만 정합성 유지
           const { completedTables, fadingOutTables } = get();
           if (completedTables.has(order_id)) {
             set((state) => ({
@@ -289,14 +276,12 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             return;
           }
 
-          // 3) 아직 완료되지 않았다면: 먼저 '페이드아웃' 시작
           if (!fadingOutTables.has(order_id)) {
             set((state) => ({
               fadingOutTables: new Set(state.fadingOutTables).add(order_id),
             }));
           }
 
-          // 4) 페이드아웃 이후 하단으로 이동(완료 처리)
           setTimeout(() => {
             set((state) => {
               const nextFading = new Set(state.fadingOutTables);
@@ -321,7 +306,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
           console.log("❌ ORDER_CANCELLED 수신:", message.data);
 
           set((state) => {
-            // 현재 orders 상태도 로그로 찍어보기
             console.log(
               "현재 orders 상태:",
               state.orders.map((order) => ({
@@ -331,7 +315,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
               }))
             );
 
-            // menu_num이 0인 주문들만 제거
             const updatedOrders = state.orders.filter(
               (order) => order.menu_num > 0
             );
@@ -357,7 +340,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
       set({ webSocketService: newWsService, accessToken: token });
       newWsService.connect();
 
-      // 타이머 시작
       startExpiredTableChecker();
     },
 
@@ -365,7 +347,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
       get().webSocketService?.disconnect();
       set({ webSocketService: null, accessToken: null });
 
-      // 타이머 정리
       stopExpiredTableChecker();
     },
 
@@ -377,13 +358,12 @@ export const useLiveOrderStore = create<LiveOrderState>()(
     },
     checkAndRemoveExpiredTables: () => {
       const now = Date.now();
-      const countTime = 1 * 60 * 1000; // 3분을 밀리초로 변환
+      const countTime = 3 * 60 * 1000; // 3분을 밀리초로 변환 테이블빌 없어지는시간
 
       set((state) => {
         const expiredTables = new Set<number>();
         const newCompletedTableTimes = new Map(state.completedTableTimes);
 
-        // 만료된 테이블 찾기
         state.completedTableTimes.forEach((completedTime, tableId) => {
           if (now - completedTime >= countTime) {
             expiredTables.add(tableId);
@@ -392,14 +372,12 @@ export const useLiveOrderStore = create<LiveOrderState>()(
         });
 
         if (expiredTables.size > 0) {
-          // 만료된 테이블들을 페이드아웃 상태로 설정
           const updatedOrders = state.orders.map((order) =>
             expiredTables.has(order.order_id)
               ? { ...order, isFadingOut: true }
               : order
           );
 
-          // 페이드아웃 애니메이션 후 실제 제거
           setTimeout(() => {
             set((state) => ({
               orders: state.orders.filter(

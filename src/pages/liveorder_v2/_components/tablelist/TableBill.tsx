@@ -85,10 +85,8 @@ const TableBillContents = styled.div`
 
   background-color: ${({ theme }) => theme.colors.Bg};
 
-  /* 상단 모서리만 둥글게 */
   border-radius: 13px 13px 0 0;
 
-  /* 이미지와 겹치는 부분 처리 */
   position: relative;
   z-index: 1;
 `;
@@ -96,7 +94,7 @@ const TableBillContents = styled.div`
 const TableBillBottom = styled.img`
   display: block;
   width: 100%;
-  margin-top: -5px; /* 겹치는 부분 조정 */
+  margin-top: -5px;
   position: relative;
   z-index: 0;
 `;

@@ -1,8 +1,7 @@
 import * as S from "./LiveOrderPage.styled";
 import MenuList from "./_components/menulist/MenuList";
 import TableList from "./_components/tablelist/TableList";
-import { useLiveOrdersWebSocket } from "./hooks/useLiveOrdersWebSocket"; // 새로 만든 훅 임포트
-
+import { useLiveOrdersWebSocket } from "./hooks/useLiveOrdersWebSocket";
 const LiveOrderPage = () => {
   const accessToken = localStorage.getItem("accessToken");
   useLiveOrdersWebSocket(accessToken);
