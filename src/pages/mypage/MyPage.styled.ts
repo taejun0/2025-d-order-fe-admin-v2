@@ -289,6 +289,7 @@ export const LogoutContainer = styled.div`
     display: flex;
     gap: 0.375rem;
     margin-left: 0.75rem;
+    pointer: cursor;
 `
 
 export const LogoutImg = styled.img`

@@ -16,8 +16,8 @@ const CancelErrorModal: React.FC<Props> = ({ onClose}) => {
                 {/* {message && <p className="grayText">{message}</p>} */}
             </TextWrapper>
             <ButtonRow>
-            <ButtonSingle>
-                <button onClick={onClose}>확인</button>
+            <ButtonSingle onClick={onClose}>
+                <button >확인</button>
             </ButtonSingle>
             </ButtonRow>
         </Modal>
@@ -71,6 +71,8 @@ const ButtonRow = styled.div`
     justify-content: space-between;
     width: 100%;
     min-height: 3.5rem;
+    pointer: cursor;
+
 `;
 
 const ButtonSingle = styled.div`
@@ -82,5 +84,6 @@ const ButtonSingle = styled.div`
     button {
         color: ${({ theme }) => theme.colors.Orange01};
         ${({ theme }) => css(theme.fonts.Bold18)};
+        pointer: cursor;
     }
 `;
