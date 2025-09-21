@@ -106,31 +106,38 @@ export const useLiveOrderStore = create<LiveOrderState>()(
         }
 
         if (newStatus === "served") {
+          // 1) UI를 즉시 served로 반영 + 좌측 메뉴는 페이드아웃
           set((state) => ({
             orders: state.orders.map((order) =>
-              order.id === orderId ? { ...order, isFadingOut: true } : order
+              order.id === orderId
+                ? {
+                    ...order,
+                    status: "served" as OrderStatus,
+                    isFadingOut: true,
+                    servedAt: Date.now(),
+                  }
+                : order
             ),
           }));
-          await delay(ANIMATION_DURATION);
-          const ordersAfterItemServed = get().orders.map((order) =>
-            order.id === orderId
-              ? {
-                  ...order,
-                  status: "served" as OrderStatus,
-                  isFadingOut: false,
-                  servedAt: Date.now(),
-                }
-              : order
-          );
-          set({ orders: ordersAfterItemServed });
 
+          // 1-1) 좌측 메뉴 페이드 종료 후 isFadingOut 해제 (UI는 이미 served 상태)
+          setTimeout(() => {
+            set((state) => ({
+              orders: state.orders.map((order) =>
+                order.id === orderId ? { ...order, isFadingOut: false } : order
+              ),
+            }));
+          }, ANIMATION_DURATION);
+
+          // 2) 그룹 완료 체크 → 테이블 페이드아웃 → 하단 이동
           const orderGroupId = targetOrder.order_id;
-          const groupOrders = get().orders.filter(
+          const groupOrdersNow = get().orders.filter(
             (o) => o.order_id === orderGroupId
           );
-          const isGroupFullyServed = groupOrders.every(
+          const isGroupFullyServed = groupOrdersNow.every(
             (o) => o.status === "served"
           );
+
           if (isGroupFullyServed) {
             set((state) => ({
               fadingOutTables: new Set(state.fadingOutTables).add(orderGroupId),
@@ -138,7 +145,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
 
             await delay(ANIMATION_DURATION);
 
-            // 페이드아웃 완료 후 완료된 테이블로 표시하고 완료 시간 기록 (하단으로 이동)
             set((state) => ({
               fadingOutTables: new Set(
                 [...state.fadingOutTables].filter((id) => id !== orderGroupId)

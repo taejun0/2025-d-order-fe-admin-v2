@@ -45,8 +45,9 @@ const MenuList = () => {
       if (!aCompleted && bCompleted) return -1;
 
       // 같은 완료 상태 내에서는 시간순 정렬
-      const aServed = a.status === "served";
-      const bServed = b.status === "served";
+      // 페이드아웃 중인 항목은 'served'로 취급하지 않음 → 자리에서 먼저 페이드
+      const aServed = a.status === "served" && !a.isFadingOut;
+      const bServed = b.status === "served" && !b.isFadingOut;
       if (aServed && !bServed) return 1;
       if (!aServed && bServed) return -1;
 
