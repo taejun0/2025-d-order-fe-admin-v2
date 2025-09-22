@@ -8,6 +8,7 @@ export type DashboardResponse = {
     recent_orders: number;
     visitors: number;
     recent_visitors: number;
+    seatType: string;
     avg_wait_time: number;
     avg_table_usage: number;
     turnover_rate: number;
@@ -35,6 +36,7 @@ export type DashboardData = {
     recentOrders: number;
     visitors: number;
     recentVisitors: number;
+    seatType: string;
     avgWaitTimeMin: number;
     avgTableUsageMin: number;
     turnoverRate: number;
@@ -57,6 +59,7 @@ export type KPI = {
   totalOrders: number;
   recentOrders?: number;
   visitors: number;
+  seatType: string;
   recentVisitors?: number;
   avgTableUsageMin: number;
   turnoverRate?: number;

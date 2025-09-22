@@ -8,6 +8,7 @@ const EMPTY_KPI: KPI = {
   totalOrders: 0,
   recentOrders: 0,
   visitors: 0,
+  seatType: '',
   recentVisitors: 0,
   avgTableUsageMin: 0,
   turnoverRate: 0,
@@ -30,15 +31,28 @@ export default function KpiSection({ kpi }: Props) {
             </S.KpiNotePositive>
           </S.KpiContent>
         </S.KpiCard>
-        <S.KpiCard>
-          <S.KpiLabel>방문자 수</S.KpiLabel>
-          <S.KpiContent>
-            <S.KpiValue>{v.visitors}명</S.KpiValue>
-            <S.KpiNotePositive>
-              한 시간 전 대비 {v.recentVisitors ?? 0}명 증가
-            </S.KpiNotePositive>
-          </S.KpiContent>
-        </S.KpiCard>
+        {v.seatType === 'PT' ? (
+          <S.KpiCard>
+            <S.KpiLabel>방문 테이블</S.KpiLabel>
+            <S.KpiContent>
+              <S.KpiValue>{v.visitors}테이블</S.KpiValue>
+              <S.KpiNotePositive>
+                한 시간 전 대비 {v.recentVisitors ?? 0}테이블 증가
+              </S.KpiNotePositive>
+            </S.KpiContent>
+          </S.KpiCard>
+        ) : (
+          <S.KpiCard>
+            <S.KpiLabel>방문자 수</S.KpiLabel>
+            <S.KpiContent>
+              <S.KpiValue>{v.visitors}명</S.KpiValue>
+              <S.KpiNotePositive>
+                한 시간 전 대비 {v.recentVisitors ?? 0}명 증가
+              </S.KpiNotePositive>
+            </S.KpiContent>
+          </S.KpiCard>
+        )}
+
         <S.KpiCard>
           <S.KpiLabel>테이블 평균 이용 시간</S.KpiLabel>
           <S.KpiContent>

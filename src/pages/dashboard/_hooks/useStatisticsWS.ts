@@ -1,10 +1,10 @@
 // src/pages/Dashboard/_hooks/useStatisticsWSLite.ts
-import { useEffect, useRef } from 'react';
-import type { DashboardData } from '../_services/dashboard.types';
+import { useEffect, useRef } from "react";
+import type { DashboardData } from "../_services/dashboard.types";
 
-const TYPE_INIT = 'INIT_STATISTICS';
-const TYPE_PATCH = 'STATISTICS_UPDATED';
-const TYPE_ERROR = 'ERROR';
+const TYPE_INIT = "INIT_STATISTICS";
+const TYPE_PATCH = "STATISTICS_UPDATED";
+const TYPE_ERROR = "ERROR";
 
 type InitMsg = { type: typeof TYPE_INIT; data: DashboardData };
 type PatchMsg = { type: typeof TYPE_PATCH; data: Partial<DashboardData> };
@@ -23,15 +23,15 @@ export default function useStatisticsWSLite({
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem("accessToken");
     if (!token) {
-      console.error('[WS STAT] accessToken 없음');
+      console.error("[WS STAT] accessToken 없음");
       return;
     }
 
-    const base = (import.meta.env.VITE_WS_URL || '').replace(/\/$/, '');
+    const base = (import.meta.env.VITE_WS_URL || "").replace(/\/$/, "");
     if (!base) {
-      console.error('[WS STAT] VITE_WS_URL 비어있음');
+      console.error("[WS STAT] VITE_WS_URL 비어있음");
       return;
     }
 
@@ -40,15 +40,15 @@ export default function useStatisticsWSLite({
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log('[WS STAT] OPEN');
+      console.log("[WS STAT] OPEN");
       // 연결되자마자 REFRESH 요청
-      ws.send(JSON.stringify({ type: 'REFRESH' }));
+      ws.send(JSON.stringify({ type: "REFRESH" }));
     };
 
     ws.onmessage = (ev) => {
       try {
         const msg: WsMsg = JSON.parse(ev.data);
-
+        console.log("msg", msg);
         if (msg?.type === TYPE_INIT) {
           onInit(msg.data);
         } else if (msg?.type === TYPE_PATCH) {
@@ -56,7 +56,7 @@ export default function useStatisticsWSLite({
         } else if (msg?.type === TYPE_ERROR) {
           onError?.(msg.code, msg.message);
         } else {
-          console.log('[WS STAT] 알 수 없는 메시지:', msg);
+          console.log("[WS STAT] 알 수 없는 메시지:", msg);
         }
       } catch {
         // PONG 등 non-JSON 무시
@@ -64,7 +64,7 @@ export default function useStatisticsWSLite({
     };
 
     ws.onerror = (e) => {
-      console.error('[WS STAT] ERROR', e);
+      console.error("[WS STAT] ERROR", e);
     };
 
     ws.onclose = (ev) => {
@@ -82,7 +82,7 @@ export default function useStatisticsWSLite({
 
     return () => {
       try {
-        ws.close(1000, 'unmount');
+        ws.close(1000, "unmount");
       } catch {}
       wsRef.current = null;
     };
