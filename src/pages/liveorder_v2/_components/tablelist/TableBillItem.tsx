@@ -39,7 +39,7 @@ const TableBillItem = ({
               <OrderText>
                 <OrderSetWrapper>
                   {order.set_id && <SET>세트</SET>}
-                  {order.menu_name}
+                  <OrderNameText>{order.menu_name}</OrderNameText>
                 </OrderSetWrapper>
               </OrderText>
               <OrderText className="orderNum">수량: {order.menu_num}</OrderText>
@@ -120,6 +120,8 @@ const OrderTextWrapper = styled.div`
 const OrderSetWrapper = styled.div`
   display: flex;
   gap: 6px;
+  justify-content: flex-start;
+  align-items: center;
   width: 100%;
   min-width: 0;
 `;
@@ -135,6 +137,11 @@ const OrderText = styled.div`
 
   //말줄임
   /* max-width: 112px; */
+  flex: 1;
+  min-width: 0;
+`;
+
+const OrderNameText = styled.div`
   flex: 1;
   min-width: 0;
   white-space: nowrap;

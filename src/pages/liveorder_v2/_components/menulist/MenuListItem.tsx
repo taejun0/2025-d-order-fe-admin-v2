@@ -35,10 +35,10 @@ const MenuListItem = ({ order, onStatusChange }: MenuListItemProps) => {
       <MenuItemText>{time}</MenuItemText>
       <MenuItemText>{table}</MenuItemText>
       <MenuItemText style={{ flex: 2 }}>
-        <LEE>
+        <MenuItemSetWrapper>
           {order.set_id && <SET>세트</SET>}
-          <TEXT>{order.menu_name}</TEXT>
-        </LEE>
+          <SetText>{order.menu_name}</SetText>
+        </MenuItemSetWrapper>
       </MenuItemText>
       <MenuItemText>{order.menu_num}개</MenuItemText>
       <MenuItemText>
@@ -109,7 +109,7 @@ const MenuItemText = styled.div`
   min-width: 0;
 `;
 
-const LEE = styled.div`
+const MenuItemSetWrapper = styled.div`
   display: flex;
   gap: 6px;
   justify-content: center;
@@ -117,12 +117,15 @@ const LEE = styled.div`
   padding-left: 10px;
 
   width: 100%;
+
+  min-width: 0;
 `;
-const TEXT = styled.div`
+const SetText = styled.div`
   color: ${({ theme }) => theme.colors.Black01};
   ${({ theme }) => theme.fonts.Bold14}
 
-  max-width: 112px;
+  flex:1;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
