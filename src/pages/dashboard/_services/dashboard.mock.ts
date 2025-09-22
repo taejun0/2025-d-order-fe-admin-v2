@@ -1,4 +1,4 @@
-import { DashboardData } from './dashboard.types';
+import { DashboardData } from "./dashboard.types";
 
 export const dashboardMock: DashboardData = {
   kpi: {
@@ -6,6 +6,7 @@ export const dashboardMock: DashboardData = {
     recentOrders: 0,
     visitors: 0,
     recentVisitors: 0,
+    seatType: "",
     avgWaitTimeMin: 0,
     avgTableUsageMin: 0,
     turnoverRate: 0,
@@ -13,14 +14,14 @@ export const dashboardMock: DashboardData = {
     waitingCount: 0,
   },
   top3: [
-    { name: '--', image: '', price: 0, quantity: 0 },
-    { name: '--', image: '', price: 0, quantity: 0 },
-    { name: '--', image: '', price: 0, quantity: 0 },
+    { name: "--", image: "", price: 0, quantity: 0 },
+    { name: "--", image: "", price: 0, quantity: 0 },
+    { name: "--", image: "", price: 0, quantity: 0 },
   ],
   lowStock: [
-    { name: '--', image: '', price: 0, remaining: 0 },
-    { name: '--', image: '', price: 0, remaining: 0 },
-    { name: '--', image: '', price: 0, remaining: 0 },
+    { name: "--", image: "", price: 0, remaining: 0 },
+    { name: "--", image: "", price: 0, remaining: 0 },
+    { name: "--", image: "", price: 0, remaining: 0 },
   ],
   wait: {
     avgWaitTimeMin: 0,
