@@ -19,6 +19,7 @@ export default function LowStockSection({ items }: Props) {
                 src={m.imageUrl || DefaultImage}
                 onError={(e) => (e.currentTarget.src = DefaultImage)}
                 alt={m.name}
+                $isDefault={!m.imageUrl}
               />
               <S.Line>
                 <S.ItemName>{m.name}</S.ItemName>

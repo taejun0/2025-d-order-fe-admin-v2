@@ -7,7 +7,7 @@ export const Page = styled.main`
   grid-template-areas:
     'kpiL kpiL kpiL kpiL kpiL kpiL kpiL kpiL kpiL kpiR kpiR kpiR kpiR kpiR kpiR'
     'left left left left left left left left left wait wait wait wait wait wait'
-    'left left left left left left left left left none none none none none none';
+    'left left left left left left left left left money money money money money money';
   gap: 20px;
   padding: 20px;
 `;
@@ -109,6 +109,7 @@ export const Top3 = styled.section`
 export const SectionTitle = styled.h2`
   ${({ theme }) => theme.fonts.Medium14};
   color: ${({ theme }) => theme.colors.Black};
+  margin-bottom: 0.5rem;
 `;
 
 export const CardGrid = styled.div<{ columns: number }>`
@@ -168,10 +169,11 @@ export const RankingImage = styled.img`
   top: 1rem;
 `;
 
-export const Image = styled.img`
+export const Image = styled.img<{ $isDefault?: boolean }>`
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  aspect-ratio: 1 / 1;
+  object-fit: ${({ $isDefault }) => ($isDefault ? 'contain' : 'cover')};
 `;
 
 export const ItemName = styled.div`
@@ -195,11 +197,18 @@ export const ItemAmount = styled.div<{ $Focused?: boolean }>`
   justify-content: center;
 `;
 
+export const RightCol = styled.div`
+  grid-area: wait;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+`;
+
 /* 2~3행 우 - 대기시간 패널 */
 export const WaitPanel = styled.aside`
   border: 1px solid ${({ theme }) => theme.colors.Orange01};
-  grid-area: wait;
   display: flex;
+  width: 100%;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -211,9 +220,45 @@ export const WaitPanel = styled.aside`
   align-self: start;
 `;
 
+export const MoneyPanel = styled.aside`
+  border: 1px solid ${({ theme }) => theme.colors.Orange01};
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 1rem;
+  padding: 1rem;
+  gap: 0.5rem;
+
+  box-sizing: border-box;
+  align-self: start;
+`;
+
+export const MoneyCon = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+export const MoneyDay = styled.div`
+  display: flex;
+  align-items: center;
+  ${({ theme }) => theme.fonts.Medium14};
+  color: ${({ theme }) => theme.colors.Black};
+`;
+
+export const MoneyLine = styled.div`
+  width: 100%;
+  height: 1px;
+  background-color: ${({ theme }) => theme.colors.Orange01};
+`;
+
 export const Donut = styled.div`
   ${({ theme }) => theme.fonts.ExtraBold26};
   width: 70%;
+  min-width: 90px;
 
   font-size: 2.5rem;
   aspect-ratio: 1 / 1;
