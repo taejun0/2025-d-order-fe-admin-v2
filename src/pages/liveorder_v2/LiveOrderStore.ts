@@ -254,7 +254,6 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             return { orders: filteredOrders };
           });
         } else if (message.type === "ORDER_COMPLETED") {
-          console.log("✅ ORDER_COMPLETED 수신:", message.data);
           const { order_id, served_at } = message.data;
 
           set((state) => ({
@@ -303,29 +302,9 @@ export const useLiveOrderStore = create<LiveOrderState>()(
             });
           }, ANIMATION_DURATION);
         } else if (message.type === "ORDER_CANCELLED") {
-          console.log("❌ ORDER_CANCELLED 수신:", message.data);
-
           set((state) => {
-            console.log(
-              "현재 orders 상태:",
-              state.orders.map((order) => ({
-                id: order.id,
-                menu_name: order.menu_name,
-                menu_num: order.menu_num,
-              }))
-            );
-
             const updatedOrders = state.orders.filter(
               (order) => order.menu_num > 0
-            );
-
-            console.log(
-              " 취소 후 orders:",
-              updatedOrders.map((order) => ({
-                id: order.id,
-                menu_name: order.menu_name,
-                menu_num: order.menu_num,
-              }))
             );
 
             return { orders: updatedOrders };

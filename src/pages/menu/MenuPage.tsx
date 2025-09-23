@@ -30,15 +30,7 @@ const MenuPage = () => {
 
   useEffect(() => {
     fetchMenus();
-    console.log(boothMenuData);
   }, [onSuccess]);
-
-  // 추후 삭제
-  useEffect(() => {
-    if (boothMenuData) {
-      console.log(boothMenuData);
-    }
-  }, [boothMenuData]);
 
   // 테이블 이용료 정보 (BoothMenuData.table)
   const tableInfo: TableInfo | undefined = boothMenuData?.table;

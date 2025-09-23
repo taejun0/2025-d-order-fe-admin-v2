@@ -8,10 +8,14 @@ import {
 } from "../_apis/getTableStatus";
 
 const TAG = "%c[WS][useTableStatus]";
-const TAG_STYLE = "background:#444;color:#fff;padding:2px 6px;border-radius:4px";
-const OK = "%cOK";     const OK_STYLE = "color:#29a329;font-weight:700";
-const WARN = "%cWARN"; const WARN_STYLE = "color:#ff9800;font-weight:700";
-const ERR = "%cERR";   const ERR_STYLE = "color:#e53935;font-weight:700";
+const TAG_STYLE =
+  "background:#444;color:#fff;padding:2px 6px;border-radius:4px";
+const OK = "%cOK";
+const OK_STYLE = "color:#29a329;font-weight:700";
+const WARN = "%cWARN";
+const WARN_STYLE = "color:#ff9800;font-weight:700";
+const ERR = "%cERR";
+const ERR_STYLE = "color:#e53935;font-weight:700";
 
 export type UseTableStatusState = {
   connecting: boolean;
@@ -29,7 +33,9 @@ export function useTableStatus(): UseTableStatusState {
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expiredMap, setExpiredMap] = useState<Record<number, boolean>>({});
-  const [statusMap] = useState<Record<number, Omit<TableStatusItem, "tableNumber">>>({});
+  const [statusMap] = useState<
+    Record<number, Omit<TableStatusItem, "tableNumber">>
+  >({});
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
 
   const onOpen = useCallback(() => {
