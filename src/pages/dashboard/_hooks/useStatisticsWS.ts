@@ -40,7 +40,6 @@ export default function useStatisticsWSLite({
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log("[WS STAT] OPEN");
       // 연결되자마자 REFRESH 요청
       ws.send(JSON.stringify({ type: "REFRESH" }));
     };
@@ -48,15 +47,12 @@ export default function useStatisticsWSLite({
     ws.onmessage = (ev) => {
       try {
         const msg: WsMsg = JSON.parse(ev.data);
-        console.log("msg", msg);
         if (msg?.type === TYPE_INIT) {
           onInit(msg.data);
         } else if (msg?.type === TYPE_PATCH) {
           onPatch(msg.data);
         } else if (msg?.type === TYPE_ERROR) {
           onError?.(msg.code, msg.message);
-        } else {
-          console.log("[WS STAT] 알 수 없는 메시지:", msg);
         }
       } catch {
         // PONG 등 non-JSON 무시
@@ -68,9 +64,6 @@ export default function useStatisticsWSLite({
     };
 
     ws.onclose = (ev) => {
-      console.log(
-        `[WS STAT] CLOSE code=${ev.code} reason=${ev.reason} clean=${ev.wasClean}`
-      );
       wsRef.current = null;
       // 비정상 종료만 재연결 시도
       if (![1000, 1001].includes(ev.code)) {
