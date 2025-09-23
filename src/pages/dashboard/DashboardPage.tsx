@@ -4,6 +4,7 @@ import KpiSection from './_components/KpiSection';
 import Top3Section from './_components/Top3Section';
 import LowStockSection from './_components/LowStockSection';
 import WaitPanel from './_components/WaitPanel';
+import MoneyPanel from './_components/DayOfMoney';
 
 import { useDashboard } from './_hooks/useDashboard';
 import useStatisticsWSLite from './_hooks/useStatisticsWS';
@@ -68,7 +69,10 @@ const DashboardPage = () => {
         <Top3Section items={data.top3} />
         <LowStockSection items={data.lowStock} />
       </S.LeftCol>
-      <WaitPanel stat={data.wait} />
+      <S.RightCol>
+        <WaitPanel stat={data.wait} />
+        <MoneyPanel stat={data.money} />
+      </S.RightCol>
     </S.Page>
   );
 };

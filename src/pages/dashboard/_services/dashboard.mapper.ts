@@ -43,6 +43,11 @@ export function mapDashboardResponse(
     wait: {
       avgWaitTimeMin: d.avg_wait_time ?? 0,
     },
+    money: {
+      day1_revenue: d.day1_revenue ?? 0,
+      day2_revenue: d.day2_revenue ?? 0,
+      day3_revenue: d.day3_revenue ?? 0,
+    },
   };
 }
 
@@ -110,6 +115,12 @@ export function mergeDashboard(
       top3: patch.top3 ?? [],
       lowStock: patch.lowStock ?? [],
       wait: { avgWaitTimeMin: 0, ...(patch.wait ?? {}) },
+      money: {
+        day1_revenue: 0,
+        day2_revenue: 0,
+        day3_revenue: 0,
+        ...(patch.money ?? {}),
+      },
     };
   }
   return {
