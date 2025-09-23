@@ -53,6 +53,7 @@ export type DashboardData = {
   wait: {
     avgWaitTimeMin: number;
   };
+  money: DayOfMoney;
 };
 
 export type KPI = {
@@ -84,4 +85,10 @@ export type TopMenuItem = {
 export type WaitStat = {
   avgWaitTimeMin: number;
   // waitingCount: number;
+};
+
+export type DayOfMoney = {
+  day1_revenue: number;
+  day2_revenue: number;
+  day3_revenue: number;
 };
