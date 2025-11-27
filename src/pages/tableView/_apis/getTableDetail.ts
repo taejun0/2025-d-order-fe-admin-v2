@@ -1,5 +1,10 @@
 // tableView/_apis/getTableDetail.ts
 import { instance } from "@services/instance";
+import { mockTableList, delay } from "../../../mocks/mockData";
+import type { TableDetailData } from "./getTableDetail";
+
+// 목업 모드 활성화 (항상 목업 모드로 동작)
+const USE_MOCK = true;
 
 type RawOrder = {
   type?: "menu" | "setmenu" | string;
@@ -177,6 +182,68 @@ const orders: OrderDetail[] = Array.isArray(raw.orders)
 };
 /** ── API 함수 ────────────────────────────────────────────────────── */
 export const getTableDetail = async (tableNum: number): Promise<TableDetailResponse> => {
+  // ========== 목업 모드 ==========
+  if (USE_MOCK) {
+    await delay();
+    const table = mockTableList.find(t => t.tableNum === tableNum);
+    if (!table) {
+      throw new Error("존재하지 않는 테이블입니다.");
+    }
+    const mockDetail: TableDetailData = {
+      table_num: table.tableNum,
+      table_amount: table.amount,
+      table_status: table.status,
+      created_at: table.createdAt,
+      orders: table.latestOrders.map((order, idx) => ({
+        menu_image: null,
+        menu_name: order.name,
+        price: order.price || 0,
+        quantity: order.qty,
+        order_id: idx + 1,
+        order_item_id: idx + 1,
+      })),
+    };
+    return {
+      status: "success",
+      message: "테이블 상세 조회 성공",
+      code: 200,
+      data: mockDetail,
+    };
+  }
+  // ========== 실제 API 호출 (주석 처리) ==========
+  // try {
+  //   const res = await instance.get<RawResponse>(`/api/v2/booth/tables/${tableNum}/`);
+  //   const body = res.data as RawResponse;
+  //   // 오류 바디 케이스 (status 가 숫자)
+  //   if (typeof (body as any)?.status === "number") {
+  //     const errMsg =
+  //       (body as any)?.message ||
+  //       ((body as any)?.status === 401
+  //         ? "로그인이 필요합니다."
+  //         : (body as any)?.status === 404
+  //         ? "존재하지 않는 부스입니다."
+  //         : "서버 내부 오류가 발생했습니다.");
+  //     throw new Error(errMsg);
+  //   }
+  //   // 성공 바디 케이스
+  //   if (!("data" in body) || !body.data) {
+  //     throw new Error((body as any)?.message ?? "데이터가 비어 있습니다.");
+  //   }
+  //   const data = normalize(body.data);
+  //   return {
+  //     status: String(body.status ?? "success"),
+  //     message: body.message ?? "테이블 상세 조회 성공",
+  //     code: Number(body.code ?? 200),
+  //     data,
+  //   };
+  // } catch (e: any) {
+  //   const serverMsg =
+  //     e?.response?.data?.message ??
+  //     e?.message ??
+  //     "테이블 상세 조회 실패";
+  //   throw new Error(serverMsg);
+  // }
+  
   try {
     const res = await instance.get<RawResponse>(`/api/v2/booth/tables/${tableNum}/`);
     const body = res.data as RawResponse;

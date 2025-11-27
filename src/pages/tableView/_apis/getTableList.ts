@@ -1,5 +1,9 @@
 // tableView/_apis/getTableList.ts
 import { instance } from "@services/instance";
+import { mockTableList, delay } from "../../../mocks/mockData";
+
+// 목업 모드 활성화 (항상 목업 모드로 동작)
+const USE_MOCK = true;
 
 // ── 서버 원형(명세 + 예시 오타 허용)
 type RawLatestOrder = {
@@ -86,6 +90,32 @@ const normalize = (raw: RawTableItem): TableItem | null => {
 };
 
 export const getTableList = async (): Promise<TableListResponse> => {
+  // ========== 목업 모드 ==========
+  if (USE_MOCK) {
+    await delay();
+    return {
+      status: "success",
+      message: "테이블 목록 조회 성공",
+      code: 200,
+      data: mockTableList,
+    };
+  }
+  // ========== 실제 API 호출 (주석 처리) ==========
+  // const res = await instance.get<RawResponse>("/api/v2/booth/tables/");
+  // const body = res.data;
+  // if (!Array.isArray(body?.data)) {
+  //   throw new Error(body?.message ?? "데이터가 비어 있습니다.");
+  // }
+  // const data = body.data
+  //   .map(normalize)
+  //   .filter((v): v is TableItem => v !== null);
+  // return {
+  //   status: String(body.status ?? "success"),
+  //   message: body.message ?? "테이블 목록 조회 성공",
+  //   code: Number(body.code ?? 200),
+  //   data,
+  // };
+  
   const res = await instance.get<RawResponse>("/api/v2/booth/tables/");
   const body = res.data;
 

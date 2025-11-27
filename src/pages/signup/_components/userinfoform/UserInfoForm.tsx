@@ -3,12 +3,28 @@ import { instance } from '@services/instance';
 import { useState, useEffect, useCallback } from 'react';
 import CommonInput from '../inputs/CommonInput';
 import NextButton from '../buttons/NextButton';
+import { delay } from '../../../../mocks/mockData';
+
+// 목업 모드 활성화 (항상 목업 모드로 동작)
+const USE_MOCK = true;
 
 const isValidIdFormat = (id: string) => /^[a-z0-9]{6,12}$/.test(id);
 const isValidPasswordFormat = (pw: string) =>
   /^[a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]{4,20}$/.test(pw);
 
 const checkDuplicateId = async (id: string): Promise<boolean> => {
+  // ========== 목업 모드 ==========
+  if (USE_MOCK) {
+    await delay(300);
+    // 목업에서는 모든 ID를 사용 가능으로 처리
+    return true;
+  }
+  // ========== 실제 API 호출 (주석 처리) ==========
+  // const response = await instance.get('/api/v2/manager/check/', {
+  //   params: { username: id },
+  // });
+  // return response.data?.data?.is_available;
+  
   const response = await instance.get('/api/v2/manager/check/', {
     params: { username: id },
   });

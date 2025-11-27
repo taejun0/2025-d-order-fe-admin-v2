@@ -1,5 +1,9 @@
 // tableView/_apis/updateOrderQuantity.ts
 import { instance } from "@services/instance";
+import { delay } from "../../../mocks/mockData";
+
+// 목업 모드 활성화 (항상 목업 모드로 동작)
+const USE_MOCK = true;
 
 /** ── 새 취소 API 스펙 ───────────────────────────────────────────────
  * PATCH /api/v2/booth/orders/cancel/
@@ -71,6 +75,48 @@ export const updateOrderQuantity = async (
     throw new Error("부스 선택 정보가 없습니다. Booth-ID 헤더가 필요합니다.");
   }
 
+  // ========== 목업 모드 ==========
+  if (USE_MOCK) {
+    await delay();
+    const totalRefund = batches.reduce((sum, b) => sum + (b.quantity * 10000), 0);
+    return {
+      status: "success",
+      code: 200,
+      message: "주문 항목이 취소되었습니다.",
+      data: {
+        order_id: 1,
+        refund_total: totalRefund,
+        order_amount_after: 0,
+        booth_total_revenues: 1250000,
+        updated_items: batches.map((b, idx) => ({
+          order_item_id: b.order_item_ids[0],
+          menu_name: `메뉴 ${idx + 1}`,
+          rest_quantity: 0,
+          restored_stock: b.quantity,
+          refund: b.quantity * 10000,
+          table_num: 1,
+        })),
+      },
+    };
+  }
+  // ========== 실제 API 호출 (주석 처리) ==========
+  // try {
+  //   const res = await instance.patch<CancelOrderResponse>(
+  //     `/api/v2/booth/orders/cancel/`,
+  //     { cancel_items: batches },
+  //     { headers: { "Booth-ID": String(boothId) } }
+  //   );
+  //   return res.data;
+  // } catch (e: any) {
+  //   const msg =
+  //     e?.response?.data?.message ||
+  //     (e?.response?.status === 403 ? "해당 부스 운영자가 아닙니다." : null) ||
+  //     (e?.response?.status === 404 ? "해당 주문을 찾을 수 없습니다." : null) ||
+  //     e?.message ||
+  //     "주문 항목 취소/수량 변경에 실패했습니다.";
+  //   throw new Error(msg);
+  // }
+  
   try {
     const res = await instance.patch<CancelOrderResponse>(
       `/api/v2/booth/orders/cancel/`,
