@@ -5,7 +5,7 @@ import basicSsl from '@vitejs/plugin-basic-ssl';
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), basicSsl()],
-  base: '/',
+  base: process.env.NODE_ENV === 'production' ? '/2025-d-order-fe-admin-v2/' : '/',
   server: {
     // https: true,
     port: 5173,
