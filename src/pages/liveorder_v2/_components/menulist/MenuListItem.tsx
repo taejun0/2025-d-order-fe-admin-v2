@@ -23,8 +23,11 @@ const MenuListItem = ({ order, onStatusChange }: MenuListItemProps) => {
       <MenuImg>
         {order.menu_image ? (
           <MenuImage
-            src={`${import.meta.env.VITE_BASE_URL}${order.menu_image}`}
+            src={order.menu_image.startsWith('http') ? order.menu_image : order.menu_image}
             alt={order.menu_name}
+            onError={(e) => {
+              e.currentTarget.src = IMAGE_CONSTANTS.CHARACTER;
+            }}
           />
         ) : (
           <DefaultOrderImage>
