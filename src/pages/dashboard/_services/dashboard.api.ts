@@ -1,6 +1,10 @@
 // src/pages/Dashboard/_services/dashboard.api.ts
 import { instance } from "@services/instance";
 import type { DashboardResponse } from "./dashboard.types";
+import { mockDashboardResponse, delay } from "../../../mocks/mockData";
+
+// 목업 모드 활성화 (항상 목업 모드로 동작)
+const USE_MOCK = true;
 
 const REST_ENDPOINT = "/api/v2/statistic/";
 
@@ -15,6 +19,18 @@ function getBoothIdStrict(): string {
 }
 
 export async function fetchDashboard(): Promise<DashboardResponse> {
+  // ========== 목업 모드 ==========
+  if (USE_MOCK) {
+    await delay();
+    return mockDashboardResponse;
+  }
+  // ========== 실제 API 호출 (주석 처리) ==========
+  // const boothId = getBoothIdStrict();
+  // const res = await instance.get(REST_ENDPOINT, {
+  //   headers: { "Booth-ID": boothId },
+  // });
+  // return res.data as DashboardResponse;
+  
   const boothId = getBoothIdStrict();
 
   const res = await instance.get(REST_ENDPOINT, {

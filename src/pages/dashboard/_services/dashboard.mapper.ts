@@ -29,14 +29,14 @@ export function mapDashboardResponse(
       waitingCount: d.waiting_count ?? 0,
     },
     top3: (d.top3_menus ?? []).map((m: any) => ({
-      name: m?.menu__menu_name ?? '',
-      imageUrl: withImageBase(m.menu__menu_image) ?? '',
-      price: m?.menu__menu_price ?? 0,
+      name: m?.menu__menu_name ?? m?.menu_name ?? '',
+      imageUrl: (withImageBase(m.menu__menu_image ?? m.menu_image) ?? '') || '/images/Pizza.png',
+      price: m?.menu__menu_price ?? m?.price ?? 0,
       quantity: m?.total_quantity ?? 0,
     })),
     lowStock: (d.low_stock ?? []).map((s: any) => ({
       name: s?.menu_name ?? '',
-      imageUrl: s?.menu_image ?? '',
+      imageUrl: (s?.menu_image ?? '') || '/images/cola.png',
       price: s?.menu_price ?? 0,
       remaining: s?.remaining ?? 0,
     })),
@@ -73,9 +73,9 @@ export function mapDashboardPatch(res: any): Partial<DashboardData> {
 
   if ('top3_menus' in d) {
     patch.top3 = (d.top3_menus ?? []).map((m: any) => ({
-      name: m?.menu__menu_name ?? '',
-      imageUrl: m?.menu__menu_image ?? '',
-      price: m?.menu__menu_price ?? 0,
+      name: m?.menu__menu_name ?? m?.menu_name ?? '',
+      imageUrl: (m?.menu__menu_image ?? m?.menu_image) || '/images/Pizza.png',
+      price: m?.menu__menu_price ?? m?.price ?? 0,
       quantity: m?.total_quantity ?? 0,
     }));
   }
@@ -83,7 +83,7 @@ export function mapDashboardPatch(res: any): Partial<DashboardData> {
   if ('low_stock' in d) {
     patch.lowStock = (d.low_stock ?? []).map((s: any) => ({
       name: s?.menu_name ?? '',
-      imageUrl: s?.menu_image ?? '',
+      imageUrl: (s?.menu_image ?? '') || '/images/cola.png',
       price: s?.menu_price ?? 0,
       remaining: s?.remaining ?? 0,
     }));
