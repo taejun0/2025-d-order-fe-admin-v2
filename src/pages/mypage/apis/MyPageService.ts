@@ -15,8 +15,8 @@ export interface My {
   depositor: string;
   bank: string;
   seat_type: string;
-  seat_tax_person: number;
-  seat_tax_table: number;
+  seat_tax_person: number | null;
+  seat_tax_table: number | null;
 }
 
 export interface MyResponse {

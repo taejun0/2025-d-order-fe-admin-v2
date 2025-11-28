@@ -1,7 +1,6 @@
 // tableView/_apis/getTableDetail.ts
 import { instance } from "@services/instance";
 import { mockTableList, delay } from "../../../mocks/mockData";
-import type { TableDetailData } from "./getTableDetail";
 
 // 목업 모드 활성화 (항상 목업 모드로 동작)
 const USE_MOCK = true;

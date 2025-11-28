@@ -2,20 +2,16 @@
 import { LiveOrderWebSocketMessage, OrderSnapshotMessage } from "../types";
 import { mockOrderItems } from "../../../mocks/mockData";
 
-// 목업 모드 활성화 (항상 목업 모드로 동작)
-const USE_MOCK = true;
-
 // 스토어 상태를 업데이트할 콜백 함수 타입 정의
 type UpdateStoreCallback = (message: LiveOrderWebSocketMessage) => void;
 
 class LiveOrderWebSocketService {
-  private ws: WebSocket | null = null;
-  private readonly wsUrl: string;
   private updateStore: UpdateStoreCallback;
   private mockInterval: NodeJS.Timeout | null = null; // 목업용 인터벌
 
-  constructor(accessToken: string, updateStore: UpdateStoreCallback) {
-    this.wsUrl = `wss://api.test-d-order.store/ws/orders/?token=${accessToken}`;
+  constructor(_accessToken: string, updateStore: UpdateStoreCallback) {
+    // 목업 모드에서는 accessToken, wsUrl, ws를 사용하지 않음
+    // this.wsUrl = `wss://api.test-d-order.store/ws/orders/?token=${accessToken}`;
     this.updateStore = updateStore;
   }
 
