@@ -1,5 +1,9 @@
 // mypage/api/getManager.ts
 import axios, { AxiosError } from "axios";
+import { mockMyPageData, delay } from "../../../mocks/mockData";
+
+// 목업 모드 활성화 (항상 목업 모드로 동작)
+const USE_MOCK = true;
 
 /** 좌석 과금 타입 */
 export type SeatType = "PT" | "PP" | "NO"; // Per Table / Per Person / No Seat Tax
@@ -97,6 +101,26 @@ function normalizeAndThrow(error: unknown): never {
 export async function getManagerInfo(params?: {
   token?: string;
 }): Promise<ApiEnvelope<ManagerInfo>> {
+  // ========== 목업 모드 ==========
+  if (USE_MOCK) {
+    await delay();
+    return {
+      message: '운영자 정보 조회 성공',
+      code: 200,
+      data: mockMyPageData as ManagerInfo,
+    };
+  }
+  // ========== 실제 API 호출 (주석 처리) ==========
+  // try {
+  //   const res = await api.get<ApiEnvelope<ManagerInfo>>(
+  //     "/api/v2/manager/mypage/",
+  //     { headers: authHeaders(params?.token) }
+  //   );
+  //   return res.data;
+  // } catch (e) {
+  //   normalizeAndThrow(e);
+  // }
+  
   try {
     const res = await api.get<ApiEnvelope<ManagerInfo>>(
       "/api/v2/manager/mypage/",

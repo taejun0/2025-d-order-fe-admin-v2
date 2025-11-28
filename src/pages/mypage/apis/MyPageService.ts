@@ -1,5 +1,9 @@
 import { AxiosResponse } from "axios";
 import { instance } from "../../../services/instance";
+import { mockMyPageData, delay } from "../../../mocks/mockData";
+
+// 목업 모드 활성화 (항상 목업 모드로 동작)
+const USE_MOCK = true;
 
 export interface My {
   user: number;
@@ -23,6 +27,21 @@ export interface MyResponse {
 
 class MyPageService {
   static async getMyPage(): Promise<My> {
+    // ========== 목업 모드 ==========
+    if (USE_MOCK) {
+      await delay();
+      return mockMyPageData;
+    }
+    // ========== 실제 API 호출 (주석 처리) ==========
+    // try {
+    //   const response: AxiosResponse<MyResponse> = await instance.get(
+    //     "/api/manager/mypage/"
+    //   );
+    //   return response.data.data;
+    // } catch (error) {
+    //   throw error;
+    // }
+    
     try {
       const response: AxiosResponse<MyResponse> = await instance.get(
         "/api/manager/mypage/"
@@ -35,6 +54,22 @@ class MyPageService {
   }
 
   static async updateMyPage(data: Partial<My>): Promise<My> {
+    // ========== 목업 모드 ==========
+    if (USE_MOCK) {
+      await delay();
+      return { ...mockMyPageData, ...data };
+    }
+    // ========== 실제 API 호출 (주석 처리) ==========
+    // try {
+    //   const response: AxiosResponse<MyResponse> = await instance.patch(
+    //     `/api/manager/mypage/`,
+    //     data
+    //   );
+    //   return response.data.data;
+    // } catch (error) {
+    //   throw error;
+    // }
+    
     try {
       const response: AxiosResponse<MyResponse> = await instance.patch(
         `/api/manager/mypage/`,
@@ -47,6 +82,36 @@ class MyPageService {
   }
 
   static async downloadQrCode(booth_id: number): Promise<void> {
+    // ========== 목업 모드 ==========
+    if (USE_MOCK) {
+      await delay();
+      console.log(`[MOCK] QR 코드 다운로드 시뮬레이션 (booth_id: ${booth_id})`);
+      return;
+    }
+    // ========== 실제 API 호출 (주석 처리) ==========
+    // try {
+    //   const response = await instance.get(
+    //     `/api/booth/qr-download/?booth_id=${booth_id}`,
+    //     {
+    //       responseType: "blob",
+    //     }
+    //   );
+    //   const blob = new Blob([response.data]);
+    //   const url = URL.createObjectURL(blob);
+    //   const a = document.createElement("a");
+    //   a.href = url;
+    //   a.download = `qr-code-${booth_id}.png`;
+    //   document.body.appendChild(a);
+    //   a.click();
+    //   setTimeout(() => {
+    //     document.body.removeChild(a);
+    //     URL.revokeObjectURL(url);
+    //   }, 100);
+    //   return;
+    // } catch (error) {
+    //   throw error;
+    // }
+    
     try {
       // 로그아웃 API 호출 - responseType: 'blob'로 설정하여 바이너리 데이터 받기
       const response = await instance.get(
@@ -82,6 +147,32 @@ class MyPageService {
   }
 
   static async logout(): Promise<void> {
+    // ========== 목업 모드 ==========
+    if (USE_MOCK) {
+      await delay();
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("Booth-ID");
+      return;
+    }
+    // ========== 실제 API 호출 (주석 처리) ==========
+    // try {
+    //   const refreshToken = localStorage.getItem("refreshToken");
+    //   const payload = refreshToken ? { refresh: refreshToken } : {};
+    //   const response = await instance.post("/api/manager/logout/", payload);
+    //   if (response.status === 200) {
+    //     localStorage.removeItem("accessToken");
+    //     localStorage.removeItem("refreshToken");
+    //     return;
+    //   } else {
+    //     throw new Error(`로그아웃 실패: ${response.status}`);
+    //   }
+    // } catch (error) {
+    //   localStorage.removeItem("accessToken");
+    //   localStorage.removeItem("refreshToken");
+    //   throw error;
+    // }
+    
     try {
       // refresh 토큰 가져오기 시도
       const refreshToken = localStorage.getItem("refreshToken");
