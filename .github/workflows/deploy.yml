@@ -38,6 +38,9 @@ jobs:
           VITE_BASE_URL: ${{ secrets.VITE_BASE_URL || '' }}
           VITE_WS_URL: ${{ secrets.VITE_WS_URL || '' }}
 
+      - name: Create 404.html for SPA routing
+        run: cp dist/index.html dist/404.html
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

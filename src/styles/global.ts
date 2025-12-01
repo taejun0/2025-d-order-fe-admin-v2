@@ -1,4 +1,4 @@
-import { createGlobalStyle } from "styled-components";
+import { createGlobalStyle } from 'styled-components';
 
 const baseUrl = import.meta.env.BASE_URL;
 
