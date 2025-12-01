@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import basicSsl from '@vitejs/plugin-basic-ssl';
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react(), basicSsl()],
-  base: process.env.NODE_ENV === 'production' ? '/2025-d-order-fe-admin-v2/' : '/',
+  base: command === 'build' ? '/2025-d-order-fe-admin-v2/' : '/',
   server: {
     // https: true,
     port: 5173,
@@ -23,4 +23,4 @@ export default defineConfig({
       '@mocks': path.resolve(__dirname, 'src/mocks'),
     },
   },
-});
+}));
