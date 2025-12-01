@@ -2,6 +2,7 @@
 import { DashboardData, DashboardResponse } from './dashboard.types';
 
 const API_BASE = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '';
+const baseUrl = import.meta.env.BASE_URL;
 
 function withImageBase(url: string | null): string | null {
   if (!url) return null;
@@ -30,13 +31,13 @@ export function mapDashboardResponse(
     },
     top3: (d.top3_menus ?? []).map((m: any) => ({
       name: m?.menu__menu_name ?? m?.menu_name ?? '',
-      imageUrl: (withImageBase(m.menu__menu_image ?? m.menu_image) ?? '') || '/images/Pizza.png',
+      imageUrl: (withImageBase(m.menu__menu_image ?? m.menu_image) ?? '') || `${baseUrl}images/Pizza.png`,
       price: m?.menu__menu_price ?? m?.price ?? 0,
       quantity: m?.total_quantity ?? 0,
     })),
     lowStock: (d.low_stock ?? []).map((s: any) => ({
       name: s?.menu_name ?? '',
-      imageUrl: (s?.menu_image ?? '') || '/images/cola.png',
+      imageUrl: (s?.menu_image ?? '') || `${baseUrl}images/cola.png`,
       price: s?.menu_price ?? 0,
       remaining: s?.remaining ?? 0,
     })),
@@ -74,7 +75,7 @@ export function mapDashboardPatch(res: any): Partial<DashboardData> {
   if ('top3_menus' in d) {
     patch.top3 = (d.top3_menus ?? []).map((m: any) => ({
       name: m?.menu__menu_name ?? m?.menu_name ?? '',
-      imageUrl: (m?.menu__menu_image ?? m?.menu_image) || '/images/Pizza.png',
+      imageUrl: (m?.menu__menu_image ?? m?.menu_image) || `${baseUrl}images/Pizza.png`,
       price: m?.menu__menu_price ?? m?.price ?? 0,
       quantity: m?.total_quantity ?? 0,
     }));
@@ -83,7 +84,7 @@ export function mapDashboardPatch(res: any): Partial<DashboardData> {
   if ('low_stock' in d) {
     patch.lowStock = (d.low_stock ?? []).map((s: any) => ({
       name: s?.menu_name ?? '',
-      imageUrl: (s?.menu_image ?? '') || '/images/cola.png',
+      imageUrl: (s?.menu_image ?? '') || `${baseUrl}images/cola.png`,
       price: s?.menu_price ?? 0,
       remaining: s?.remaining ?? 0,
     }));

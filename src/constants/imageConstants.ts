@@ -45,10 +45,13 @@ import Down from "@assets/icons/down.svg";
 import minus from "@assets/icons/minus.svg";
 import minusActive from "@assets/icons/minusActive.png";
 import plus from "@assets/icons/add.svg";
+
+const baseUrl = import.meta.env.BASE_URL;
+
 export const IMAGE_CONSTANTS = {
-  LOGO: "/images/Logo.png",
-  LOGO2: "/images/Logo2.png",
-  CHARACTER: "/images/Character.png",
+  LOGO: `${baseUrl}images/Logo.png`,
+  LOGO2: `${baseUrl}images/Logo2.png`,
+  CHARACTER: `${baseUrl}images/Character.png`,
 
   FOOD_PIZZA: "https://cdn-icons-png.flaticon.com/512/6978/6978255.png",
   FOOD_STEAK: "https://cdn-icons-png.flaticon.com/512/3480/3480618.png",

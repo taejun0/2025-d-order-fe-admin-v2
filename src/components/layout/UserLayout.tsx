@@ -1,7 +1,9 @@
 import { Outlet } from 'react-router-dom';
 import styled from 'styled-components';
 import useAuthRedirect from '@hooks/useAuthRedirect';
-import backIMAGES from '/images/background.webp';
+
+const baseUrl = import.meta.env.BASE_URL;
+const backIMAGES = `${baseUrl}images/background.webp`;
 
 const UserLayout = () => {
   useAuthRedirect();

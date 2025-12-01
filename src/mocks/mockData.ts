@@ -13,6 +13,8 @@ import type {
 import type { DashboardResponse } from '../pages/dashboard/_services/dashboard.types';
 import type { TableItem } from '../pages/tableView/_apis/getTableList';
 
+const baseUrl = import.meta.env.BASE_URL;
+
 // 로그인 목업 데이터
 export const mockLoginResponse: LoginResponse = {
   message: '로그인 성공',
@@ -46,7 +48,7 @@ export const mockMenus: Menu[] = [
     menu_category: '피자',
     menu_price: 25000,
     menu_amount: 50,
-    menu_image: '/images/Pizza.png',
+    menu_image: `${baseUrl}images/Pizza.png`,
     is_selling: true,
     is_sold_out: false,
   },
@@ -58,7 +60,7 @@ export const mockMenus: Menu[] = [
     menu_category: '피자',
     menu_price: 22000,
     menu_amount: 30,
-    menu_image: '/images/Pizza.png',
+    menu_image: `${baseUrl}images/Pizza.png`,
     is_selling: true,
     is_sold_out: false,
   },
@@ -70,7 +72,7 @@ export const mockMenus: Menu[] = [
     menu_category: '피자',
     menu_price: 20000,
     menu_amount: 20,
-    menu_image: '/images/Pizza.png',
+    menu_image: `${baseUrl}images/Pizza.png`,
     is_selling: true,
     is_sold_out: false,
   },
@@ -82,7 +84,7 @@ export const mockMenus: Menu[] = [
     menu_category: '음료',
     menu_price: 2000,
     menu_amount: 100,
-    menu_image: '/images/cola.png',
+    menu_image: `${baseUrl}images/cola.png`,
     is_selling: true,
     is_sold_out: false,
   },
@@ -94,7 +96,7 @@ export const mockMenus: Menu[] = [
     menu_category: '음료',
     menu_price: 2000,
     menu_amount: 5,
-    menu_image: '/images/cola.png',
+    menu_image: `${baseUrl}images/cola.png`,
     is_selling: true,
     is_sold_out: false,
   },
@@ -107,7 +109,7 @@ export const mockSetMenus: SetMenu[] = [
     set_category: '세트',
     set_name: '피자 세트 A',
     set_description: '피자 + 콜라',
-    set_image: '/images/Pizza.png',
+    set_image: `${baseUrl}images/Pizza.png`,
     set_price: 26000,
     origin_price: 27000,
     is_sold_out: false,
@@ -217,19 +219,19 @@ export const mockDashboardResponse: DashboardResponse = {
     top3_menus: [
       {
         menu_name: '불고기 피자',
-        menu_image: '/images/Pizza.png',
+        menu_image: `${baseUrl}images/Pizza.png`,
         price: 25000,
         total_quantity: 45,
       },
       {
         menu_name: '페퍼로니 피자',
-        menu_image: '/images/Pizza.png',
+        menu_image: `${baseUrl}images/Pizza.png`,
         price: 22000,
         total_quantity: 38,
       },
       {
         menu_name: '마르게리타 피자',
-        menu_image: '/images/Pizza.png',
+        menu_image: `${baseUrl}images/Pizza.png`,
         price: 20000,
         total_quantity: 32,
       },
@@ -237,13 +239,13 @@ export const mockDashboardResponse: DashboardResponse = {
     low_stock: [
       {
         menu_name: '사이다',
-        menu_image: '/images/cola.png',
+        menu_image: `${baseUrl}images/cola.png`,
         price: 2000,
         remaining: 5,
       },
       {
         menu_name: '콜라',
-        menu_image: '/images/cola.png',
+        menu_image: `${baseUrl}images/cola.png`,
         price: 2000,
         remaining: 10,
       },
@@ -316,7 +318,7 @@ export const mockOrderItems = [
     order_id: 1,
     menu_id: 1,
     menu_name: '불고기 피자',
-    menu_image: '/images/Pizza.png',
+    menu_image: `${baseUrl}images/Pizza.png`,
     quantity: 2,
     status: 'pending' as const,
     created_at: new Date().toISOString(),
@@ -330,7 +332,7 @@ export const mockOrderItems = [
     order_id: 1,
     menu_id: 4,
     menu_name: '콜라',
-    menu_image: '/images/cola.png',
+    menu_image: `${baseUrl}images/cola.png`,
     quantity: 2,
     status: 'pending' as const,
     created_at: new Date().toISOString(),
@@ -344,7 +346,7 @@ export const mockOrderItems = [
     order_id: 2,
     menu_id: 2,
     menu_name: '페퍼로니 피자',
-    menu_image: '/images/Pizza.png',
+    menu_image: `${baseUrl}images/Pizza.png`,
     quantity: 1,
     status: 'cooked' as const,
     created_at: new Date(Date.now() - 300000).toISOString(),

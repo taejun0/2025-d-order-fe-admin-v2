@@ -1,67 +1,69 @@
 import { createGlobalStyle } from "styled-components";
 
+const baseUrl = import.meta.env.BASE_URL;
+
 const GlobalStyle = createGlobalStyle`
 // 폰트설정
 /* SUIT 폰트 설정 */
 @font-face {
   font-family: 'SUIT-ExtraBold';
-  src: url('/fonts/SUIT-ExtraBold.otf') format('opentype');
+  src: url('${baseUrl}fonts/SUIT-ExtraBold.otf') format('opentype');
   font-weight: 800;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'SUIT-Bold';
-  src: url('/fonts/SUIT-Bold.otf') format('opentype');
+  src: url('${baseUrl}fonts/SUIT-Bold.otf') format('opentype');
   font-weight: 700;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'SUIT-SemiBold';
-  src: url('/fonts/SUIT-SemiBold.otf') format('opentype');
+  src: url('${baseUrl}fonts/SUIT-SemiBold.otf') format('opentype');
   font-weight: 600;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'SUIT-Medium';
-  src: url('/fonts/SUIT-Medium.otf') format('opentype');
+  src: url('${baseUrl}fonts/SUIT-Medium.otf') format('opentype');
   font-weight: 500;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'SUIT-Regular';
-  src: url('/fonts/SUIT-Regular.otf') format('opentype');
+  src: url('${baseUrl}fonts/SUIT-Regular.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'SUIT-Light';
-  src: url('/fonts/SUIT-Light.otf') format('opentype');
+  src: url('${baseUrl}fonts/SUIT-Light.otf') format('opentype');
   font-weight: 300;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'SUIT-ExtraLight';
-  src: url('/fonts/SUIT-ExtraLight.otf') format('opentype');
+  src: url('${baseUrl}fonts/SUIT-ExtraLight.otf') format('opentype');
   font-weight: 200;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'SUIT-Thin';
-  src: url('/fonts/SUIT-Thin.otf') format('opentype');
+  src: url('${baseUrl}fonts/SUIT-Thin.otf') format('opentype');
   font-weight: 100;
   font-style: normal;
 }
 
 @font-face {
     font-family:"OmyuPretty";
-    src: url("/fonts/omyu-pretty.ttf");
+    src: url("${baseUrl}fonts/omyu-pretty.ttf");
 }
 
 // 초기 html 설정
