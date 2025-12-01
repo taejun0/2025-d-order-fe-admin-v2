@@ -26,7 +26,8 @@ const LayoutWithAnalytics = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+  [
   {
     element: (
       <LayoutWithAnalytics>
@@ -55,6 +56,10 @@ const router = createBrowserRouter([
       { path: ROUTE_PATHS.SIGNUP, element: <SignupPage /> },
     ],
   },
-]);
+  ],
+  {
+    basename: import.meta.env.PROD ? '/2025-d-order-fe-admin-v2' : '/',
+  }
+);
 
 export default router;
