@@ -21,7 +21,7 @@
 | **프레임워크**      | React 19 + TypeScript |
 | **빌드 도구**       | Vite 6                |
 | **스타일링**        | Styled Components     |
-| **상태 관리**       | Zustand               |
+| **상태 관리**       | Zustand -> API         |
 | **라우팅**          | React Router DOM 7    |
 | **HTTP 클라이언트** | Axios                 |
 
@@ -36,7 +36,7 @@ npm install
 npm run dev
 ```
 
-`https://localhost:5173`에서 바로 확인할 수 있습니다.
+`http://localhost:5173`에서 바로 확인할 수 있습니다.
 
 ---
 
@@ -330,8 +330,7 @@ WebSocket 기반 실시간 통계 대시보드
 - `useStatisticsWS`: WebSocket 통계 수신 및 메시지 처리
 
 **화면 미리보기:**
-
-![대시보드 실시간 업데이트](./docs/gifs/dashboard-realtime.gif)
+![대시보드 실시간 업데이트](https://github.com/user-attachments/assets/b8aac783-d4d1-422b-a02e-1dd188bb46f1)
 
 ---
 
@@ -358,7 +357,7 @@ WebSocket 기반 실시간 통계 대시보드
 
 **화면 미리보기:**
 
-![실시간 주문 처리](./docs/gifs/liveorder-realtime.gif)
+![실시간 주문 처리](https://github.com/user-attachments/assets/c46f36e2-9ac2-40e1-aa01-0b1608bd83f2)
 
 ---
 
@@ -379,7 +378,7 @@ WebSocket 기반 실시간 통계 대시보드
 
 **화면 미리보기:**
 
-![테이블 관리](./docs/gifs/table-management.gif)
+![테이블 관리](https://github.com/user-attachments/assets/2f81b86f-432c-40ab-bb99-90527d424b7d)
 
 ---
 
@@ -401,7 +400,7 @@ WebSocket 기반 실시간 통계 대시보드
 
 **화면 미리보기:**
 
-![메뉴 관리](./docs/gifs/menu-management.gif)
+![메뉴 관리](https://github.com/user-attachments/assets/2362878a-7868-4fb4-b761-895cd9714b7e)
 
 ---
 
@@ -430,7 +429,7 @@ WebSocket 기반 실시간 통계 대시보드
 
 **화면 미리보기:**
 
-![쿠폰 관리](./docs/gifs/coupon-management.gif)
+![쿠폰 관리](https://github.com/user-attachments/assets/e3fdaad8-c9a6-47cb-be57-7e22e8717a79)
 
 ---
 
@@ -458,11 +457,11 @@ WebSocket 기반 실시간 통계 대시보드
 
 **화면 미리보기:**
 
-![마이페이지](./docs/gifs/mypage.gif)
+![마이페이지](https://github.com/user-attachments/assets/b83c7d5d-3304-4168-bd2a-dda10647d86a)
 
 ---
 
-### 🔐 로그인 (`/login`)
+### 🔐 유저 (`/login` & `/signup`)
 
 **기능:**
 
@@ -480,7 +479,7 @@ WebSocket 기반 실시간 통계 대시보드
 
 **화면 미리보기:**
 
-![로그인](./docs/gifs/login.gif)
+![로그인 및 회원가입](https://github.com/user-attachments/assets/b6dbf8b8-918e-4833-a68c-ff47ce24dc7d)
 
 ---
 
@@ -633,41 +632,3 @@ VITE_BASE_URL=https://api.example.com
 # WebSocket URL
 VITE_WS_URL=wss://api.example.com
 ```
-
----
-
-## 📸 화면 미리보기
-
-각 페이지의 주요 기능을 GIF로 확인할 수 있습니다:
-
-| 페이지      | GIF 파일                           | 설명                              |
-| ----------- | ---------------------------------- | --------------------------------- |
-| 대시보드    | `docs/gifs/dashboard-realtime.gif` | 실시간 통계 업데이트              |
-| 실시간 주문 | `docs/gifs/liveorder-realtime.gif` | 주문 상태 변경 및 실시간 업데이트 |
-| 테이블 관리 | `docs/gifs/table-management.gif`   | 테이블 조회 및 리셋               |
-| 메뉴 관리   | `docs/gifs/menu-management.gif`    | 메뉴 CRUD 작업                    |
-| 쿠폰 관리   | `docs/gifs/coupon-management.gif`  | 쿠폰 생성 및 코드 발급            |
-| 마이페이지  | `docs/gifs/mypage.gif`             | 부스 정보 수정                    |
-| 로그인      | `docs/gifs/login.gif`              | 로그인 플로우                     |
-
-> 💡 **GIF 추가 방법**:
->
-> 1. `docs/gifs/` 폴더에 GIF 파일 추가
-> 2. 파일명은 위 표의 이름과 동일하게 설정
-> 3. README의 각 페이지 섹션에 자동으로 표시됩니다
-
----
-
-## 📄 라이선스
-
-2025 동국대학교 축제 주점운영서비스 D-order 프로젝트입니다.
-
----
-
-## 🤝 기여하기
-
-버그를 찾았거나 기능을 추가하고 싶다면 언제든지 PR 보내주세요! 🎉
-
----
-
-**Happy Coding!** 💻✨
